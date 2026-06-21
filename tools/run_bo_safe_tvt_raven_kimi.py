@@ -1,4 +1,4 @@
-"""BO list battle_cruisers experiment with Kimi-k2.5 executor (no thinking)."""
+"""BO list safe_tvt_raven with Kimi-k2.5 executor (no thinking)."""
 
 from __future__ import annotations
 
@@ -13,19 +13,19 @@ import run_vs_ai
 
 
 def short_match_id(**kwargs):
-    return f"{kwargs['timestamp']}_bc_kimi_noth"
+    return f"{kwargs['timestamp']}_safe_raven_kimi"
 
 
 def main() -> None:
     os.environ.setdefault("SC2_GAME_TIME_LIMIT", "1200")
     run_vs_ai.build_match_id = short_match_id
     run_vs_ai.play_vs_ai(
-        bo_list="battle_cruisers",
+        bo_list="safe_tvt_raven",
         executor_model="Kimi-k2.5",
         enemy_race="terran",
         enemy_difficulty="medium",
         enemy_build="random",
-        batch_name="bo_bc_kimi_nothink",
+        batch_name="bo_safe_tvt_raven_kimi",
         skip_version_update=True,
     )
 

@@ -56,7 +56,6 @@ Selection rules:
 * Return EXACTLY ONE tag.
 
 [Ability to execute] {ability_name}
-[Action cost/time] {cost_hint or '(unknown)'}
 [Pending actions not yet executed] {pending_actions_summary or '(none)'}
 [Actions currently waiting] {waiting_actions_summary or '(none)'}
 [Possible conflicts in pending actions]
