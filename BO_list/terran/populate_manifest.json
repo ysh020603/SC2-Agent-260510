@@ -64,15 +64,6 @@
       "meta_result": "Victory"
     },
     {
-      "strategy": "safe_tvt_raven",
-      "bot_key": "saferaven",
-      "opponent": "ai.terran.veryhard",
-      "difficulty": "veryhard",
-      "sequence_file": "C:\\code\\SC2_bot_data\\bo_collection_runs\\2026-06-16_terran_bo_commitfix_v5\\safe_tvt_raven\\sequences\\saferaven-ai.terran.veryhard_KairosJunctionLE_2026-06-16 21_38_56_678608.json",
-      "order_list_len": 268,
-      "meta_result": "Victory"
-    },
-    {
       "strategy": "terran_silver_bio",
       "bot_key": "silverbio",
       "opponent": "ai.protoss.veryhard",

@@ -229,9 +229,7 @@ export SC2PATH=/data2/SC2/StarCraftII/
       "top_p": null,
       "max_tokens": null,
       "is_reasoning": false,
-      "reasoning_extract_mode": "none",
-      "enable_identity": false,
-      "identity_prompt": ""
+      "reasoning_extract_mode": "none"
     }
   }
 }

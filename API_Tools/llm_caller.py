@@ -110,21 +110,6 @@ def strip_think_tags(text: str) -> str:
     return cleaned.strip()
 
 
-def _inject_identity_prompt(
-    messages: List[Dict[str, str]],
-    identity_prompt: str,
-) -> List[Dict[str, str]]:
-    messages = list(messages)
-    if messages and messages[0].get("role") == "system":
-        messages[0] = {
-            **messages[0],
-            "content": f"{identity_prompt}\n\n{messages[0]['content']}",
-        }
-    else:
-        messages.insert(0, {"role": "system", "content": identity_prompt})
-    return messages
-
-
 def _apply_reasoning_disable(model: str, request_kwargs: Dict[str, Any]) -> None:
     """``is_reasoning=False`` 时，按模型厂商注入关闭 thinking 的 extra_body。"""
     model_name_l = (model or "").lower()
@@ -311,9 +296,6 @@ def call_openai_detailed(
         or pool_cfg.get("reasoning_extract_mode")
         or DEFAULT_REASONING_EXTRACT_MODE
     )
-
-    if pool_cfg.get("enable_identity") and pool_cfg.get("identity_prompt"):
-        messages = _inject_identity_prompt(messages, pool_cfg["identity_prompt"])
 
     if not final_model or final_model is _MISSING:
         logger.warning("call_openai: no model configured for model_key=%s", model_key)
