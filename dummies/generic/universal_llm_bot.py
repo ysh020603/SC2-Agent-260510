@@ -1,8 +1,9 @@
 """Universal LLM Bot with a forced-strategy macro pipeline.
 
 A match must specify a strategy folder name via ``force_strategy`` /
-``--force-strategy``. Runtime reads that folder's ``Top_agent_0.md`` steps and
-feeds them through the five-stage macro pipeline:
+``--force-strategy``. Runtime reads that folder's
+``Top_agent_<enemy_race>.md`` steps and feeds them through the five-stage macro
+pipeline:
 
     strategy step -> Naming Agent -> DATA_TOOLS mapping -> Ordering Agent
     -> Supply Planner -> ExecutionScheduler
@@ -298,16 +299,43 @@ class UniversalLLMBot(KnowledgeBot):
     # Forced strategy
     # ------------------------------------------------------------------
 
+    def _strategy_enemy_race_name(self) -> str:
+        """Return the enemy race suffix used by strategy markdown files."""
+        race = getattr(self, "enemy_race", None)
+        if race is None:
+            race = getattr(getattr(self, "ai", None), "enemy_race", None)
+
+        if isinstance(race, Race):
+            if race in (Race.Terran, Race.Protoss, Race.Zerg):
+                return race.name.lower()
+            raise ValueError(
+                f"Unsupported enemy race for strategy file: {race.name}. "
+                "Expected Terran, Protoss, or Zerg."
+            )
+
+        race_name = str(race or "").split(".")[-1].strip().lower()
+        if race_name in {"terran", "protoss", "zerg"}:
+            return race_name
+        raise ValueError(
+            f"Unsupported enemy race for strategy file: {race!r}. "
+            "Expected terran, protoss, or zerg."
+        )
+
     def _apply_forced_strategy(self, name: str) -> None:
         """Load the explicitly selected strategy folder for this match."""
         race_dir = self._skill_race_dir
         target_dir = os.path.join(race_dir, name)
-        md_path = os.path.join(target_dir, "Top_agent_0.md")
+        enemy_race_name = self._strategy_enemy_race_name()
+        md_filename = f"Top_agent_{enemy_race_name}.md"
+        md_path = os.path.join(target_dir, md_filename)
 
         if not os.path.isdir(target_dir):
             raise FileNotFoundError(f"Strategy folder not found: {target_dir}")
         if not os.path.isfile(md_path):
-            raise FileNotFoundError(f"Strategy file not found: {md_path}")
+            raise FileNotFoundError(
+                f"Strategy file not found for enemy race '{enemy_race_name}': "
+                f"{md_path}"
+            )
 
         try:
             with open(md_path, "r", encoding="utf-8") as f:
@@ -323,6 +351,7 @@ class UniversalLLMBot(KnowledgeBot):
         self.strategy_summary = summary
         self._llm_infer_emit(
             f">>> STRATEGY: forced '{name}' "
+            f"vs {enemy_race_name} from {md_filename} "
             f"(description={len(detail)} chars, summary={len(summary)} chars)"
         )
 
@@ -332,7 +361,9 @@ class UniversalLLMBot(KnowledgeBot):
             "wall_elapsed_seconds": 0.0,
             "strategy": {
                 "race": self.race_name,
+                "enemy_race": enemy_race_name,
                 "selected_strategy": name,
+                "strategy_file": md_filename,
                 "strategy_description": detail,
                 "strategy_summary": summary,
             },

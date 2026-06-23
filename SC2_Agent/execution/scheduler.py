@@ -179,7 +179,7 @@ class ExecutionScheduler(ActBase):
         if mode == "append":
             kept = [a for a in self.actions if not a.is_terminal()]
             # 同名 build/addon 直接合并到 list 中现存的同名 PA（不波及 waiter）。
-            # 详细动机参见 docs/系统文档.md §3.2 与 §10.6。
+            # 详细动机参见 docs/system-architecture.md §3.2 与 §10.6。
             merged_new = []
             deferred_new = 0
             for pa in new_actions:

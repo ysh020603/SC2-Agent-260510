@@ -1,4 +1,4 @@
-﻿# SC2 Agent 测试运行流程记录
+# SC2 Agent 测试运行流程记录
 
 本文记录当前仓库推荐的单局实验与模型评估流程。所有运行产物统一写入仓库内 `game_records/`：
 
@@ -477,4 +477,4 @@ python run_vs_ai.py --bo-list marine_rush --enemy-difficulty medium --batch-name
 
 - `.log` 中应出现 `>>> BO LIST: '<name>' loaded (<N> actions)`，之后每段注入有 `[BO list] installed chunk X/Y: ...` 行，且全程**不应**出现 `>>> MACRO PIPELINE START` 行。
 - `.json` 轨迹中应出现 `trigger_reason="bo_list_loaded"` 与多条 `trigger_reason="bo_list_chunk_installed"` 事件（每分段一条，含 `chunk_index` / `total_chunks` / `chunk_range`）；不应再有 `naming_raw` / `ordering_raw` 字段。
-- 后续运行依赖 scheduler 的 waiter / 资源预留 / 同档超车机制，与 force-strategy 模式完全相同（见 [系统文档.md](系统文档.md) §4.2 / §4.3 / §5.5）。
+- 后续运行依赖 scheduler 的 waiter / 资源预留 / 同档超车机制，与 force-strategy 模式完全相同（见 [system-architecture.md](system-architecture.md) §4.2 / §4.3 / §5.5）。

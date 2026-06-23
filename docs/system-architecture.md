@@ -1,4 +1,4 @@
-﻿# StarCraft II — LLM 增量驱动宏观决策 + 命令式执行系统
+# StarCraft II — LLM 增量驱动宏观决策 + 命令式执行系统
 
 > 本文档是 `sharpy-sc2` 仓库当前版本（2026-06，`SC2_0615` 环境）的**权威总览**。
 > 它整合了原有的若干 markdown 说明（见文末「相关文档」），并完整描述新的
@@ -17,11 +17,11 @@
 固定策略 / 策略库
    │
    ▼  读取固定策略（--force-strategy）
-strategy_description（Top_agent_0.md 全文）
+strategy_description（Top_agent_<enemy_race>.md 全文）
    │
    ▼  每 60s 或「actions 列表执行完 / 仅剩 deferred」触发一次宏观流水线（waiter 槽不参与） ↓↓↓
 ┌──────────────────────────────────────────────────────────────┐
-│ Strategy Step Source    Top_agent_0.md 当前 [Step N] 文本       │
+│ Strategy Step Source    Top_agent_<enemy_race>.md 当前 [Step N] 文本 │
 │ Stage2 Naming Agent     当前 obs + step → 标准 unit/upgrade 名 + 数量 │
 │ Stage3 DATA_TOOLS 映射  标准名 → 标准 Action key                │
 │ Stage4 Ordering Agent   当前 step + 前置/冲突/成本提示下排序     │
@@ -49,7 +49,7 @@ StrategyTools（只加载当前策略自己的 `strategy_tools.py`，且只能�
 
 | | 旧版（legacy） | 新版（当前） |
 |---|---|---|
-| 规划粒度 | Mid 给"目标数量 `to_count`"（声明式） | `Top_agent_0.md` step 给固定阶段要求，Stage2 结合 obs 产生命令式增量 |
+| 规划粒度 | Mid 给"目标数量 `to_count`"（声明式） | `Top_agent_<enemy_race>.md` step 给固定阶段要求，Stage2 结合 obs 产生命令式增量 |
 | 翻译链路 | Down Agent → action JSON | Naming Agent + DATA_TOOLS 映射 |
 | 排序 | 无显式排序 | Ordering Agent（带当前 step、前置/冲突/成本提示） |
 | 补给 | 战术 `AutoDepot` | `SUPPLY_MANAGED=True`：LLM 可输出 depot，算法按阈值重新插入；`False`：信任 LLM 的 depot 排序 |
@@ -66,7 +66,7 @@ StrategyTools（只加载当前策略自己的 `strategy_tools.py`，且只能�
 ```
 sharpy-sc2/
 ├── SC2_Agent/                      # LLM 决策核心 + 知识库 + 执行调度
-│   ├── top_agent.py                # Top_agent_0.md 解析工具
+│   ├── top_agent.py                # 策略 md 解析工具
 │   ├── naming_agent.py             # Stage2：增量 → 标准 unit/upgrade 名 + 数量
 │   ├── ordering_agent.py           # Stage4：动作排序
 │   ├── executor_agent.py                 # Executor：train 选执行单位（addon/morph 规则选）
@@ -91,7 +91,9 @@ sharpy-sc2/
 ├── SKILL/terran/                       # --force-strategy 模式的策略库
 │   ├── registry.json               # 策略白名单
 │   └── <strategy>/
-│       ├── Top_agent_0.md          # 策略说明（# Summary / # Details）
+│       ├── Top_agent_terran.md     # 对 Terran 策略说明（# Summary / # Details）
+│       ├── Top_agent_protoss.md    # 对 Protoss 策略说明（# Summary / # Details）
+│       ├── Top_agent_zerg.md       # 对 Zerg 策略说明（# Summary / # Details）
 │       └── strategy_tools.py       # ★ 当前策略自己的免费工具轨（可选，无全局 fallback）
 ├── BO_list/terran/                     # --bo-list 模式的策略库（旁路 LLM 流水线）
 │   ├── registry.json               # 已注册 BO 策略名单
@@ -123,8 +125,8 @@ sharpy-sc2/
 - 每次触发都会先把**当前 obs 完整打印进 `.log`**（`[Observation @ decision]`），便于回看决策依据。
 - 全程使用 `mode="append"`；不再调用 `replace`。
 
-### Strategy Step Source（`Top_agent_0.md`）
-- **输入**：当前策略文件 `# Details` 中的 `[Step N]` 文本；同时解析 `# Summary` 作为**宏观指导**注入 Stage2 / Stage4 prompt（见下）。
+### Strategy Step Source（`Top_agent_<enemy_race>.md`）
+- **输入**：根据对手种族选择的当前策略文件 `# Details` 中的 `[Step N]` 文本；同时解析 `# Summary` 作为**宏观指导**注入 Stage2 / Stage4 prompt（见下）。
 - **输出**：当前 step 原文，直接传给 Stage2；不再调用额外规划 LLM。
 - **推进规则**：初始传 Step 1；当 `actions` 列表全 terminal 或仅剩 deferred 时传下一个 step（`append`）；waiter 不影响推进。
 - **末步循环**：到达最后一个 `[Step N]` 后**索引不再前进**，后续每个 macro cycle 都复用同一个最后 step 文本，直到对局结束。`record.strategy_step.phase` 始终为 `"step"`，`is_last=True` 在最后一个 step 上持续为真；`# Summary` 仅作为宏观指导段使用，不再作为 plan_text。
@@ -141,8 +143,8 @@ sharpy-sc2/
 
 ### Stage 4 — Ordering Agent（`ordering_agent.py`）
 排序 Agent 会同时读取当前 strategy step、当前 obs，以及 DATA_TOOLS 生成的三类提示：
-- **Strategy Summary**：来自 `Top_agent_0.md` 的 `# Summary` 全文，作为宏观指导段 `[Strategy Summary]` 注入 system prompt；只用于理解整体节奏，不影响动作集合；
-- **Strategy Step**：来自 `Top_agent_0.md` 的当前 `[Step N]` 原文，用于理解战略优先级和预期时机；动作列表仍是权威来源，排序阶段不得因 step 增删 action；
+- **Strategy Summary**：来自 `Top_agent_<enemy_race>.md` 的 `# Summary` 全文，作为宏观指导段 `[Strategy Summary]` 注入 system prompt；只用于理解整体节奏，不影响动作集合；
+- **Strategy Step**：来自 `Top_agent_<enemy_race>.md` 的当前 `[Step N]` 原文，用于理解战略优先级和预期时机；动作列表仍是权威来源，排序阶段不得因 step 增删 action；
 - **前置提示**（`check_action_prereqs.tech_chain_relations`）：序列内动作之间的科技先后关系；
 - **冲突提示**（`detect_action_conflicts`）：可能争抢同一执行单位的动作；
 - **成本提示**（`action_cost`）：每个动作的矿/气/时间（帧→秒按游戏帧率换算）。
@@ -343,7 +345,7 @@ append 预取阶段如果遇到同类普通建筑仍 active 或 in-flight，新 
 
 | 模式 | 启用方式 | 策略来源 | LLM 流水线 |
 |---|---|---|---|
-| 默认（forced strategy） | `--force-strategy <name>` | `SKILL/<race>/<name>/Top_agent_0.md` | Stage2/3/4/5 + Executor |
+| 默认（forced strategy） | `--force-strategy <name>` | `SKILL/<race>/<name>/Top_agent_<enemy_race>.md` | Stage2/3/4/5 + Executor |
 | BO 直接执行 | `--bo-list <name>` | `BO_list/<race>/<name>/BO.json` | **仅** Executor |
 
 ### 5.5.1 目录约定
@@ -460,7 +462,7 @@ DEFAULT_NAMING_MODEL = DEFAULT_ORDERING_MODEL \
 
 ## 8. 运行
 
-> 环境搭建详见 [`docs/环境配置教程.md`](环境配置教程.md)。以下假设已在 `SC2_0615` 环境内、
+> 环境搭建详见 [`environment-setup.md`](environment-setup.md)。以下假设已在 `SC2_0615` 环境内、
 > 且已 `export SC2PATH=/path/to/StarCraftII/`。
 
 ### 单局
@@ -546,10 +548,10 @@ bash run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
 
 | 文档 | 内容 |
 |---|---|
-| [`docs/环境配置教程.md`](环境配置教程.md) | **环境搭建（conda `SC2_0615`）分步教程** |
+| [`environment-setup.md`](environment-setup.md) | **环境搭建（conda `SC2_0615`）分步教程** |
 | [`README.md`](../README.md) | 仓库入口（旧版 Top/Mid/Down 说明 + 指向本文档） |
-| [`README_sharpy.md`](../README_sharpy.md) | Sharpy 底层框架说明 |
-| [`readme_bot.md`](../readme_bot.md) | Sharpy Bot 继承关系、dummies 目录 |
-| [`sharpy模块与配置说明.md`](../sharpy模块与配置说明.md) | Sharpy 模块与 `config.ini` |
+| [`sharpy-overview.md`](sharpy-overview.md) | Sharpy 底层框架说明 |
+| [`bot-inheritance.md`](bot-inheritance.md) | Sharpy Bot 继承关系、dummies 目录 |
+| [`sharpy-modules-and-config.md`](sharpy-modules-and-config.md) | Sharpy 模块与 `config.ini` |
 | [`note/llm_observation_recorder*.md`](../note/) | 观测文本生成规则（v1~v3） |
-| [`docs/直接建造执行器经验总结_20260617.md`](直接建造执行器经验总结_20260617.md) | DirectBuild、多 PA reservation/target、deferred 经验总结 |
+| [`direct-build-executor-notes-20260617.md`](direct-build-executor-notes-20260617.md) | DirectBuild、多 PA reservation/target、deferred 经验总结 |

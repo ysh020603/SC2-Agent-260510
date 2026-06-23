@@ -1,4 +1,4 @@
-"""Full game experiment: two_base_tanks strategy (Top_agent_0.md)."""
+"""Full game experiment: two_base_tanks strategy markdown."""
 
 import os
 import sys

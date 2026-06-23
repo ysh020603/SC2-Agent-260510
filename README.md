@@ -3,7 +3,7 @@
 这是一个基于 Sharpy / python-sc2 的《星际争霸 II》LLM Bot 实验仓库。当前代码的主线已经从旧版 `Top/Mid/Down` 声明式三层 Agent，迁移为：
 
 ```text
-固定策略 Top_agent_0.md
+固定策略 Top_agent_<enemy_race>.md
   -> Naming Agent
   -> DATA_TOOLS 映射
   -> Ordering Agent
@@ -21,7 +21,7 @@
 - 主入口：`run_vs_ai.py`
 - 通用 LLM Bot：`dummies/generic/universal_llm_bot.py`
 - 策略目录：`SKILL/terran/<strategy>/`
-- 策略文件：`SKILL/terran/<strategy>/Top_agent_0.md`
+- 策略文件：`SKILL/terran/<strategy>/Top_agent_<enemy_race>.md`
 - 策略工具轨：`SKILL/terran/<strategy>/strategy_tools.py`
 - 模型配置：`API_config/config.json`
 - 对局记录：`game_records/`
@@ -92,11 +92,13 @@ python run_vs_ai.py --force-strategy marine_rush
 
 ```text
 SKILL/terran/marine_rush/
-  Top_agent_0.md
+  Top_agent_terran.md
+  Top_agent_protoss.md
+  Top_agent_zerg.md
   strategy_tools.py
 ```
 
-`Top_agent_0.md` 中的 `# Details` 会被解析为若干 `[Step N]`，`# Summary` 同时被保留。每次宏观流水线触发时，Bot 取当前 step 原文作为本轮宏观目标；当所有 `[Step N]` 都装入调度器之后，自动切换到 **Summary 模式**，后续每次决策都改用 `# Summary` 全文作为 plan_text，而不再重复最后一个 step。
+策略文件按对手种族选择：`--enemy-race zerg` 会读取 `Top_agent_zerg.md`，`--enemy-race protoss` 会读取 `Top_agent_protoss.md`，`--enemy-race terran` 会读取 `Top_agent_terran.md`。文件中的 `# Details` 会被解析为若干 `[Step N]`，`# Summary` 同时作为宏观指导注入后续 LLM prompt。每次宏观流水线触发时，Bot 取当前 step 原文作为本轮宏观目标；到达最后一个 step 后会持续复用最后 step，直到对局结束。
 
 ### 2. 五阶段宏观流水线
 
@@ -106,7 +108,7 @@ SKILL/terran/marine_rush/
 
 | 阶段 | 作用 |
 |---|---|
-| Strategy Step Source | 读取当前策略 step 文本；所有 step 走完后切换为 `# Summary` |
+| Strategy Step Source | 按对手种族读取当前策略 step 文本；所有 step 走完后复用最后 step |
 | Naming Agent | 将自然语言目标转成 Terran 标准实体名和数量 |
 | DATA_TOOLS | 将实体名映射成标准 action key，并提供成本、前置、冲突信息 |
 | Ordering Agent | 在前置、冲突、成本提示下对 action 排序 |
@@ -165,7 +167,7 @@ BO_list/terran/<name>/
 - **注册校验**：未在 `BO_list/<race>/registry.json` 的 `registered_strategies` 中列出的名字会直接报错。
 - **互斥**：`--force-strategy` 与 `--bo-list` 两选一，同时显式指定会报错。
 
-详细的资源预留 / 超车语义参见 [docs/系统文档.md](docs/系统文档.md) §4.2 / §4.3。
+详细的资源预留 / 超车语义参见 [docs/system-architecture.md](docs/system-architecture.md) §4.2 / §4.3。
 
 ## 环境配置
 
@@ -178,8 +180,8 @@ BO_list/terran/<name>/
 
 详细步骤请看：
 
-- [docs/环境配置教程.md](docs/环境配置教程.md)
-- [docs/系统文档.md](docs/系统文档.md)
+- [docs/environment-setup.md](docs/environment-setup.md)
+- [docs/system-architecture.md](docs/system-architecture.md)
 
 最小安装示例：
 
@@ -407,17 +409,18 @@ python -m pytest tools/tests -q -p pytest_asyncio
 
 | 文档 | 内容 |
 |---|---|
-| [docs/系统文档.md](docs/系统文档.md) | 新版 LLM 增量驱动和命令式执行系统总览 |
-| [docs/环境配置教程.md](docs/环境配置教程.md) | Linux / Windows 环境安装、SC2PATH、冒烟测试 |
-| [docs/测试运行流程记录.md](docs/测试运行流程记录.md) | 测试和运行记录 |
-| [docs/直接建造执行器经验总结_20260617.md](docs/直接建造执行器经验总结_20260617.md) | DirectBuild、reservation、deferred 机制经验 |
-| [docs/readme_bot.md](docs/readme_bot.md) | Sharpy Bot 继承关系和 dummies 说明 |
-| [docs/README_sharpy.md](docs/README_sharpy.md) | Sharpy 底层框架说明 |
-| [docs/sharpy模块与配置说明.md](docs/sharpy模块与配置说明.md) | Sharpy 模块和配置说明 |
+| [docs/README.md](docs/README.md) | 文档阅读索引，每个 md 的用途摘要 |
+| [docs/system-architecture.md](docs/system-architecture.md) | 新版 LLM 增量驱动和命令式执行系统总览 |
+| [docs/environment-setup.md](docs/environment-setup.md) | Linux / Windows 环境安装、SC2PATH、冒烟测试 |
+| [docs/test-run-workflow.md](docs/test-run-workflow.md) | 测试和运行记录 |
+| [docs/direct-build-executor-notes-20260617.md](docs/direct-build-executor-notes-20260617.md) | DirectBuild、reservation、deferred 机制经验 |
+| [docs/bot-inheritance.md](docs/bot-inheritance.md) | Sharpy Bot 继承关系和 dummies 说明 |
+| [docs/sharpy-overview.md](docs/sharpy-overview.md) | Sharpy 底层框架说明 |
+| [docs/sharpy-modules-and-config.md](docs/sharpy-modules-and-config.md) | Sharpy 模块和配置说明 |
 
 ## 维护建议
 
-- README 只保留入口级信息；实现细节放到 `docs/系统文档.md`。
-- 策略改动优先同步 `SKILL/terran/<strategy>/Top_agent_0.md` 和 `strategy_tools.py`。
+- README 只保留入口级信息；实现细节放到 `docs/system-architecture.md`。
+- 策略改动优先同步 `SKILL/terran/<strategy>/Top_agent_<enemy_race>.md` 和 `strategy_tools.py`。
 - 新增策略后检查 `registry.json`、运行参数和批量脚本中的 `FORCE_STRATEGY`。
 - 修改执行调度后，用短时冒烟对局确认 `.json` 和 `.llm_calls.json` 能正常落盘。

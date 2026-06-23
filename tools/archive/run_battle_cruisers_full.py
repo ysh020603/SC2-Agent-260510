@@ -1,4 +1,4 @@
-"""Full game experiment: battle_cruisers strategy (Top_agent_0.md)."""
+"""Full game experiment: battle_cruisers strategy markdown."""
 
 import os
 import sys

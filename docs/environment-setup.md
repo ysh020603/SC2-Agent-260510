@@ -1,7 +1,7 @@
 # 环境配置教程（Linux / Windows，conda 环境 `SC2_0615`）
 
 本教程一步步说明如何为 `sharpy-sc2`（LLM 增量驱动 + 命令式执行系统）搭建可运行环境。
-系统总览见 [`docs/系统文档.md`](系统文档.md)。
+系统总览见 [`system-architecture.md`](system-architecture.md)。
 
 > 本文档是本仓库唯一推荐的环境配置入口。不要再使用仓库根目录旧式
 > `requirements*.txt` 或临时 venv 命令安装依赖；依赖版本与平台经验以本文档为准。

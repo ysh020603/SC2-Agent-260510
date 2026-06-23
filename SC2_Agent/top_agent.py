@@ -1,8 +1,8 @@
 """Strategy file parsing helpers.
 
 The runtime no longer uses an interactive opening strategy chooser. A strategy
-must be specified explicitly by folder name, then this module only parses that
-folder's ``Top_agent_0.md`` into summary/detail text.
+must be specified explicitly by folder name, then this module parses the
+selected strategy markdown file into summary/detail text.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ _DETAIL_HEADER_RE = re.compile(
 
 
 def parse_top_agent_0_md(text: str) -> Dict[str, str]:
-    """Split ``Top_agent_0.md`` into ``{"summary", "detail"}``.
+    """Split strategy markdown into ``{"summary", "detail"}``.
 
     If the file has no explicit headings, the whole file becomes ``detail`` and
     the first non-empty paragraph is used as a fallback summary.
