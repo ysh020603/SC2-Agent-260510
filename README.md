@@ -178,7 +178,72 @@ BO_list/terran/<name>/
 - 本地安装 StarCraft II，并设置 `SC2PATH`
 - Windows 下建议设置 `PYTHONUTF8=1`
 
-详细步骤请看：
+### 安装 StarCraft II
+
+需要本地安装《星际争霸 II》客户端，**免费 Starter Edition 即可**运行 bot 对局。
+
+**Windows / macOS**
+
+1. 从 [官方 StarCraft II 网站](https://starcraft2.blizzard.com/) 下载并安装游戏。
+2. （推荐）在 Battle.net 启动器设置中将游戏语言改为 **English**，避免客户端与脚本编码不一致。
+3. Windows 常见安装路径：
+
+   ```text
+   C:\Program Files (x86)\StarCraft II
+   ```
+
+**Linux**
+
+1. 从 [s2client-proto 仓库](https://github.com/Blizzard/s2client-proto?tab=readme-ov-file#linux-packages) 下载 Linux 版游戏包，或复用已有安装目录。
+2. 设置 `SC2PATH` 指向 SC2 根目录（目录内应包含 `Versions/` 与 `Maps/`）：
+
+   ```bash
+   export SC2PATH="/path/to/StarCraftII"
+   ```
+
+### 配置地图
+
+对局地图需放在 SC2 安装目录下的 `Maps/` 文件夹中。
+
+1. **Melee 地图包（基础对战）**  
+   从 [s2client-proto map packs](https://github.com/Blizzard/s2client-proto?tab=readme-ov-file#map-packs) 下载 `Melee.zip`，解压到 `Maps/` 目录。若 `Maps/` 不存在，请手动创建。
+
+2. **天梯 / 联赛地图（本仓库默认）**  
+   默认地图为 `KairosJunctionLE`（见 `run_vs_ai.py`）。需将对应 `.SC2Map` 文件放入 `Maps/`（常见子目录如 `Maps/Ladder/` 或 `Maps/Ladder2019Season1/`，以你本地 SC2 目录结构为准）。
+
+3. **验证**  
+   确认 `SC2PATH` 已设置，且目标地图文件存在于 `Maps/` 下，例如：
+
+   ```powershell
+   # Windows
+   Get-ChildItem "$env:SC2PATH\Maps" -Recurse -Filter '*Kairos*'
+   ```
+
+   ```bash
+   # Linux
+   find "$SC2PATH/Maps" -iname '*Kairos*'
+   ```
+
+### 设置环境变量
+
+Windows PowerShell 常用环境变量：
+
+```powershell
+$env:SC2PATH='C:\Program Files (x86)\StarCraft II'
+$env:PYTHONUTF8='1'
+```
+
+Linux 示例：
+
+```bash
+export SC2PATH=/data2/SC2/StarCraftII/
+```
+
+可将 `SC2PATH` 写入 shell 配置或 conda 环境变量，避免每次手动设置。更多平台细节见 [docs/environment-setup.md](docs/environment-setup.md)。
+
+### Python 依赖
+
+详细步骤与验证命令请看：
 
 - [docs/environment-setup.md](docs/environment-setup.md)
 - [docs/system-architecture.md](docs/system-architecture.md)
@@ -201,19 +266,6 @@ pip install \
   "loguru"
 
 pip install "pytest<7.0.0" "pytest-asyncio==0.20.3"
-```
-
-Windows PowerShell 常用环境变量：
-
-```powershell
-$env:SC2PATH='C:\Program Files (x86)\StarCraft II'
-$env:PYTHONUTF8='1'
-```
-
-Linux 示例：
-
-```bash
-export SC2PATH=/data2/SC2/StarCraftII/
 ```
 
 ## LLM 配置
