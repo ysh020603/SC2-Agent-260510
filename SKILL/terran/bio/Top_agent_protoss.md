@@ -1,40 +1,32 @@
 # Summary
 
-This build order opens with a Reaper for early harassment while quickly expanding into an Orbital Command, then follows a 1-1-1 tech path (Barracks, Factory, Starport) to establish a strong defensive Siege Tank and transition into a bio-medivac composition. After securing a fast third Command Center, the focus shifts to mass producing Marines and Marauders with Stimpack, Punisher Grenades, and ShieldWall, supported by Medivacs and a Viking for air control, culminating in aggressive multi-pronged bio pushes backed by steady production of additional Barracks and Reactors.
+The opening goes rax-first into a quick natural CC with a Reaper scout, then transitions through a Factory into a 1-1-1 setup with a Starport and a 3-rax core to kickstart bio production. Mid-game the build powers up with Stim, Combat Shields, and Concussive Shells while scaling to 5 rax and a 2-port Starport, flooding the map with a Marine-Marauder-Tank core supported by Medivac drops and Viking control for sustained pressure. Late-game the economy balloons to 4 bases with gas-heavy refineries fueling a maxed-out bio deathball, leaning on overwhelming MMM-Tank production and medivac multi-prong aggression to crack open defensive positions.
 
 # Details
 
-[Step 1] Produce 6 SCVs while constructing a Supply Depot, then build the first and second Barracks along with a Refinery, and finish by training a Reaper for early harassment.
+[Step 1] Keep SCV production rolling to saturate the main while throwing down a depot for the upcoming supply crunch. Add 2 rax alongside a Refinery to open up gas flexibility for early tech options, then queue a reaper to get on the map quickly.
 
-[Step 2] Take an expansion by building a Command Center and morphing it into an Orbital Command, produce 3 SCVs, build a Supply Depot, attach a Reactor to your Barracks, construct a Factory, and train 2 Marines for early defense.
+[Step 2] Morph the CC into an orbital while taking another expansion, keeping SCV production rolling to saturate the growing economy. Throw down a depot to stay ahead of supply as the rax gets a reactor and a factory comes online for the tech transition. Train a wave of marines off the barracks while workers keep flowing, using the fresh gas income to kickstart factory production without stalling mineral spending.
 
-[Step 3] Construct 4 Supply Depots to support the growing army and infrastructure, while training 2 SCVs to maintain production and 4 Marines for defense. Additionally, attach a Tech Lab to the Factory to unlock advanced mechanical upgrades.
+[Step 3] Add another rax alongside a factory tech lab, then throw down several depots to keep supply headroom healthy as production ramps up. Keep training SCVs to pace worker saturation with the new orbital morphing, queue up a tank from the factory, and drop another Refinery to strengthen gas flexibility for the tech path. Finish by adding a tech lab to the rax to unlock key infantry upgrades.
 
-[Step 4] Build a Refinery and attach a Tech Lab to the Barracks for factory-tech production, then morph the Command Center into an Orbital Command. Train 2 SCVs to maintain economy, produce 5 Marines for defense, and start a Siege Tank to provide siege support.
+[Step 4] Keep SCV production rolling to saturate the economy while mixing in a couple of Marines and a Marauder for early defense. Research concussive shells to give the bio core some slowing power, and make sure there's depot space coming for the next production cycle without overcommitting to unused supply cap.
 
-[Step 5] Produce 4 SCVs and 2 Marines, build an additional Barracks and the first and second Starports, while also researching Punisher Grenades.
+[Step 5] Throw down a port and add a tech lab to the rax while keeping several SCVs in production to keep the economy growing. Train a few Marines and toss down depots to keep supply headroom healthy as production ramps up. Start stim research on the tech lab, which will chew through gas quickly alongside the port investment, so make sure mineral and gas income stay balanced for the upcoming bio power spike.
 
-[Step 6] Produce 6 SCVs while constructing two Supply Depots and a Tech Lab attached to the Barracks, then train 2 Marines, 1 Marauder, and 1 Siege Tank to solidify your mid-game army with siege capability.
+[Step 6] Research combat shields while keeping SCV production rolling and training a few Marines, then add another rax for extra production and throw down a depot to keep supply headroom healthy for the upcoming unit cycle.
 
-[Step 7] Produce 4 SCVs to maintain worker production, construct two Supply Depots to support the growing army, train 3 Marines for defense, and begin researching Stimpack to boost combat effectiveness.
+[Step 7] Keep SCV production rolling to push worker saturation while the economy develops, and throw down depots to keep supply headroom comfortable for the marine and medivac cycle. Produce a tank from the factory to anchor the army, train a wave of marines from the rax, and queue a medivac to start building the core bio mobility. The gas flow here supports both the tank and medivac without pinching the mineral economy too hard.
 
-[Step 8] Build two Supply Depots while producing 2 SCVs and 4 Marines, then train a Medivac and research ShieldWall.
+[Step 8] Take another CC to expand the economy while adding a reactor to an existing rax and building a fresh rax for more production. Train a couple of Marauders and start a Medivac from the starport, then reinforce with a wave of Marines as the new rax comes online. Keep SCV production steady to saturate the expanding base, and throw down depots to stay ahead of the supply curve as bio production ramps up.
 
-[Step 9] Build 3 Supply Depots and a Barracks while training 3 SCVs and 2 Marines, then deploy a Command Center to secure a fast expansion and begin your tech transition.
+[Step 9] Throw down another rax and add a reactor to it, then mix in a viking from the starport while chaining out marines and marauders across your bio production. Keep a depot coming to stay ahead of the supply curve as you load up on units, and let the gas flow support the viking and marauder mix without choking your mineral spend on the marine core.
 
-[Step 10] Build two additional Barracks, attaching a Reactor to one of them, and then produce a Medivac, 4 Marauders, 4 Marines, and a Viking Fighter to assemble a powerful bioball with air support for a decisive engagement.
+[Step 10] Morph the CC into an orbital to kickstart scan and mule economy while the new base gets rolling. Add a reactor to the starport for faster medivac or viking cycles, and drop two Refineries to firm up gas income for the tech and bio upgrades ahead. Keep the rax busy with a marauder and several marines to build out the core bio force.
 
-[Step 11] Build a Barracks and a Supply Depot, then add a Reactor to the Barracks and a Reactor to the Starport, take two Refineries, and train 1 Marauder alongside 3 Marines to solidify your army and ramp up production.
+[Step 11] Keep rax production humming with a wave of Marines and a couple of Marauders, throw down a depot to stay ahead of the supply curve, and queue up 2 medivacs from the starport to support the bio ball.
 
-[Step 12] Morph your Command Center into an Orbital Command for supply and scanning utility, and train 2 Marauders alongside 7 Marines to build a strong bio force.
+[Step 12] Keep the rax humming with a solid mix of marauders and marines while throwing down depots to stay ahead of the heavy production demand. Drop a few extra depots to build a comfortable supply buffer as the bio ball swells, and get 2 medivacs rolling out of the starport to keep the push healthy.
 
-[Step 13] Build the first and second Supply Depot while producing 4 Marines, 2 Marauders, and 2 Medivacs to assemble a strong bio-medivac force for an aggressive timing attack.
-
-[Step 14] Construct 3 Supply Depots to maintain supply flow, then train 1 Marauder and 6 Marines to strengthen your bio force.
-
-[Step 15] Build a Supply Depot to maintain production capacity, then train 2 Medivacs, 2 Marauders, and 5 Marines to form a potent bio-medivac fighting force.
-
-[Step 16] Build 2 Supply Depots to sustain your growing army, and train 2 Marauders alongside 6 Marines to bolster your mobile forces.
-
-[Step 17] Build 4 Supply Depots to sustain your production capacity, while training 10 Marines and 4 Marauders for a powerful bio army.
+[Step 13] This is a classic macro bio snowball that scales from a standard 1-1-1 opener into a relentless MMM-Tank deathball, leaning on sustained production, multi-drop aggression, and overwhelming infantry flooding to grind down opponents across all phases. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
 

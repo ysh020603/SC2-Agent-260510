@@ -1,38 +1,42 @@
 # Summary
 
-Open with a standard 1-1-1 into an early natural, grabbing a bunker for safety while teching straight to a Starport with a Tech Lab for a fast Banshee. Mid-game you mass marine-tank-banshee with combat shield, dropping a third base while pumping out additional Barracks to keep up the harass and map control. Late-game you deathball into a maxed-out marine-tank-banshee composition on three or four bases, relying on constant banshee pokes and tank sieges to force a decisive engagement.
+Rusty Screams opens with a standard rax-first into quick expansion, dropping a Factory and Starport off 2 bases to set up a bio-mech hybrid with early Banshee and Tank production. The build scales into a 5 rax, 2 port, 1 Factory production core with Tech Labs across the board, picking up Combat Shields and flooding Marines while mixing in Banshees and Siege Tanks for a versatile air-ground timing. The endgame aims for a 3-base maxout with sustained bio-tech production, using the Banshee-Tank backbone to control space while the Marine flood overwhelms in straight-up engagements.
 
 # Details
 
-[Step 1] Start by keeping constant worker production from the Command Center while you throw down the first depot, followed by the first Barracks and a Refinery to secure early gas income. After rallying several SCVs to minerals, add a second Supply Depot to avoid supply blocks.
+[Step 1] Keep SCV production rolling to saturate the main while throwing down a rax and a Refinery to open up gas flexibility for upcoming tech. Drop a couple of depots to keep supply headroom healthy as the worker count and Barracks come online.
 
-[Step 2] Morph the first Command Center into an Orbital Command while dropping a second CC to take the natural. Keep pumping SCVs and Marines from the main rax, add a Refinery for gas, and start a Factory to begin the tech transition. Throw down a depot to avoid supply blocks as you reinforce.
+[Step 2] Morph the existing CC into an orbital while dropping another CC for expansion, then keep SCV production rolling to saturate the growing economy. Throw down a Refinery to strengthen gas income for the upcoming Factory tech, add a Factory, and train several Marines for early map presence. Toss in a depot to keep supply headroom comfortable as production ramps up.
 
-[Step 3] Now it's time to drop a Starport with its own Tech Lab for air tech, while throwing down a Bunker for defense at the natural and morphing the Command Center into an Orbital Command. Keep SCV and Marine production steady, and add a second Barracks to ramp up bio output, all while attaching the Tech Lab to the Factory for heavy mech upgrades.
+[Step 3] Throw down a starport and a bunker while keeping SCV production rolling and training a couple of Marines, then morph the CC into an orbital to jumpstart the economy. Add another rax alongside the factory and starport tech labs to open up gas-heavy options, pacing workers toward the new base saturation.
 
-[Step 4] Continue worker production while reinforcing with a few Marines from the rax and a Siege Tank from the factory. Start a Banshee out of the starport to harass the opponent, and add a Supply Depot to prevent any supply blocks.
+[Step 4] Keep SCV production rolling to push worker saturation while training a Banshee and a Siege Tank, add a couple of Marines for support, and throw down a depot to keep supply headroom healthy for the next production cycle.
 
-[Step 5] Keep SCV production flowing from the Command Center while reinforcing with a few Marines from the Barracks. Add a pair of Supply Depots to avoid being supply blocked, and produce a Siege Tank from the Factory to bolster your army for map control or defense.
+[Step 5] Keep SCV production rolling to keep the economy growing while training a wave of Marines and a Siege Tank from the factory, then throw down 4 depots to stay well ahead of supply as production ramps up. The gas investment on the tank is starting to stretch mineral-gas balance, so keep an eye on income pacing.
 
-[Step 6] Start the first Barracks and begin producing a Banshee from the Starport, keeping SCV production constant. Add a Tech Lab and Reactor to the Barracks for versatility, then build another Starport and a Refinery to secure gas income and sustain worker production.
+[Step 6] Add a rax and a starport alongside a tech lab and reactor to diversify production, while keeping SCV production rolling to keep the economy growing. Train a banshee from the existing starport and throw down a refinery to strengthen gas income for the expanding tech path.
 
-[Step 7] Continue pumping SCVs and throw down depots to keep supply safe while producing a Siege Tank from the Factory and starting a Banshee from the Starport. Train a couple Marines for additional defense, grab a fourth Refinery for more gas, and add a Tech Lab to the Starport to enable Banshee cloak later.
+[Step 7] Keep workers training continuously to push saturation while the factory finishes a tank and the starport starts a banshee. Throw down depots to keep supply headroom healthy for the marine and SCV cycles, and add a refinery to strengthen gas flexibility for the tech path. Drop a tech lab on the starport to open up upgrade options, then queue another marine for early map presence.
 
-[Step 8] Start researching combat shield while pumping out a wave of Marines from the rax. Also throw down a couple of depots to free up supply and begin producing a Banshee from the Starport for early harass.
+[Step 8] Kick in combat shields for your bio while churning out a wave of Marines, then start a banshee from the starport to open up gas-heavy mobile map presence options. Throw down a depot to keep supply headroom ahead of the marine flood, letting your mineral and gas economy flex between mass bio and tech investments.
 
-[Step 9] Continue marine production from the rax while the factory pushes out a Siege Tank and the starport builds a Banshee for harassment; drop two depots to keep supply flowing and reinforce with a few more Marines before moving out.
+[Step 9] Keep marine production rolling while adding a banshee from the starport and a tank from the factory, then throw down 3 depots to keep supply ahead of the curve as bio and air production ramps up. The gas-heavy tank and banshee mix demands steady mineral and gas income, so pace production to match macro capacity without overcommitting either resource.
 
-[Step 10] Produce several Marines from the rax while adding a few supply depots to keep from getting blocked. Train a Banshee from the starport and a Siege Tank from the factory to build a strong mid-game army.
+[Step 10] Throw down a couple of depots to keep supply headroom healthy for the marine and banshee production cycle, then queue up a wave of marines alongside a pair of banshees rolling out of the starport. Add another depot partway through to avoid capping as the barracks and port finish their units, keeping mineral and gas income flowing cleanly into this air-ground production mix.
 
-[Step 11] Crank out a steady stream of Marines from the Barracks while starting your first Banshee at the Starport, and throw down a couple of depots to keep supply in check.
+[Step 11] Throw down a couple of depots to keep supply headroom healthy as the production cycle ramps up, then churn out a wave of Marines from the rax while the factory pushes out a tank and the starport starts a banshee. The gas-heavy tank and banshee production alongside the mineral-dumping Marines shows the economy is maturing into a solid two-base tech spread, so keep worker production rolling to back the growing production queues.
 
-[Step 12] Produce a Siege Tank from the Factory and begin the first Banshee from the Starport. Add two depots, then train four Marines from the Barracks. Start a second Banshee and throw down another depot.
+[Step 12] Train a wave of Marines while throwing down depots to keep supply headroom ahead of the production curve. Add a tank and a banshee to diversify the army composition, leaning on gas-heavy units as the economy's mineral and gas capacity allows. Keep depot pace tight to the next SCV and marine cycle without overshooting unused supply cap.
 
-[Step 13] Continue churning out marines from the rax while adding a Siege Tank from the fact and a Banshee from the starport for pressure. Keep up with supply by dropping a couple of extra depots as you build toward your mid-game force.
+[Step 13] Push out a wave of 7 Marines alongside a Banshee and a Siege Tank to build a versatile core army, then throw down a depot to keep supply headroom comfortable for the next production cycle without overcommitting minerals to unused cap. The gas investment here leans into heavier tech units, so make sure mineral income stays healthy to feed the rax and keep SCVs rolling.
 
-[Step 14] Add a second Barracks, then build a few depots to keep supply ahead, and start producing a Banshee from the Starport. Reinforce with several Marines, roll out a Siege Tank for defensive support, then add more depots, pump out additional Marines, and follow up with a second Banshee to maintain pressure in the mid-game.
+[Step 14] Keep marine production rolling with a steady wave of marines while adding another rax to support the bio core, train a tank for siege support, and push out a couple of banshees from the starport to add aerial production tempo. Make sure depot construction keeps pace with this heavy unit output so supply doesn't stall the production cycle, and keep an eye on gas income since the banshee and tank builds are pulling heavily from that pool.
 
-[Step 15] Add the second and third Barracks while taking a new expansion, then reinforce with a handful of Marines, a couple of Siege Tanks, and three Banshees for harass. Keep up with supply depots to support the growing army.
+[Step 15] Add another rax to the production line and crank out a wave of Marines while the starport pushes a Banshee and the factory rolls out a Siege Tank. Keep an eye on supply headroom as the mineral dump on bio ramps up, and make sure the gas economy can shoulder the tank and banshee costs without stalling future tech.
 
-[Step 16] This is a bio-mech harassment build that leverages early Banshee poke to force reactions while building into a marine-tank-banshee deathball that crushes through sustained pressure and map control. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
+[Step 16] Keep marine production rolling with a wave of marines while queuing up a pair of banshees from the starport to add air production tempo. Take another CC to keep the economy growing and ensure there's enough mineral income to sustain this heavy bio commitment alongside the gas-heavy port tech.
+
+[Step 17] Push out a wave of Marines from the rax while adding 1 tank and 2 banshees to diversify the army composition, then throw down a depot to keep supply headroom comfortable for the continued marine production cycle.
+
+[Step 18] This is a bio-mech hybrid snowball that leverages early Banshee harassment and Tank control to buy time for a massive Marine flood, hitting a versatile air-ground timing before scaling into a relentless maxout siege. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
 

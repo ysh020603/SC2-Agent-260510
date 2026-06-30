@@ -1,26 +1,22 @@
 # Summary
 
-Open three rax off one base with constant marine production and an orbital, skipping gas and expansion entirely to churn out a flood of bio. Mid-game you just keep slapping down depots and pumping marines from all three rax nonstop, with no upgrades or tech labs—pure unrelenting marine pressure. Late game you max out on marines from those three rax, aiming to overwhelm the opponent with sheer numbers by hitting a critical mass before they can tech or expand.
+This build opens with a rax-first into fast OC to get mules and scans rolling, then immediately dumps minerals into a pair of additional rax while skipping gas entirely and delaying any expansion to focus purely on marine output. The mid-game is a pure bio flood with no tech labs, no upgrades, and no factory or starport—just mass rax on reactors or no add-ons churning out marines as fast as minerals allow, banking on overwhelming numbers before any splash or tech comes online. The late-game plan doesn't really exist since this is a all-in marine ball that wants to hit before three bases or any real tech; if it fails, you're stuck with unupgraded bio and no path to tanks, medivacs, or air, so the win condition is simply drowning the opponent in bodies or busting.
 
 # Details
 
-[Step 1] Start by keeping SCV production constant while adding a couple of depots to avoid supply blocks, then throw down three barracks to begin ramping up your bio production.
+[Step 1] Keep SCV production rolling to saturate the main base economy while throwing down depots to stay ahead of supply. Add 2 rax to set up early production capacity, pacing the build so minerals flow smoothly into workers and infrastructure without banking up.
 
-[Step 2] Upgrade the first Command Center to an Orbital Command for faster mining, then drop additional Barracks — the second and third — while pumping out a wave of Marines and continuing worker production from the main base.
+[Step 2] Morph the CC into an orbital to kickstart scan and mule economy, then add 2 rax alongside an existing one to open up marine production. Keep SCVs training to pace worker saturation with the new orbital online, and start cranking out a wave of marines while adding a bunker for early defense. Throw down a depot to keep supply headroom ahead of the marine and SCV output without overcommitting minerals.
 
-[Step 3] Keep SCV production steady, throw down another depot, and start pumping out several Marines from the first rax while you lay down the second Barracks to boost marine count for map control or early pressure.
+[Step 3] Throw down a couple more rax to open up production slots, keep training SCVs to push worker saturation, and queue up several Marines to stock the army. With all this unit production coming online, make sure depots are planned so supply doesn't bottleneck the build.
 
-[Step 4] Continue marine production from the rax, training 8 marines to build up a solid army, and throw down two depots to avoid supply blocks as the economy expands.
+[Step 4] Keep the SCV production rolling to keep the economy growing while churning out a wave of Marines from the rax. Throw down a depot to stay ahead of the supply curve as the marine count spikes, giving yourself breathing room for the next production cycle without letting minerals pile up into unused supply.
 
-[Step 5] Keep pumping Marines to build up the bio force, and throw down another depot to support the growing army supply.
+[Step 5] Pump out a wave of Marines across multiple rax cycles to build a solid bio core, while throwing down a pair of depots to keep supply headroom healthy for the ongoing production surge.
 
-[Step 6] Pump out a full queue of 10 marines from your rax to reinforce your army, setting up a strong backbone of bio units for the upcoming fight.
+[Step 6] Dump rax cycles into a massive wave of marines to flood the field with bio, while keeping an eye on supply headroom to make sure you aren't caught capped as this army ball swells.
 
-[Step 7] Pump out a wave of 9 Marines from your rax and throw down a depot to keep your production from stalling.
+[Step 7] Flood marine production across all available rax while slipping in a couple of depots to keep supply from capping. The constant marine output demands steady depot support, so add that buffer without overshooting into wasted supply cap.
 
-[Step 8] Throw down several depots to avoid getting supply blocked, then crank out a wave of Marines from the rax to reinforce your army.
-
-[Step 9] Pump out a wave of Marines from the Barracks and drop a depot to support the growing army, keeping the pressure on your opponent.
-
-[Step 10] This is a hyper-aggressive one-base three-rax marine all-in that sacrifices tech and economy for an early flood of unupgraded bio, aiming to overwhelm the opponent before they can stabilize. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
+[Step 8] This is a classic no-gas marine all-in that embodies the purest form of Terran cheese, banking on an unrelenting bio flood to end the game before any real tech or economy can come online. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
 
