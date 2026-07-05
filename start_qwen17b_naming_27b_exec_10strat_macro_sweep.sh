@@ -6,7 +6,7 @@
 # Usage:
 #   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh base   # Qwen3-1.7b naming
 #   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh sft     # Qwen3-1.7b-sc2-naming-sft
-#   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh grpo    # Qwen3-1.7b-sc2-naming-grpo (thinking)
+#   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh grpo    # Qwen3-1.7b-sc2-naming-grpo-v2 (thinking)
 #   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh both   # launch both (separate tmux)
 # Resume: START_INDEX=N bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh base
 
@@ -52,9 +52,9 @@ _start_sweep() {
       naming_mode="no thinking"
       ;;
     grpo)
-      session="${TMUX_SESSION_GRPO:-qwen17b_grpo_naming_27b_exec_10strat_sweep}"
-      batch="${BATCH_NAME_GRPO:-qwen17b_grpo_naming_27b_exec_10strat_macro_r5}"
-      naming_model="Qwen3-1.7b-sc2-naming-grpo_think"
+      session="${TMUX_SESSION_GRPO:-qwen17b_grpo_v2_naming_27b_exec_10strat_sweep}"
+      batch="${BATCH_NAME_GRPO:-qwen17b_grpo_v2_naming_27b_exec_10strat_macro_r5}"
+      naming_model="Qwen3-1.7b-sc2-naming-grpo-v2_think"
       naming_mode="thinking"
       ;;
     *)
@@ -120,7 +120,7 @@ case "$TARGET" in
     echo "Usage: $0 {base|sft|grpo|both}" >&2
     echo "  base  — Qwen3-1.7b naming + Qwen35-27b order/exec" >&2
     echo "  sft   — Qwen3-1.7b-sc2-naming-sft naming + Qwen35-27b order/exec" >&2
-    echo "  grpo  — Qwen3-1.7b-sc2-naming-grpo naming (thinking) + Qwen35-27b order/exec" >&2
+    echo "  grpo  — Qwen3-1.7b-sc2-naming-grpo-v2 naming (thinking) + Qwen35-27b order/exec" >&2
     echo "  both  — launch both base and sft sweeps in separate tmux sessions" >&2
     exit 1
     ;;
