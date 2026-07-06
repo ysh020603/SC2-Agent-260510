@@ -11,6 +11,25 @@ from .act_base import ActBase
 from sc2.dicts.upgrade_researched_from import UPGRADE_RESEARCHED_FROM
 from sharpy.managers.core import VersionManager
 
+_UPGRADE_FALLBACK = {
+    UpgradeId.RAVENCORVIDREACTOR: UnitTypeId.STARPORTTECHLAB,
+    UpgradeId.RAVENENHANCEDMUNITIONS: UnitTypeId.STARPORTTECHLAB,
+    UpgradeId.RAVENRECALIBRATEDEXPLOSIVES: UnitTypeId.STARPORTTECHLAB,
+}
+
+
+def _research_building_for(upgrade_type: UpgradeId) -> UnitTypeId:
+    from_building = UPGRADE_RESEARCHED_FROM.get(
+        upgrade_type, _UPGRADE_FALLBACK.get(upgrade_type)
+    )
+    if from_building is None:
+        raise RuntimeError(
+            "No research-building mapping for "
+            f"{upgrade_type.name}. Verify that the Agent bundled python-sc2 "
+            "snapshot is complete or add an explicit compatibility mapping."
+        )
+    return from_building
+
 
 class Tech(ActBase):
     """
@@ -36,9 +55,9 @@ class Tech(ActBase):
         self.upgrade_type: UpgradeId = upgrade_type
 
         if from_building is None:
-            from_building = UPGRADE_RESEARCHED_FROM[self.upgrade_type]
+            from_building = _research_building_for(self.upgrade_type)
 
-        assert isinstance(from_building, UnitTypeId) or from_building is None
+        assert isinstance(from_building, UnitTypeId)
 
         self._from_building = from_building
         # This is used to determine if the upgrade actually exists in the current version of the game
@@ -58,9 +77,9 @@ class Tech(ActBase):
         version_manager: VersionManager = knowledge.version_manager
 
         if self._from_building is None:
-            self._from_building = version_manager.moved_upgrades.get(
-                self.upgrade_type, UPGRADE_RESEARCHED_FROM[self.upgrade_type]
-            )
+            self._from_building = version_manager.moved_upgrades.get(self.upgrade_type)
+            if self._from_building is None:
+                self._from_building = _research_building_for(self.upgrade_type)
 
         if self._from_building in self.equivalent_structures:
             self.from_buildings = self.equivalent_structures[self._from_building]

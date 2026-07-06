@@ -75,6 +75,8 @@ API_config/
 
 bot_loader/                    # Bot 注册、对局启动、内置 AI 参数解析
 sharpy/                        # Sharpy 框架主体
+python-sc2/                    # Agent 自己版本化的固定 python-sc2 运行时
+sc2_runtime.py                # 本地运行时加载、来源校验和兼容性检查
 docs/                          # 系统说明、环境配置、测试记录和经验总结
 ```
 
@@ -176,55 +178,33 @@ BO_list/terran/<name>/
 - Python 3.11
 - conda 环境名：`SC2_0615`
 - 本地安装 StarCraft II，并设置 `SC2PATH`
+- 仓库必须包含完整的 `python-sc2/`；运行时不使用 conda/site-packages 中的 `sc2`
 - Windows 下建议设置 `PYTHONUTF8=1`
 
-### 安装 StarCraft II
+详细步骤请看：
 
-需要本地安装《星际争霸 II》客户端，**免费 Starter Edition 即可**运行 bot 对局。
+- [docs/environment-setup.md](docs/environment-setup.md)
+- [docs/python-sc2-runtime.md](docs/python-sc2-runtime.md)
+- [docs/system-architecture.md](docs/system-architecture.md)
 
-**Windows / macOS**
+最小安装示例：
 
-1. 从 [官方 StarCraft II 网站](https://starcraft2.blizzard.com/) 下载并安装游戏。
-2. （推荐）在 Battle.net 启动器设置中将游戏语言改为 **English**，避免客户端与脚本编码不一致。
-3. Windows 常见安装路径：
+```bash
+conda create -n SC2_0615 python=3.11 pip -y
+conda activate SC2_0615
 
-   ```text
-   C:\Program Files (x86)\StarCraft II
-   ```
+pip install \
+  "s2clientprotocol" \
+  "mpyq" "portpicker" \
+  "openai" "requests" "aiohttp" \
+  "numpy" "scipy" "scikit-learn" \
+  "opencv-python-headless" \
+  "more-itertools" "six" \
+  "protobuf==3.20.3" \
+  "loguru"
 
-**Linux**
-
-1. 从 [s2client-proto 仓库](https://github.com/Blizzard/s2client-proto?tab=readme-ov-file#linux-packages) 下载 Linux 版游戏包，或复用已有安装目录。
-2. 设置 `SC2PATH` 指向 SC2 根目录（目录内应包含 `Versions/` 与 `Maps/`）：
-
-   ```bash
-   export SC2PATH="/path/to/StarCraftII"
-   ```
-
-### 配置地图
-
-对局地图需放在 SC2 安装目录下的 `Maps/` 文件夹中。
-
-1. **Melee 地图包（基础对战）**  
-   从 [s2client-proto map packs](https://github.com/Blizzard/s2client-proto?tab=readme-ov-file#map-packs) 下载 `Melee.zip`，解压到 `Maps/` 目录。若 `Maps/` 不存在，请手动创建。
-
-2. **天梯 / 联赛地图（本仓库默认）**  
-   默认地图为 `KairosJunctionLE`（见 `run_vs_ai.py`）。需将对应 `.SC2Map` 文件放入 `Maps/`（常见子目录如 `Maps/Ladder/` 或 `Maps/Ladder2019Season1/`，以你本地 SC2 目录结构为准）。
-
-3. **验证**  
-   确认 `SC2PATH` 已设置，且目标地图文件存在于 `Maps/` 下，例如：
-
-   ```powershell
-   # Windows
-   Get-ChildItem "$env:SC2PATH\Maps" -Recurse -Filter '*Kairos*'
-   ```
-
-   ```bash
-   # Linux
-   find "$SC2PATH/Maps" -iname '*Kairos*'
-   ```
-
-### 设置环境变量
+pip install "pytest<7.0.0" "pytest-asyncio==0.20.3"
+```
 
 Windows PowerShell 常用环境变量：
 
@@ -239,34 +219,13 @@ Linux 示例：
 export SC2PATH=/data2/SC2/StarCraftII/
 ```
 
-可将 `SC2PATH` 写入 shell 配置或 conda 环境变量，避免每次手动设置。更多平台细节见 [docs/environment-setup.md](docs/environment-setup.md)。
-
-### Python 依赖
-
-详细步骤与验证命令请看：
-
-- [docs/environment-setup.md](docs/environment-setup.md)
-- [docs/system-architecture.md](docs/system-architecture.md)
-
-最小安装示例：
+验证 Agent 确实加载仓库内依赖：
 
 ```bash
-conda create -n SC2_0615 python=3.11 pip -y
-conda activate SC2_0615
-
-pip install \
-  "burnysc2==7.1.3" \
-  "s2clientprotocol" \
-  "mpyq" "portpicker" \
-  "openai" "requests" "aiohttp" \
-  "numpy" "scipy" "scikit-learn" \
-  "opencv-python-headless" \
-  "more-itertools" "six" \
-  "protobuf==3.20.3" \
-  "loguru"
-
-pip install "pytest<7.0.0" "pytest-asyncio==0.20.3"
+python -c "from sc2_runtime import ensure_bundled_python_sc2; print(ensure_bundled_python_sc2())"
 ```
+
+输出路径必须位于当前仓库的 `python-sc2/sc2/`。
 
 ## LLM 配置
 
@@ -394,6 +353,17 @@ export ORDERING_MODEL="DeepSeek-V4-flash"
 export EXECUTOR_MODEL="DeepSeek-V4-flash"
 ```
 
+### 测试与运行脚本归档
+
+测试过程中如果新建了 Python 或 Shell/PowerShell 启动脚本，测试结束后不要把脚本留在仓库根目录、`docs/`、`game_records/` 或系统临时目录。按用途整理到仓库内：
+
+- 可复用的单局、批量、回归和结果检查脚本放入 `tools/`。
+- 不启动 SC2 的 pytest 测试放入 `tools/tests/`，文件名使用 `test_*.py`。
+- 已被通用脚本替代、仅保留历史参考的一次性 launcher 放入 `tools/archive/`，新测试不得继续调用。
+- 对局日志、Replay、轨迹 JSON 和模型调用记录仍写入 `game_records/`，不要放进 `tools/`。
+
+归档到 `tools/` 的脚本应从仓库根目录可直接运行，使用 `Path(__file__)` 推导仓库路径，并将地图、策略、模型、对手、并发数、批次名和时限做成参数。不得写入 API 密钥、个人凭据或只在某台机器存在的硬编码绝对路径。详细规范见 [`tools/README.md`](tools/README.md) 和 [`docs/test-run-workflow.md`](docs/test-run-workflow.md)。
+
 ## 对局产物
 
 默认写入：
@@ -440,7 +410,9 @@ $env:PYTHONPATH=(Resolve-Path .).Path
 python -m pytest tools/tests -q -p pytest_asyncio
 ```
 
-当前仓库里的轻量测试主要覆盖 prompt 标签、Ordering Agent prompt 等逻辑。完整游戏验证仍需要本地 SC2 客户端、地图和可用 LLM API。
+当前仓库里的轻量测试还会检查 `sc2` 的实际导入来源和 Raven 升级映射。完整游戏验证仍需要本地 SC2 客户端、地图和可用 LLM API。
+
+如果为了复现问题临时编写了测试 launcher 或日志检查脚本，在提交测试结论前必须按上面的“测试与运行脚本归档”规则整理到 `tools/`；只有完全一次性、无需复现的终端命令可以不保存成文件。
 
 ## 常用策略名
 
@@ -464,6 +436,7 @@ python -m pytest tools/tests -q -p pytest_asyncio
 | [docs/README.md](docs/README.md) | 文档阅读索引，每个 md 的用途摘要 |
 | [docs/system-architecture.md](docs/system-architecture.md) | 新版 LLM 增量驱动和命令式执行系统总览 |
 | [docs/environment-setup.md](docs/environment-setup.md) | Linux / Windows 环境安装、SC2PATH、冒烟测试 |
+| [docs/python-sc2-runtime.md](docs/python-sc2-runtime.md) | Agent 本地 python-sc2 的加载、校验、自检与更新规则 |
 | [docs/test-run-workflow.md](docs/test-run-workflow.md) | 测试和运行记录 |
 | [docs/direct-build-executor-notes-20260617.md](docs/direct-build-executor-notes-20260617.md) | DirectBuild、reservation、deferred 机制经验 |
 | [docs/bot-inheritance.md](docs/bot-inheritance.md) | Sharpy Bot 继承关系和 dummies 说明 |

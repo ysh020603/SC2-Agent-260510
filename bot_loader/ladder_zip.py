@@ -11,8 +11,9 @@ from version import update_version_txt
 common_sharpy = [
     ("jsonpickle", None),
     ("sharpy", None),
-    (os.path.join("python-sc2", "sc2"), "sc2"),
+    (os.path.join("python-sc2", "sc2"), None),
     ("sc2pathlib", None),
+    ("sc2_runtime.py", None),
     ("config.py", None),
     ("ladder.py", None),
 ]
@@ -76,7 +77,7 @@ class LadderZip:
 
         self.pyinstaller = (
             'pyinstaller --add-data "[FOLDER]/sc2pathlib'
-            '";"sc2pathlib/" --add-data "[FOLDER]/sc2";"sc2/" '
+            '";"sc2pathlib/" --add-data "[FOLDER]/python-sc2/sc2";"python-sc2/sc2/" '
             '--add-data "[FOLDER]/config.ini";"." --add-data '
             '"[FOLDER]/version.txt";"."  '
             '"[FOLDER]/run.py" '

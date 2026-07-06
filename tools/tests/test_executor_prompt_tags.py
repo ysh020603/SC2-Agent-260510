@@ -1,16 +1,6 @@
-import sys
-import types
 from types import SimpleNamespace
 
 from SC2_Agent.executor_agent import build_executor_messages, parse_executor_response
-
-sc2_module = types.ModuleType("sc2")
-sc2_ids_module = types.ModuleType("sc2.ids")
-sc2_ability_module = types.ModuleType("sc2.ids.ability_id")
-sc2_ability_module.AbilityId = object
-sys.modules.setdefault("sc2", sc2_module)
-sys.modules.setdefault("sc2.ids", sc2_ids_module)
-sys.modules.setdefault("sc2.ids.ability_id", sc2_ability_module)
 
 from SC2_Agent.execution.executor_select import (
     candidates_text,

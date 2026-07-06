@@ -24,12 +24,8 @@ in `API_config/config.json` choose one of these modes through
 | Kimi thinking off | `none` | `{"thinking": {"type": "disabled"}, "chat_template_kwargs": {"thinking": false}}` |
 | Qwen3 thinking on through vLLM without `--reasoning-parser` | `content_think_tags` | `{"chat_template_kwargs": {"enable_thinking": true}}` |
 | Qwen3 thinking off | `none` | `{"chat_template_kwargs": {"enable_thinking": false}}` |
-| Qwen3-32b (vLLM @ :8004) thinking on | `content_think_tags` | reasoning in `content` as `...`; `reasoning_content` empty |
-| Qwen3-32b thinking off | `none` | direct answer in `content` only |
-| Qwen3-4b (vLLM @ :8005) thinking on | `content_think_tags` | same as other Qwen3 vLLM deployments |
-| Qwen3-4b thinking off | `none` | direct answer in `content` only |
-| Qwen3-14b (vLLM @ :8006) thinking on | `content_think_tags` | same as other Qwen3 vLLM deployments |
-| Qwen3-14b thinking off | `none` | direct answer in `content` only |
+| `Qwen3-0.6b-sc2-executor-grpo-2x-5ep_think` | `content_think_tags` | same as Qwen3-1.7b thinking entries |
+| `Qwen3-0.6b` | `none` | `{"chat_template_kwargs": {"enable_thinking": false}}` |
 
 ## Probe Workflow
 

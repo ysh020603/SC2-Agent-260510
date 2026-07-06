@@ -7,7 +7,9 @@ using run_vs_ai.play_vs_ai with --bo-list (bypasses Naming/Ordering LLM).
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -124,7 +126,92 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=0,
         help="Skip jobs with index < start-index (resume support).",
     )
+    parser.add_argument(
+        "--skip-completed",
+        action="store_true",
+        help="Skip jobs that already have a valid record under game_records/<batch-name>/.",
+    )
     return parser.parse_args(argv)
+
+
+def _result_json_paths(record_dir: Path) -> List[Path]:
+    return [
+        path
+        for path in record_dir.glob("*.json")
+        if not path.name.endswith(".llm_calls.json")
+    ]
+
+
+def is_valid_record_dir(record_dir: Path) -> bool:
+    """Return True when a match folder contains a usable result JSON."""
+    if not record_dir.is_dir():
+        return False
+    for path in _result_json_paths(record_dir):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if isinstance(data, dict) and ("metadata" in data or "interactions" in data):
+            return True
+    return False
+
+
+def find_record_dir(batch_name: str, run_index: int) -> Optional[Path]:
+    batch_dir = ROOT / "game_records" / batch_name
+    if not batch_dir.is_dir():
+        return None
+    suffix = f"_run{run_index}"
+    matches = sorted(
+        path
+        for path in batch_dir.iterdir()
+        if path.is_dir() and path.name.endswith(suffix)
+    )
+    return matches[-1] if matches else None
+
+
+def is_job_completed(batch_name: str, job: MatchJob) -> bool:
+    record_dir = find_record_dir(batch_name, job.index)
+    return record_dir is not None and is_valid_record_dir(record_dir)
+
+
+def cleanup_invalid_batch_records(
+    batch_name: str,
+    *,
+    migrate_from: Optional[Sequence[str]] = None,
+) -> tuple[int, int, int]:
+    """Delete invalid record dirs; optionally migrate valid ones from older batches."""
+    batch_dir = ROOT / "game_records" / batch_name
+    batch_dir.mkdir(parents=True, exist_ok=True)
+
+    migrated = 0
+    for source_name in migrate_from or ():
+        source_dir = ROOT / "game_records" / source_name
+        if not source_dir.is_dir():
+            continue
+        for record_dir in sorted(source_dir.iterdir()):
+            if not record_dir.is_dir() or not record_dir.name.startswith("2026"):
+                continue
+            target_dir = batch_dir / record_dir.name
+            if is_valid_record_dir(record_dir):
+                if target_dir.exists():
+                    shutil.rmtree(record_dir)
+                else:
+                    shutil.move(str(record_dir), str(target_dir))
+                    migrated += 1
+            else:
+                shutil.rmtree(record_dir)
+
+    deleted = 0
+    kept = 0
+    for record_dir in sorted(batch_dir.iterdir()):
+        if not record_dir.is_dir() or not record_dir.name.startswith("2026"):
+            continue
+        if is_valid_record_dir(record_dir):
+            kept += 1
+            continue
+        shutil.rmtree(record_dir)
+        deleted += 1
+    return migrated, kept, deleted
 
 
 def _run_one(
@@ -190,6 +277,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     maps = [m.strip() for m in args.maps.split(",") if m.strip()]
     jobs = _build_jobs(strategies, maps, enemy_races, difficulties, args.repeats)
     jobs = [j for j in jobs if j.index >= args.start_index]
+    if args.skip_completed:
+        pending = []
+        skipped = 0
+        for job in jobs:
+            if is_job_completed(args.batch_name, job):
+                skipped += 1
+                continue
+            pending.append(job)
+        jobs = pending
+        print(f"Skip completed: {skipped}")
 
     log_dir = ROOT / "game_records" / "_batch_logs" / args.batch_name
     log_dir.mkdir(parents=True, exist_ok=True)

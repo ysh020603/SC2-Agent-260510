@@ -8,6 +8,10 @@ import os
 import random
 from datetime import datetime
 
+from sc2_runtime import ensure_bundled_python_sc2
+
+ensure_bundled_python_sc2()
+
 import aiohttp
 
 from config import get_config

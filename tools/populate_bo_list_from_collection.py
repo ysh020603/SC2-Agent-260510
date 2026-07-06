@@ -19,11 +19,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 DIFFICULTY_RANK: Dict[str, int] = {
-    "medium": 0,
-    "mediumhard": 1,
-    "hard": 2,
-    "harder": 3,
-    "veryhard": 4,
+    "veryeasy": 0,
+    "easy": 1,
+    "medium": 2,
+    "mediumhard": 3,
+    "hard": 4,
+    "harder": 5,
+    "veryhard": 6,
 }
 
 
@@ -79,9 +81,14 @@ def resolve_sequence_candidates(
     sequences_dir: Path,
     bot_key: str,
     opponent: str,
+    map_name: Optional[str] = None,
 ) -> List[Path]:
     pattern = f"{bot_key}-{opponent}_*.json"
-    return sorted(sequences_dir.glob(pattern))
+    candidates = sorted(sequences_dir.glob(pattern))
+    if map_name:
+        needle = f"_{map_name}_"
+        candidates = [path for path in candidates if needle in path.name]
+    return candidates
 
 
 def load_sequence(path: Path) -> Tuple[List[str], str]:
@@ -99,8 +106,9 @@ def pick_best_sequence_file(
     bot_key: str,
     opponent: str,
     require_victory: bool,
+    map_name: Optional[str] = None,
 ) -> Tuple[Path, List[str], str]:
-    candidates = resolve_sequence_candidates(sequences_dir, bot_key, opponent)
+    candidates = resolve_sequence_candidates(sequences_dir, bot_key, opponent, map_name=map_name)
     if not candidates:
         raise FileNotFoundError(
             f"No sequence JSON for {bot_key}-{opponent}_* under {sequences_dir}"
@@ -129,6 +137,8 @@ def pick_best_sequence_file(
 def select_match_for_strategy(
     strategy: str,
     collection_root: Path,
+    enemy_race: Optional[str] = None,
+    map_name: Optional[str] = None,
 ) -> SelectedMatch:
     results_path = collection_root / strategy / "results.json"
     if not results_path.is_file():
@@ -140,6 +150,10 @@ def select_match_for_strategy(
         m for m in matches
         if m.get("victory") is True and m.get("status") == "ok"
     ]
+    if enemy_race:
+        wins = [m for m in wins if m.get("enemy_race") == enemy_race]
+    if map_name:
+        wins = [m for m in wins if m.get("map") == map_name]
     if not wins:
         raise RuntimeError(f"No winning matches for strategy '{strategy}'")
 
@@ -157,6 +171,7 @@ def select_match_for_strategy(
             bot_key,
             opponent,
             require_victory=True,
+            map_name=map_name,
         )
         selected = SelectedMatch(
             strategy=strategy,
@@ -187,8 +202,16 @@ def populate_strategy(
     bo_list_root: Path,
     skill_root: Path,
     dry_run: bool,
+    enemy_race: Optional[str] = None,
+    map_name: Optional[str] = None,
+    skip_tools_copy: bool = False,
 ) -> SelectedMatch:
-    selected = select_match_for_strategy(strategy, collection_root)
+    selected = select_match_for_strategy(
+        strategy,
+        collection_root,
+        enemy_race=enemy_race,
+        map_name=map_name,
+    )
     order_list = load_selected_order_list(selected)
 
     target_dir = bo_list_root / strategy
@@ -211,19 +234,33 @@ def populate_strategy(
 
     target_dir.mkdir(parents=True, exist_ok=True)
     write_json(bo_path, order_list)
-    shutil.copy2(tools_src, tools_dst)
+    if not skip_tools_copy or not tools_dst.is_file():
+        shutil.copy2(tools_src, tools_dst)
     return selected
 
 
-def update_registry(bo_list_root: Path, strategies: Sequence[str], dry_run: bool) -> None:
+def update_registry(
+    bo_list_root: Path,
+    strategies: Sequence[str],
+    dry_run: bool,
+    append: bool = False,
+) -> None:
     registry_path = bo_list_root / "registry.json"
+    existing: List[str] = []
+    if append and registry_path.is_file():
+        registry = load_json(registry_path)
+        existing = list(registry.get("registered_strategies", []))
+    merged = existing[:]
+    for strategy in strategies:
+        if strategy not in merged:
+            merged.append(strategy)
     registry = {
         "_comment": (
             "Terran BO-list strategies for --bo-list runs. Keep this list in sync "
             "with BO_list/terran/<strategy>/ directories. Each registered folder "
             "must contain BO.json and strategy_tools.py."
         ),
-        "registered_strategies": list(strategies),
+        "registered_strategies": list(merged if append else strategies),
     }
     if dry_run:
         print(f"[dry-run] would update registry with {len(strategies)} strategies")
@@ -269,12 +306,40 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="Print selections without writing files",
     )
+    parser.add_argument(
+        "--map",
+        default=None,
+        help="Only use matches/sequences from this map id (e.g. KairosJunctionLE).",
+    )
+    parser.add_argument(
+        "--enemy-race",
+        default=None,
+        help="Only use winning matches against this opponent race (e.g. terran).",
+    )
+    parser.add_argument(
+        "--strategies",
+        nargs="*",
+        default=None,
+        help="Explicit strategy folder names to populate (overrides SKILL registry intersection).",
+    )
+    parser.add_argument(
+        "--append-registry",
+        action="store_true",
+        help="Append new strategies to registry.json instead of replacing it.",
+    )
+    parser.add_argument(
+        "--skip-tools-copy",
+        action="store_true",
+        help="Do not overwrite strategy_tools.py when it already exists.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     collection_root: Path = args.collection_root
+    if args.map:
+        collection_root = collection_root / args.map
     bo_list_root: Path = args.bo_list_root
     skill_root: Path = args.skill_root
 
@@ -282,22 +347,28 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"Collection root not found: {collection_root}", file=sys.stderr)
         return 1
 
-    skill_strategies = load_skill_strategies(skill_root)
-    collection_strategies = discover_collection_strategies(collection_root)
-    missing_in_collection = sorted(set(skill_strategies) - set(collection_strategies))
-    if missing_in_collection:
-        print(
-            "Warning: SKILL strategies missing from collection: "
-            + ", ".join(missing_in_collection),
-            file=sys.stderr,
-        )
-
-    strategies = [s for s in skill_strategies if s in collection_strategies]
+    if args.strategies:
+        strategies = list(args.strategies)
+    else:
+        skill_strategies = load_skill_strategies(skill_root)
+        collection_strategies = discover_collection_strategies(collection_root)
+        missing_in_collection = sorted(set(skill_strategies) - set(collection_strategies))
+        if missing_in_collection:
+            print(
+                "Warning: SKILL strategies missing from collection: "
+                + ", ".join(missing_in_collection),
+                file=sys.stderr,
+            )
+        strategies = [s for s in skill_strategies if s in collection_strategies]
     if not strategies:
-        print("No overlapping strategies between SKILL and collection.", file=sys.stderr)
+        print("No strategies selected for population.", file=sys.stderr)
         return 1
 
     print(f"Processing {len(strategies)} strategies from {collection_root}")
+    if args.enemy_race:
+        print(f"Opponent race filter: {args.enemy_race}")
+    if args.map:
+        print(f"Map filter: {args.map}")
     selections: List[SelectedMatch] = []
     for strategy in strategies:
         selections.append(
@@ -307,10 +378,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 bo_list_root=bo_list_root,
                 skill_root=skill_root,
                 dry_run=args.dry_run,
+                enemy_race=args.enemy_race,
+                map_name=args.map,
+                skip_tools_copy=args.skip_tools_copy,
             )
         )
 
-    update_registry(bo_list_root, strategies, dry_run=args.dry_run)
+    update_registry(bo_list_root, strategies, dry_run=args.dry_run, append=args.append_registry)
     write_manifest(bo_list_root, selections, dry_run=args.dry_run)
 
     if args.dry_run:

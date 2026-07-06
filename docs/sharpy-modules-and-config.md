@@ -338,7 +338,7 @@
 
 ### 5.3 `run_custom.py`（本地入口）
 
-- 将 `python-sc2` 加入 `sys.path`。
+- 调用 `sc2_runtime.ensure_bundled_python_sc2()`，按绝对位置加载 Agent 仓库内的 `python-sc2`，并拒绝 conda/site-packages 中的不兼容版本。
 - 调用 `version.update_version_txt()` 更新版本文件。
 - 构造 `BotDefinitions(ladder_bots_path)`（默认扫描仓库下 `Bots/`），再构造 **`GameStarter(definitions)`** 并 `starter.play()`。
 - **`GameStarter`**（`bot_loader/game_starter.py`）构造时使用 **`get_config()`**（即默认合并 `config-local.ini`）；解析命令行参数后：

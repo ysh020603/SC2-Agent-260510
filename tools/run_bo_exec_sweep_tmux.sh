@@ -16,6 +16,7 @@ CONCURRENCY="${CONCURRENCY:-20}"
 REPEATS="${REPEATS:-5}"
 GAME_TIME_LIMIT="${GAME_TIME_LIMIT:-1200}"
 START_INDEX="${START_INDEX:-0}"
+SKIP_COMPLETED="${SKIP_COMPLETED:-1}"
 EXECUTOR_MODEL="${EXECUTOR_MODEL:-Qwen3-1.7b-sc2-executor-grpo-2x-4ep_think}"
 DIFFICULTIES="${DIFFICULTIES:-veryeasy,medium,hard}"
 ENEMY_RACES="${ENEMY_RACES:-protoss,terran,zerg}"
@@ -36,18 +37,25 @@ echo "Enemy build: ${ENEMY_BUILD}"
 echo "Maps: ${MAPS}"
 echo "Strategies: ${STRATEGIES}"
 
+SWEEP_ARGS=(
+  --batch-name "${BATCH_NAME}"
+  --concurrency "${CONCURRENCY}"
+  --repeats "${REPEATS}"
+  --game-time-limit "${GAME_TIME_LIMIT}"
+  --start-index "${START_INDEX}"
+  --executor-model "${EXECUTOR_MODEL}"
+  --strategies "${STRATEGIES}"
+  --difficulties "${DIFFICULTIES}"
+  --enemy-races "${ENEMY_RACES}"
+  --enemy-build "${ENEMY_BUILD}"
+  --maps "${MAPS}"
+)
+if [[ "${SKIP_COMPLETED}" == "1" ]]; then
+  SWEEP_ARGS+=(--skip-completed)
+fi
+
 python tools/run_bo_list_strategy_sweep.py \
-  --batch-name "${BATCH_NAME}" \
-  --concurrency "${CONCURRENCY}" \
-  --repeats "${REPEATS}" \
-  --game-time-limit "${GAME_TIME_LIMIT}" \
-  --start-index "${START_INDEX}" \
-  --executor-model "${EXECUTOR_MODEL}" \
-  --strategies "${STRATEGIES}" \
-  --difficulties "${DIFFICULTIES}" \
-  --enemy-races "${ENEMY_RACES}" \
-  --enemy-build "${ENEMY_BUILD}" \
-  --maps "${MAPS}" \
+  "${SWEEP_ARGS[@]}" \
   2>"${LOG_ERR}" | tee -a "${LOG_OUT}"
 
 echo ""

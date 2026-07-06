@@ -4,12 +4,16 @@
     "banshees",
     "battle_cruisers",
     "bio",
+    "cyclones",
     "marine_rush",
-    "raven_liberator_tank",
     "rusty",
-    "safe_tvt_raven",
-    "tank_thor_mech",
-    "three_rax_stim",
-    "two_base_tanks"
+    "two_base_tanks",
+    "raven_screams",
+    "yamato_rust_fleet",
+    "rusty_bio_mines",
+    "blueflame_locks",
+    "stim_rush_relay",
+    "old_rusty_anvil",
+    "two_base_matrix_tanks"
   ]
 }

@@ -1,6 +1,16 @@
 import json
+import sys
 from collections import defaultdict
+from pathlib import Path
 from typing import List, Set, Optional, Union, Dict
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from sc2_runtime import ensure_bundled_python_sc2
+
+ensure_bundled_python_sc2()
 
 from sc2.player import Race
 from sc2.ids.unit_typeid import UnitTypeId

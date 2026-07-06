@@ -16,6 +16,31 @@ C:\code\SC2_Agent_OLD\game_records
 tools/run_experiment.py
 ```
 
+## 测试脚本归档规则
+
+测试结束后，应在汇报结果前整理本次使用或新增的脚本：
+
+| 脚本类型 | 归档位置 | 说明 |
+|---|---|---|
+| 可复用的启动、批量、回归、数据检查脚本 | `tools/` | 后续实验和问题复现的正式入口 |
+| 不启动 SC2 的自动化测试 | `tools/tests/` | 使用 pytest，文件名为 `test_*.py` |
+| 已废弃、仅供追溯的一次性 launcher | `tools/archive/` | 不得作为新实验入口 |
+| 对局产物 | `game_records/` | 日志、Replay、轨迹 JSON、LLM 调用记录，不属于脚本 |
+
+禁止把测试脚本长期留在仓库根目录、`docs/`、`game_records/` 或 `/tmp`。完全一次性且不支撑正式测试结论的终端命令不必保存；一旦脚本需要复跑、用于得出结论或可能帮助后续排查，就必须归档到 `tools/`。
+
+归档脚本至少满足以下要求：
+
+- 从仓库根目录可直接执行，并使用 `Path(__file__).resolve()` 推导仓库位置，不依赖调用时的当前目录。
+- 策略、地图、模型、对手、批次名、并发数和游戏时限通过命令行参数或有说明的环境变量配置。
+- 默认将运行产物写入 `game_records/<batch_name>/`，不得覆盖已有实验。
+- 不包含 API 密钥、Token、个人凭据或机器专用绝对路径；`SC2PATH` 和 Python 环境路径允许通过环境变量覆盖。
+- 文件名表达用途，优先采用 `run_<scope>.py`、`check_<scope>.py` 或 `verify_<scope>.py`。
+- 文件头说明用途、运行示例、输出目录和是否会启动 SC2/API。
+- 归档后至少执行一次 `--help`、dry-run 或对应轻量测试，确认入口没有因移动而失效。
+
+`tools/` 的目录约定和交付检查清单见 [`../tools/README.md`](../tools/README.md)。
+
 ## 测试原则
 
 - 当前主线是固定策略 + Naming + DATA_TOOLS + Ordering + Supply Planner + ExecutionScheduler。
@@ -41,6 +66,17 @@ tools/run_experiment.py
 - 记录目录：`game_records`
 
 ## 跑之前检查
+
+先确认本次运行会使用 Agent 自己的 `python-sc2`：
+
+```powershell
+@'
+from sc2_runtime import ensure_bundled_python_sc2
+print(ensure_bundled_python_sc2())
+'@ | python -
+```
+
+输出必须位于当前 Agent 仓库的 `python-sc2\sc2\`。
 
 ```powershell
 cd C:\code\SC2_Agent_OLD
@@ -229,6 +265,7 @@ Get-ChildItem game_records\battle_cruisers_eval -Recurse |
 - `Stage4 ordering gaps` 出现 `missing`：先记录为 LLM 漏项，不要在代码里补齐。
 - LLM 已输出动作但 scheduler 没执行：再进入执行机制排查。
 - 旧 `tools/archive/run_*.py` 仅作历史参考，新实验不要继续复制这些文件。
+- 临时测试脚本完成使命后仍留在根目录、`docs/`、`game_records/` 或 `/tmp`：按“测试脚本归档规则”移动到 `tools/`，再记录最终复现命令。
 
 ## 历史回归点
 
@@ -294,11 +331,14 @@ python -m py_compile \
 
 ```bash
 python -c "
+from sc2_runtime import ensure_bundled_python_sc2
+origin = ensure_bundled_python_sc2()
 import sc2, sc2pathlib, sharpy
 from sharpy.plans.acts import ActBase
 from SC2_Agent.execution.scheduler import ExecutionScheduler
 from SC2_Agent.data_tools import actions_for_entities, plan_supply
 from dummies.generic.universal_llm_bot import UniversalLLMBot
+print('SC2 RUNTIME:', origin)
 print('ALL IMPORTS OK')
 "
 ```

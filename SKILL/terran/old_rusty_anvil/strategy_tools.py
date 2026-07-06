@@ -1,0 +1,53 @@
+"""Resource-free tool package for the old_rusty_anvil strategy.
+
+Derived from ``dummies/terran/old_rusty_anvil.py``. Resource-spending tools such
+as ``Repair`` are intentionally omitted. The original random attack threshold
+``random.randint(60, 90)`` is fixed to its lowest value, ``60``.
+"""
+
+from sc2.ids.unit_typeid import UnitTypeId
+from sharpy.plans import BuildOrder, SequentialList
+from sharpy.plans.acts import MineOpenBlockedBase
+from sharpy.plans.build_step import Step
+from sharpy.plans.require import UnitExists
+from sharpy.plans.tactics import (
+    DistributeWorkers,
+    PlanCancelBuilding,
+    PlanFinishEnemy,
+    PlanZoneAttack,
+    PlanZoneDefense,
+    SpeedMining,
+    WorkerScout,
+)
+from sharpy.plans.tactics.terran import (
+    CallMule,
+    ContinueBuilding,
+    LowerDepots,
+    ManTheBunkers,
+    PlanZoneGatherTerran,
+    ScanEnemy,
+)
+
+
+class OldRustyAnvilStrategyTools(BuildOrder):
+    """Old rusty anvil tools that do not spend minerals, gas, or supply."""
+
+    def __init__(self, attack_value: int = 60):
+        super().__init__(
+            SequentialList([
+                MineOpenBlockedBase(),
+                PlanCancelBuilding(),
+                LowerDepots(),
+                PlanZoneDefense(),
+                Step(None, WorkerScout(), skip_until=UnitExists(UnitTypeId.SUPPLYDEPOT, 1)),
+                CallMule(100),
+                ScanEnemy(),
+                DistributeWorkers(),
+                Step(None, SpeedMining(), lambda ai: ai.client.game_step > 5),
+                ManTheBunkers(),
+                ContinueBuilding(),
+                PlanZoneGatherTerran(),
+                Step(None, PlanZoneAttack(attack_value)),
+                PlanFinishEnemy(),
+            ])
+        )

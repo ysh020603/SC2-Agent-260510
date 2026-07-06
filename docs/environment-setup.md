@@ -27,6 +27,10 @@ Windows 下通常没有 `.pyd` 原生扩展；仓库提供了
 
 > 结论：所有平台都按本文档创建 `SC2_0615` + Python 3.11。
 
+### 0.1 `python-sc2` 固定来源
+
+Agent 仓库必须包含 `python-sc2/`。正式入口通过 `sc2_runtime.py` 基于文件绝对位置加载该快照，并检查关键升级映射；不会使用父仓库或 conda/site-packages 中安装的 `burnysc2`。完整规则见 [`python-sc2-runtime.md`](python-sc2-runtime.md)。
+
 ---
 
 ## 1. 创建 conda 环境
@@ -63,7 +67,6 @@ conda activate SC2_0615
 
 ```bash
 pip install \
-  "burnysc2==7.1.3" \
   "s2clientprotocol" \
   "mpyq" "portpicker" \
   "openai" "requests" "aiohttp" \
@@ -83,7 +86,6 @@ pip install "pytest<7.0.0" "pytest-asyncio==0.20.3"
 `SC2_0615` 实测关键版本（`pip freeze` 摘录，供对照）：
 
 ```
-burnysc2==7.1.3              # python-sc2 的维护分支，提供 `import sc2`
 s2clientprotocol==5.0.15.95299.0
 protobuf==3.20.3             # 与 s2clientprotocol 兼容，勿装过高版本
 numpy==2.4.6  scipy==1.17.1  scikit-learn==1.9.0
@@ -91,6 +93,8 @@ opencv-python-headless==4.13.0.92   # 服务器无显示用 headless 版
 openai==2.41.1  aiohttp==3.14.1  loguru==0.7.3
 mpyq==0.2.5  portpicker==1.6.0  more-itertools==11.1.0
 ```
+
+`sc2` 本身来自仓库内 `python-sc2/`，不要求也不建议另外安装 `burnysc2`。即使环境中残留了该包，Agent 启动检查也会拒绝从 site-packages 加载它。
 
 > 说明：`sc2pathlib` 不需要 pip 安装。Linux / macOS 使用仓库内自带 `.so`，
 > Windows 使用仓库内的纯 Python fallback。
@@ -179,11 +183,14 @@ Linux / macOS：
 conda activate SC2_0615
 cd /data2/SC2_shy/SC2_OLD/sharpy-sc2
 python -c "
+from sc2_runtime import ensure_bundled_python_sc2
+origin = ensure_bundled_python_sc2()
 import sc2, sc2pathlib, sharpy
 from sharpy.plans.acts import ActBase
 from SC2_Agent.execution.scheduler import ExecutionScheduler
 from SC2_Agent.data_tools import actions_for_entities, plan_supply
 from dummies.generic.universal_llm_bot import UniversalLLMBot
+print('SC2 RUNTIME:', origin)
 print('ALL IMPORTS OK')
 "
 ```
@@ -195,16 +202,19 @@ conda activate SC2_0615
 cd C:\code\SC2_Agent_OLD
 $env:PYTHONUTF8='1'
 @'
+from sc2_runtime import ensure_bundled_python_sc2
+origin = ensure_bundled_python_sc2()
 import sc2, sc2pathlib, sharpy
 from sharpy.plans.acts import ActBase
 from SC2_Agent.execution.scheduler import ExecutionScheduler
 from SC2_Agent.data_tools import actions_for_entities, plan_supply
 from dummies.generic.universal_llm_bot import UniversalLLMBot
+print('SC2 RUNTIME:', origin)
 print('ALL IMPORTS OK')
 '@ | python -
 ```
 
-输出 `ALL IMPORTS OK` 即依赖链完整。
+`SC2 RUNTIME` 必须指向当前 Agent 仓库的 `python-sc2/sc2/__init__.py`；随后输出 `ALL IMPORTS OK` 才表示依赖链完整。
 
 ### 5.2 pytest 自检
 
@@ -287,7 +297,8 @@ print('interactions:', d['metadata']['llm_interaction_count'])
 | 现象 | 原因 / 解决 |
 |---|---|
 | `No module named 'sc2pathlib.sc2pathlib'` | Linux/macOS：Python 版本不匹配或 `.so` 缺失；Windows：确认仓库内有 `sc2pathlib/sc2pathlib.py` fallback |
-| `No module named 'sc2'` | 未装 `burnysc2`（提供 `import sc2`）→ `pip install burnysc2==7.1.3` |
+| `Bundled python-sc2 is missing` | Agent 仓库缺少 `python-sc2/` 固定快照；重新取得完整仓库，不要用 conda 包替代 |
+| `python-sc2 was imported before the Agent runtime bootstrap` | 某个入口先加载了 site-packages 版本；确保先调用 `sc2_runtime.ensure_bundled_python_sc2()` |
 | `s2clientprotocol` / protobuf 报错 | protobuf 版本过高 → 锁 `protobuf==3.20.3` |
 | 找不到 SC2 / 地图 | `SC2PATH` 未设或地图不在 `Maps/` → 见第 3 节 |
 | 服务器无显示导致 opencv 报错 | 用 `opencv-python-headless` 而非 `opencv-python` |
@@ -307,7 +318,7 @@ print('interactions:', d['metadata']['llm_interaction_count'])
 # 1) 环境
 source /home/wyq/miniconda3/etc/profile.d/conda.sh
 conda create -n SC2_0615 python=3.11 -y && conda activate SC2_0615
-pip install burnysc2==7.1.3 s2clientprotocol mpyq portpicker openai requests \
+pip install s2clientprotocol mpyq portpicker openai requests \
   aiohttp numpy scipy scikit-learn opencv-python-headless more-itertools six \
   protobuf==3.20.3 loguru
 
@@ -325,7 +336,7 @@ SC2_GAME_TIME_LIMIT=240 python run_vs_ai.py --enemy-difficulty easy --batch-name
 # 1) 环境
 & 'C:\ProgramData\anaconda3\Scripts\conda.exe' create -n SC2_0615 python=3.11 pip -y
 conda activate SC2_0615
-pip install burnysc2==7.1.3 s2clientprotocol mpyq portpicker openai requests `
+pip install s2clientprotocol mpyq portpicker openai requests `
   aiohttp numpy scipy scikit-learn opencv-python-headless more-itertools six `
   protobuf==3.20.3 loguru
 pip install "pytest<7.0.0" "pytest-asyncio==0.20.3"
