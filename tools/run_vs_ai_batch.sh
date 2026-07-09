@@ -4,11 +4,12 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT" || exit 1
 
 PYTHON="${PYTHON:-python3}"
-RUN_SCRIPT="${RUN_SCRIPT:-run_vs_ai.py}"
+RUN_SCRIPT="${RUN_SCRIPT:-$ROOT/run_vs_ai.py}"
 
 # 继承环境变量或使用默认值
 MY_BOT_NAME="${MY_BOT_NAME:-universal_llm}"

@@ -330,13 +330,13 @@ python run_custom.py `
 ### 批量对战
 
 ```bash
-bash start_experiments.sh
+bash tools/start_experiments.sh
 ```
 
 或直接调用底层脚本：
 
 ```bash
-bash run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
+bash tools/run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
 ```
 
 批量脚本常用环境变量：

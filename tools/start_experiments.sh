@@ -4,6 +4,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # ---------------------------------------------------------------------------
 # 0. Python runtime
 # ---------------------------------------------------------------------------
@@ -42,4 +45,4 @@ RUN_MODE="${RUN_MODE:-tmux}"  # tmux or fg
 export BATCH_NAME="${BATCH_NAME:-}"
 
 echo "Starting SC2 Agent batch..."
-bash ./run_vs_ai_batch.sh "$TOTAL_MATCHES" "$CONCURRENCY" "$RUN_MODE"
+bash "$SCRIPT_DIR/run_vs_ai_batch.sh" "$TOTAL_MATCHES" "$CONCURRENCY" "$RUN_MODE"

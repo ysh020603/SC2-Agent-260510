@@ -5,16 +5,17 @@
 # difficulties: easy, medium, mediumhard | 3 repeats per combo
 #
 # Usage:
-#   bash start_qwen_think_27b_exec_v7_sweep.sh 4b
-#   bash start_qwen_think_27b_exec_v7_sweep.sh 14b
-#   bash start_qwen_think_27b_exec_v7_sweep.sh both
+#   bash tools/start_qwen_think_27b_exec_v7_sweep.sh 4b
+#   bash tools/start_qwen_think_27b_exec_v7_sweep.sh 14b
+#   bash tools/start_qwen_think_27b_exec_v7_sweep.sh both
 #
 # Resume:
-#   START_INDEX=42 bash start_qwen_think_27b_exec_v7_sweep.sh 4b
+#   START_INDEX=42 bash tools/start_qwen_think_27b_exec_v7_sweep.sh 4b
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 STRATEGIES="${STRATEGIES:-bio,safe_tvt_raven,three_rax_stim,two_base_tanks,tank_thor_mech,battle_cruisers}"
@@ -80,8 +81,7 @@ DIFFICULTIES=$(printf '%q' "$DIFFICULTIES") \
 ENEMY_RACES=$(printf '%q' "$ENEMY_RACES") \
 ENEMY_BUILD=$(printf '%q' "$ENEMY_BUILD") \
 MAPS=$(printf '%q' "$MAPS") \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
   echo "=================================================="
   echo " Started           : ${think_model} + ${EXECUTOR_MODEL}"
   echo " Tmux session      : $session"

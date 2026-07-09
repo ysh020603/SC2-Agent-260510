@@ -4,12 +4,13 @@
 # Models: Qwen35-27b only (Kimi replaced by ds_flash_qwen_exec batch)
 #
 # Usage:
-#   bash start_bio_bc_3race_macro_sweep.sh qwen
-# DS flash + Qwen executor: start_ds_flash_qwen_exec_bio_bc_sweep.sh
+#   bash tools/start_bio_bc_3race_macro_sweep.sh qwen
+# DS flash + Qwen executor: tools/start_ds_flash_qwen_exec_bio_bc_sweep.sh
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 if ! command -v tmux >/dev/null 2>&1; then
@@ -70,8 +71,7 @@ DIFFICULTIES=$(printf '%q' "$DIFFICULTIES") \
 ENEMY_RACES=$(printf '%q' "$ENEMY_RACES") \
 ENEMY_BUILD=$(printf '%q' "$ENEMY_BUILD") \
 MAPS=$(printf '%q' "$MAPS") \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
   echo "=================================================="
   echo " Started : $which"
   echo " Tmux    : $session"

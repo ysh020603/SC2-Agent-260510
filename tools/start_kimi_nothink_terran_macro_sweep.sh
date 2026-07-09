@@ -3,13 +3,14 @@
 # 5 difficulties x 3 repeats, concurrency=3, tmux
 #
 # Usage:
-#   bash start_kimi_nothink_terran_macro_sweep.sh
+#   bash tools/start_kimi_nothink_terran_macro_sweep.sh
 # Attach:
 #   tmux attach -t kimi_nothink_terran_macro_sweep
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 SESSION="${TMUX_SESSION:-kimi_nothink_terran_macro_sweep}"
@@ -45,8 +46,7 @@ DIFFICULTIES=$(printf '%q' "${DIFFICULTIES:-veryeasy,easy,medium,mediumhard,hard
 ENEMY_RACES=terran \
 ENEMY_BUILD=macro \
 MAPS=KairosJunctionLE \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
 echo "=================================================="
 echo " Tmux session      : $SESSION"
 echo " Batch folder      : game_records/${BATCH_NAME}/"

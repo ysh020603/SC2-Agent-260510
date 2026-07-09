@@ -3,18 +3,19 @@
 # Protocol matches game_records/bo_exec_27b_10strat_k_tv_r5 (k_tv_r5).
 #
 # Usage:
-#   bash start_bo_exec_06b_14strat_k_tv_sweep.sh 06b
-#   bash start_bo_exec_06b_14strat_k_tv_sweep.sh 06b_think
-#   bash start_bo_exec_06b_14strat_k_tv_sweep.sh grpo_5ep
-#   bash start_bo_exec_06b_14strat_k_tv_sweep.sh 27b
-#   bash start_bo_exec_06b_14strat_k_tv_sweep.sh all
+#   bash tools/start_bo_exec_06b_14strat_k_tv_sweep.sh 06b
+#   bash tools/start_bo_exec_06b_14strat_k_tv_sweep.sh 06b_think
+#   bash tools/start_bo_exec_06b_14strat_k_tv_sweep.sh grpo_5ep
+#   bash tools/start_bo_exec_06b_14strat_k_tv_sweep.sh 27b
+#   bash tools/start_bo_exec_06b_14strat_k_tv_sweep.sh all
 #
 # Resume:
-#   bash start_bo_exec_06b_14strat_k_tv_sweep.sh 06b
+#   bash tools/start_bo_exec_06b_14strat_k_tv_sweep.sh 06b
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 source /home/wyq/miniconda3/etc/profile.d/conda.sh
@@ -74,8 +75,7 @@ _launch() {
   inner="$(_common_env)
 export BATCH_NAME=$(printf '%q' "$batch")
 export EXECUTOR_MODEL=$(printf '%q' "$model")
-bash tools/run_bo_exec_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_bo_exec_sweep_tmux.sh")"
   if tmux has-session -t "$session" 2>/dev/null; then
     echo "[skip] tmux session already exists: $session"
     return 0

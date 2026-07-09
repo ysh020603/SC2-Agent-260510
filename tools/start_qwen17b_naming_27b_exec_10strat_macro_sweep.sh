@@ -4,15 +4,16 @@
 # Protocol aligned with game_records/bio_bc_3race_macro_experiment_results.md (Qwen batches)
 #
 # Usage:
-#   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh base   # Qwen3-1.7b naming
-#   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh sft     # Qwen3-1.7b-sc2-naming-sft
-#   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh grpo    # Qwen3-1.7b-sc2-naming-grpo-v2 (thinking)
-#   bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh both   # launch both (separate tmux)
-# Resume: START_INDEX=N bash start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh base
+#   bash tools/start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh base   # Qwen3-1.7b naming
+#   bash tools/start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh sft     # Qwen3-1.7b-sc2-naming-sft
+#   bash tools/start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh grpo    # Qwen3-1.7b-sc2-naming-grpo-v2 (thinking)
+#   bash tools/start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh both   # launch both (separate tmux)
+# Resume: START_INDEX=N bash tools/start_qwen17b_naming_27b_exec_10strat_macro_sweep.sh base
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 if ! command -v tmux >/dev/null 2>&1; then
@@ -88,8 +89,7 @@ DIFFICULTIES=$(printf '%q' "$DIFFICULTIES") \
 ENEMY_RACES=$(printf '%q' "$ENEMY_RACES") \
 ENEMY_BUILD=$(printf '%q' "$ENEMY_BUILD") \
 MAPS=$(printf '%q' "$MAPS") \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
   echo "=================================================="
   echo " Started : $which"
   echo " Tmux    : $session"

@@ -4,7 +4,8 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 source /home/wyq/miniconda3/etc/profile.d/conda.sh
@@ -51,8 +52,7 @@ _launch() {
   inner="$(_common_env)
 export BATCH_NAME=$(printf '%q' "$batch")
 export EXECUTOR_MODEL=$(printf '%q' "$model")
-bash tools/run_bo_exec_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_bo_exec_sweep_tmux.sh")"
   if tmux has-session -t "$session" 2>/dev/null; then
     if [[ "${FORCE}" == "1" ]]; then
       tmux kill-session -t "$session"

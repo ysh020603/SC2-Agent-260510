@@ -1,27 +1,35 @@
 #!/usr/bin/env bash
-# bio + battle_cruisers vs 3 races (macro) @ KairosJunctionLE
-# naming/ordering: DeepSeek-V4-flash (no thinking)
-# executor: Qwen35-27b
-# difficulties: veryeasy, medium, hard | 3 repeats per combo
+# 6 strategies vs 3 races @ KairosJunctionLE (default map)
+# naming/ordering: Qwen3-32b_think (thinking)
+# executor: Qwen3-32b (no thinking)
+# difficulties: easy, medium, mediumhard | 3 repeats per combo
 #
 # Usage:
-#   bash start_ds_flash_qwen_exec_bio_bc_sweep.sh
+#   bash tools/start_qwen32b_think_nothink_exec_v7_sweep.sh
+#
+# Resume:
+#   START_INDEX=42 bash tools/start_qwen32b_think_nothink_exec_v7_sweep.sh
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
-SESSION="${TMUX_SESSION:-ds_flash_qwen_exec_bio_bc_sweep}"
-BATCH_NAME="${BATCH_NAME:-ds_flash_qwen_exec_bio_bc_r3}"
-CONCURRENCY="${CONCURRENCY:-3}"
+SESSION="${TMUX_SESSION:-qwen32b_think_nothink_exec_v7_sweep}"
+BATCH_NAME="${BATCH_NAME:-qwen32b_think_nothink_exec_v7_r3}"
+CONCURRENCY="${CONCURRENCY:-20}"
 REPEATS="${REPEATS:-3}"
-STRATEGIES="${STRATEGIES:-bio,battle_cruisers}"
-DIFFICULTIES="${DIFFICULTIES:-veryeasy,medium,hard}"
+STRATEGIES="${STRATEGIES:-bio,safe_tvt_raven,three_rax_stim,two_base_tanks,tank_thor_mech,battle_cruisers}"
+DIFFICULTIES="${DIFFICULTIES:-easy,medium,mediumhard}"
 ENEMY_RACES="${ENEMY_RACES:-protoss,terran,zerg}"
-ENEMY_BUILD="${ENEMY_BUILD:-macro}"
+ENEMY_BUILD="${ENEMY_BUILD:-random}"
 MAPS="${MAPS:-KairosJunctionLE}"
 GAME_TIME_LIMIT="${GAME_TIME_LIMIT:-1200}"
+NAMING_MODEL="${NAMING_MODEL:-Qwen3-32b_think}"
+ORDERING_MODEL="${ORDERING_MODEL:-Qwen3-32b_think}"
+EXECUTOR_MODEL="${EXECUTOR_MODEL:-Qwen3-32b}"
+TOTAL_JOBS=162
 
 if ! command -v tmux >/dev/null 2>&1; then
   echo "tmux not found." >&2
@@ -45,28 +53,27 @@ CONCURRENCY=$(printf '%q' "$CONCURRENCY") \
 REPEATS=$(printf '%q' "$REPEATS") \
 GAME_TIME_LIMIT=$(printf '%q' "$GAME_TIME_LIMIT") \
 START_INDEX=$(printf '%q' "${START_INDEX:-0}") \
-NAMING_MODEL=DeepSeek-V4-flash \
-ORDERING_MODEL=DeepSeek-V4-flash \
-EXECUTOR_MODEL=Qwen35-27b \
+NAMING_MODEL=$(printf '%q' "$NAMING_MODEL") \
+ORDERING_MODEL=$(printf '%q' "$ORDERING_MODEL") \
+EXECUTOR_MODEL=$(printf '%q' "$EXECUTOR_MODEL") \
 STRATEGIES=$(printf '%q' "$STRATEGIES") \
 DIFFICULTIES=$(printf '%q' "$DIFFICULTIES") \
 ENEMY_RACES=$(printf '%q' "$ENEMY_RACES") \
 ENEMY_BUILD=$(printf '%q' "$ENEMY_BUILD") \
 MAPS=$(printf '%q' "$MAPS") \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
 echo "=================================================="
 echo " Tmux session      : $SESSION"
 echo " Batch folder      : game_records/${BATCH_NAME}/"
-echo " Map               : KairosJunctionLE"
-echo " Naming/Ordering   : DeepSeek-V4-flash (no thinking)"
-echo " Executor          : Qwen35-27b"
+echo " Map               : ${MAPS}"
+echo " Naming/Ordering   : ${NAMING_MODEL} (thinking)"
+echo " Executor          : ${EXECUTOR_MODEL} (no thinking)"
 echo " Strategies        : ${STRATEGIES}"
-echo " Opponent          : protoss,terran,zerg | build=macro"
+echo " Opponent          : ${ENEMY_RACES} | build=${ENEMY_BUILD}"
 echo " Difficulties      : ${DIFFICULTIES}"
 echo " Repeats           : ${REPEATS} per combo"
 echo " Concurrency       : ${CONCURRENCY}"
-echo " Total jobs        : 54 (2 x 3 x 3 x 3)"
+echo " Total jobs        : ${TOTAL_JOBS}"
 echo " Attach            : tmux attach -t $SESSION"
 echo " Logs              : game_records/${BATCH_NAME}_stdout.log"
 echo "=================================================="

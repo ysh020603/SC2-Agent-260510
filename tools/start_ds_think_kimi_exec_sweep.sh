@@ -2,14 +2,15 @@
 # DeepSeek-V4-flash_think (naming/ordering) + Kimi-k2.5 (executor) hybrid sweep.
 #
 # Usage:
-#   bash start_ds_think_kimi_exec_sweep.sh
+#   bash tools/start_ds_think_kimi_exec_sweep.sh
 #
 # Attach:
 #   tmux attach -t ds_think_kimi_exec_sweep
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 SESSION="${TMUX_SESSION:-ds_think_kimi_exec_sweep}"
@@ -41,8 +42,7 @@ NAMING_MODEL=$(printf '%q' "${NAMING_MODEL:-DeepSeek-V4-flash_think}") \
 ORDERING_MODEL=$(printf '%q' "${ORDERING_MODEL:-DeepSeek-V4-flash_think}") \
 EXECUTOR_MODEL=$(printf '%q' "${EXECUTOR_MODEL:-Kimi-k2.5}") \
 DIFFICULTIES=$(printf '%q' "${DIFFICULTIES:-medium,mediumhard,hard,veryhard}") \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
 echo "=================================================="
 echo " Tmux session : $SESSION"
 echo " Batch        : $BATCH_NAME"

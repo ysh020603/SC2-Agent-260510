@@ -1,5 +1,7 @@
 # SC2 Agent 测试运行流程记录
 
+> **脚本位置提示**：本仓库的启动、批量、sweep 等测试脚本统一归档在 [`tools/`](../tools/)。新建脚本请放入 `tools/`（或 `tools/tests/`、`tools/archive/`），不要留在仓库根目录。查找已有入口时，优先在 `tools/` 搜索 `start_*.sh`、`run_*.py`、`run_*.sh`。
+
 本文记录当前仓库推荐的单局实验与模型评估流程。所有运行产物统一写入仓库内 `game_records/`：
 
 ```text
@@ -436,7 +438,7 @@ ls -la game_records/battle_cruisers_eval/*/
 - 地图找不到：确认 `KairosJunctionLE` 在 `$SC2PATH/Maps/` 下（本机已有 `KairosJunctionLE_20264.SC2Map` 等）。
 - `conda` 未激活：先 `source .../conda.sh && conda activate SC2_0615`。
 - pytest 启动报 `_pytest.scope`：使用 `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`（见上文）。
-- 并发批量实验：可用仓库内 `run_vs_ai_batch.sh`，注意机器上其他用户的 SC2 进程占用端口。
+- 并发批量实验：可用仓库内 `tools/run_vs_ai_batch.sh` 或 `tools/start_experiments.sh`，注意机器上其他用户的 SC2 进程占用端口。
 
 ### Linux 冒烟实测（2026-06-18）
 

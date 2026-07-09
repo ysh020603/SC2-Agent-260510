@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 # bio + battle_cruisers vs 3 races (macro) @ KairosJunctionLE
-# naming/ordering: DeepSeek-V4-flash_think (thinking)
+# naming/ordering: DeepSeek-V4-flash (no thinking)
 # executor: Qwen35-27b
 # difficulties: veryeasy, medium, hard | 3 repeats per combo
 #
 # Usage:
-#   bash start_ds_think_flash_qwen_exec_bio_bc_sweep.sh
-# Resume (after pause): see game_records/ds_think_flash_qwen_exec_bio_bc_r3.PAUSED.json
-#   START_INDEX=8 bash start_ds_think_flash_qwen_exec_bio_bc_sweep.sh
+#   bash tools/start_ds_flash_qwen_exec_bio_bc_sweep.sh
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
-SESSION="${TMUX_SESSION:-ds_think_flash_qwen_exec_bio_bc_sweep}"
-BATCH_NAME="${BATCH_NAME:-ds_think_flash_qwen_exec_bio_bc_r3}"
+SESSION="${TMUX_SESSION:-ds_flash_qwen_exec_bio_bc_sweep}"
+BATCH_NAME="${BATCH_NAME:-ds_flash_qwen_exec_bio_bc_r3}"
 CONCURRENCY="${CONCURRENCY:-3}"
 REPEATS="${REPEATS:-3}"
 STRATEGIES="${STRATEGIES:-bio,battle_cruisers}"
@@ -47,21 +46,20 @@ CONCURRENCY=$(printf '%q' "$CONCURRENCY") \
 REPEATS=$(printf '%q' "$REPEATS") \
 GAME_TIME_LIMIT=$(printf '%q' "$GAME_TIME_LIMIT") \
 START_INDEX=$(printf '%q' "${START_INDEX:-0}") \
-NAMING_MODEL=DeepSeek-V4-flash_think \
-ORDERING_MODEL=DeepSeek-V4-flash_think \
+NAMING_MODEL=DeepSeek-V4-flash \
+ORDERING_MODEL=DeepSeek-V4-flash \
 EXECUTOR_MODEL=Qwen35-27b \
 STRATEGIES=$(printf '%q' "$STRATEGIES") \
 DIFFICULTIES=$(printf '%q' "$DIFFICULTIES") \
 ENEMY_RACES=$(printf '%q' "$ENEMY_RACES") \
 ENEMY_BUILD=$(printf '%q' "$ENEMY_BUILD") \
 MAPS=$(printf '%q' "$MAPS") \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
 echo "=================================================="
 echo " Tmux session      : $SESSION"
 echo " Batch folder      : game_records/${BATCH_NAME}/"
 echo " Map               : KairosJunctionLE"
-echo " Naming/Ordering   : DeepSeek-V4-flash_think (thinking)"
+echo " Naming/Ordering   : DeepSeek-V4-flash (no thinking)"
 echo " Executor          : Qwen35-27b"
 echo " Strategies        : ${STRATEGIES}"
 echo " Opponent          : protoss,terran,zerg | build=macro"

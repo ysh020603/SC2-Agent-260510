@@ -2,10 +2,15 @@
 
 `tools/` 是本仓库可复用测试、运行、回归和结果检查脚本的统一归档位置。测试完成后，需要复跑或支撑正式测试结论的脚本应整理到这里，不要散落在仓库根目录、`docs/`、`game_records/` 或系统临时目录。
 
+**查找入口**：需要启动对局、批量 sweep 或复现实验时，优先在本目录搜索 `start_*.sh`（tmux 批量包装）、`run_*.py`（Python 入口）和 `run_*.sh`（Shell 批量引擎）。
+
 ## 目录约定
 
 ```text
 tools/
+├── start_*.sh                # 预设参数的 sweep / 批量 tmux 启动器
+├── run_vs_ai_batch.sh        # 通用批量并发引擎（调用根目录 run_vs_ai.py）
+├── start_experiments.sh      # 预设环境变量 + 调用 run_vs_ai_batch.sh
 ├── run_*.py / run_*.sh       # 单局、批量和实验入口
 ├── check_*.py / verify_*.py  # 结果检查与回归验证
 ├── tests/                    # 不启动 SC2 的 pytest 测试

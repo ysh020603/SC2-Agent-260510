@@ -2,13 +2,14 @@
 # Same as Qwen35 全模块 bio+bc sweep, for Qwen3 small/mid models (no thinking)
 #
 # Usage:
-#   bash start_qwen3_bio_bc_3race_macro_sweep.sh qwen3-4b
-#   bash start_qwen3_bio_bc_3race_macro_sweep.sh qwen3-14b
-#   bash start_qwen3_bio_bc_3race_macro_sweep.sh 4b14b   # both 4B+14B, concurrency=10
+#   bash tools/start_qwen3_bio_bc_3race_macro_sweep.sh qwen3-4b
+#   bash tools/start_qwen3_bio_bc_3race_macro_sweep.sh qwen3-14b
+#   bash tools/start_qwen3_bio_bc_3race_macro_sweep.sh 4b14b   # both 4B+14B, concurrency=10
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 STRATEGIES="${STRATEGIES:-bio,battle_cruisers}"
@@ -91,8 +92,7 @@ DIFFICULTIES=$(printf '%q' "$DIFFICULTIES") \
 ENEMY_RACES=$(printf '%q' "$ENEMY_RACES") \
 ENEMY_BUILD=$(printf '%q' "$ENEMY_BUILD") \
 MAPS=$(printf '%q' "$MAPS") \
-bash tools/run_strategy_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_strategy_sweep_tmux.sh")"
   echo "=================================================="
   echo " Started : ${model}"
   echo " Tmux    : $session"

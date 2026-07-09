@@ -2,6 +2,8 @@
 
 这个目录存放比根目录 README 更细的项目说明。改代码、跑对局、复现实验或排查问题前，可以先按用途选择对应文档。
 
+**测试与启动脚本不在 `docs/` 里。** 可复用的单局、批量、sweep 脚本统一放在 [`../tools/`](../tools/)；新建脚本测试结束后请归档到 `tools/`，需要复跑时在 `tools/` 中查找 `start_*.sh`、`run_*.py` 或 `run_*.sh`。归档规则见 [test-run-workflow.md](test-run-workflow.md)。
+
 | 文档 | 可以用来做什么 |
 |---|---|
 | [environment-setup.md](environment-setup.md) | 搭建 Linux / Windows 环境，创建 `SC2_0615` conda 环境，配置 `SC2PATH`，安装依赖，并完成第一次冒烟对局。 |

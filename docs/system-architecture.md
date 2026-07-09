@@ -104,7 +104,7 @@ sharpy-sc2/
 ├── API_Tools/llm_caller.py         # OpenAI 兼容调用封装（按 is_reasoning 注入 thinking 开关）
 ├── bot_loader/                     # 注册 + 启动（含 game_time_limit）
 ├── run_vs_ai.py                    # 单局入口（DEFAULT_* 配置）
-├── run_vs_ai_batch.sh              # 批量并发
+├── tools/                          # 批量并发、实验 sweep 等运行脚本
 └── game_records/                   # 录像 / 日志 / 轨迹 JSON
 ```
 
@@ -483,8 +483,8 @@ python run_vs_ai.py --bo-list marine_rush --enemy-difficulty medium --batch-name
 
 ### 批量
 ```bash
-bash start_experiments.sh                 # 预设参数 + tmux 批量
-bash run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
+bash tools/start_experiments.sh                 # 预设参数 + tmux 批量
+bash tools/run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
 ```
 
 ---

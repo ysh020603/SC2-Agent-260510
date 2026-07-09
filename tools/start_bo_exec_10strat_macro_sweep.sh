@@ -4,15 +4,16 @@
 # Protocol aligned with game_records/qwen17b_naming_27b_exec_10strat_macro_experiment.md
 #
 # Usage:
-#   bash start_bo_exec_10strat_macro_sweep.sh grpo      # GRPO executor (thinking)
-#   bash start_bo_exec_10strat_macro_sweep.sh 17b_think # Qwen3-1.7b_think executor
-#   bash start_bo_exec_10strat_macro_sweep.sh 27b       # Qwen35-27b executor (no thinking)
-#   bash start_bo_exec_10strat_macro_sweep.sh all       # launch all three (separate tmux)
-# Resume: START_INDEX=N bash start_bo_exec_10strat_macro_sweep.sh grpo
+#   bash tools/start_bo_exec_10strat_macro_sweep.sh grpo      # GRPO executor (thinking)
+#   bash tools/start_bo_exec_10strat_macro_sweep.sh 17b_think # Qwen3-1.7b_think executor
+#   bash tools/start_bo_exec_10strat_macro_sweep.sh 27b       # Qwen35-27b executor (no thinking)
+#   bash tools/start_bo_exec_10strat_macro_sweep.sh all       # launch all three (separate tmux)
+# Resume: START_INDEX=N bash tools/start_bo_exec_10strat_macro_sweep.sh grpo
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 if ! command -v tmux >/dev/null 2>&1; then
@@ -84,8 +85,7 @@ DIFFICULTIES=$(printf '%q' "$DIFFICULTIES") \
 ENEMY_RACES=$(printf '%q' "$ENEMY_RACES") \
 ENEMY_BUILD=$(printf '%q' "$ENEMY_BUILD") \
 MAPS=$(printf '%q' "$MAPS") \
-bash tools/run_bo_exec_sweep_tmux.sh"
-
+bash $(printf \'%q\' "$SCRIPT_DIR/run_bo_exec_sweep_tmux.sh")"
   echo "=================================================="
   echo " Started : $which"
   echo " Tmux    : $session"
