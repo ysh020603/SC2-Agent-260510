@@ -1,22 +1,26 @@
 # Summary
 
-This build opens with a rax-first into fast OC to get mules and scans rolling, then immediately dumps minerals into a pair of additional rax while skipping gas entirely and delaying any expansion to focus purely on marine output. The mid-game is a pure bio flood with no tech labs, no upgrades, and no factory or starport—just mass rax on reactors or no add-ons churning out marines as fast as minerals allow, banking on overwhelming numbers before any splash or tech comes online. The late-game plan doesn't really exist since this is a all-in marine ball that wants to hit before three bases or any real tech; if it fails, you're stuck with unupgraded bio and no path to tanks, medivacs, or air, so the win condition is simply drowning the opponent in bodies or busting.
+This build opens with a tight mineral economy, dropping 3 rax off a single base with no expansion, no gas, and no tech—just pure marine production out of the gate. The mid game is all about keeping the rax hot and flooding marines non-stop, with constant depot management to avoid supply blocks, though there's no stim, no combat shields, no medivacs, and no engineering bay upgrades to back the bio ball. The late game plan is to keep dumping every mineral into marines and hope the sheer mass of bodies overwhelms before the opponent's tech or splash catches up, with no transition, no additional bases, and no path beyond endless marine reinforcement until the build hits a hard ceiling.
 
 # Details
 
-[Step 1] Keep SCV production rolling to saturate the main base economy while throwing down depots to stay ahead of supply. Add 2 rax to set up early production capacity, pacing the build so minerals flow smoothly into workers and infrastructure without banking up.
+[Step 1] Keep SCV production rolling to saturate the economy while throwing down a pair of depots to stay ahead of supply. Drop 3 rax to establish a solid production backbone, pacing the build so minerals flow cleanly into workers and infrastructure without banking up.
 
-[Step 2] Morph the CC into an orbital to kickstart scan and mule economy, then add 2 rax alongside an existing one to open up marine production. Keep SCVs training to pace worker saturation with the new orbital online, and start cranking out a wave of marines while adding a bunker for early defense. Throw down a depot to keep supply headroom ahead of the marine and SCV output without overcommitting minerals.
+[Step 2] Morph the CC into an orbital to unlock mule energy and scan utility while keeping SCV production rolling to support the growing economy. Add another rax alongside the existing one and begin training a wave of Marines to build up a core bio force. Throw down a depot to stay ahead of supply as both worker and marine production ramps up.
 
-[Step 3] Throw down a couple more rax to open up production slots, keep training SCVs to push worker saturation, and queue up several Marines to stock the army. With all this unit production coming online, make sure depots are planned so supply doesn't bottleneck the build.
+[Step 3] Keep SCV production rolling while the economy still has room to saturate, and flood out a wave of Marines to build a solid bio core. Add another rax to keep the marine pipeline flowing, and make sure depot construction stays ahead of this production surge so you don't get supply blocked.
 
-[Step 4] Keep the SCV production rolling to keep the economy growing while churning out a wave of Marines from the rax. Throw down a depot to stay ahead of the supply curve as the marine count spikes, giving yourself breathing room for the next production cycle without letting minerals pile up into unused supply.
+[Step 4] Throw down a depot to keep supply ahead of the incoming marine wave, then queue up 7 marines across the rax to reinforce the army. Drop two more depots shortly after to maintain a clean supply buffer as mineral income converts into units.
 
-[Step 5] Pump out a wave of Marines across multiple rax cycles to build a solid bio core, while throwing down a pair of depots to keep supply headroom healthy for the ongoing production surge.
+[Step 5] Queue up a wave of Marines from the rax to build a solid bio force, and make sure to throw down depots ahead of time so the production cycle doesn't stall as supply tightens.
 
-[Step 6] Dump rax cycles into a massive wave of marines to flood the field with bio, while keeping an eye on supply headroom to make sure you aren't caught capped as this army ball swells.
+[Step 6] Flood out a wave of Marines from all active rax while throwing down two depots to keep supply flowing smoothly for the continued bio production.
 
-[Step 7] Flood marine production across all available rax while slipping in a couple of depots to keep supply from capping. The constant marine output demands steady depot support, so add that buffer without overshooting into wasted supply cap.
+[Step 7] Dump a wave of 10 Marines out of the rax to reinforce the bio ball and stay on top of production cycles. Keep an eye on supply headroom and throw down depots as needed so this marine flood doesn't get capped.
 
-[Step 8] This is a classic no-gas marine all-in that embodies the purest form of Terran cheese, banking on an unrelenting bio flood to end the game before any real tech or economy can come online. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
+[Step 8] Keep the rax hot by training a wave of Marines to reinforce the bio force, then throw down a depot to keep supply headroom healthy for the continued marine production without stalling out.
+
+[Step 9] Throw down a depot to keep supply headroom ahead of the heavy marine production cycle, then queue up 8 marines across the rax to reinforce the bio ball. Keep an eye on supply cap so the next wave of units doesn't get blocked.
+
+[Step 10] This is a pure all-in cheese that banks everything on an early mass marine flood, leaning on raw unit volume and relentless aggression to crack an opponent before their economy or tech comes online. It's the epitome of "just make marines" macro aggression, sacrificing all defense, tech, and scaling potential for a single desperate window of overwhelming pressure. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
 

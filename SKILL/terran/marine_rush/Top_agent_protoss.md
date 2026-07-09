@@ -1,26 +1,28 @@
 # Summary
 
-The bot opens with a standard macro-oriented depot-rax setup, quickly adding 2 rax for early bio output while keeping SCV production rolling to saturate the main, eventually dropping an orbital to juice the economy with mules and scans, though notably skipping any early gas or tech in favor of pure mineral dump into Marines and infrastructure. Production scales through a massive rax count spike—eventually hitting 5+ barracks total—with zero tech labs or reactors, meaning every single rax is cranking out naked Marines with no stim, no combat shield, and no medivac support, creating a pure mass-Marine ball that relies on raw unit count rather than upgrade-backed bio play. The endgame plan is a relentless mineral-flooded Marine swarm, dumping every available resource into depots and rax cycles to keep the queues humming, with no transition to factory, starport, or late-game tech; the build aims to drown opponents under an endless tide of unupgraded infantry, banking on production tempo and overwhelming numbers rather than any refined composition or technology advantage.
+This build opens with a rax-first into orbital timing, skipping the natural expansion entirely to pour every mineral into a massive 5-rax Marine flood off a single base economy. There is no mid-game scaling or tech pivot—no stim, no upgrades, no factory or starport—just pure bio macro with depots thrown down to keep supply ahead of the relentless Marine queue. The endgame plan is to max out on Marines as fast as possible and hit a critical mass timing before any opponent can tech up, gambling everything on overwhelming the enemy with raw numbers rather than transitioning into a sustainable multi-base economy or late-game composition.
 
 # Details
 
-[Step 1] Keep SCV production rolling to saturate the main base economy while throwing down depots to stay ahead of supply. Add 2 rax to kick off bio production, making sure there's enough buffer for the incoming worker and barracks cycle without overcommitting to unused supply cap.
+[Step 1] Keep worker production rolling to saturate the main base while throwing down depots to stay ahead of supply. Drop a rax to kick off production, then add another rax alongside more SCVs to build out the core infrastructure.
 
-[Step 2] Morph the CC into an orbital to kickstart scan and mule economy, then add a rax for extra production while keeping SCVs training to keep the economy growing. Pump out a wave of Marines from the existing rax, and throw down a bunker to secure the natural or main ramp. Make sure depots stay ahead of the supply curve with all this production coming online.
+[Step 2] Morph the CC into an orbital to kickstart scan and mule economy, keep a worker in production to push saturation, and throw down 4 rax to set up a serious bio production backbone. Train several Marines out of the existing rax while the new ones go up, and make sure depots are planned ahead so the supply cap doesn't choke the coming Marine and SCV waves.
 
-[Step 3] Throw down 4 rax to spike production capacity while training 5 Marines to fill out the core army. Add a depot to keep supply headroom healthy for the incoming barracks cycle without floating excess unused cap.
+[Step 3] Throw down a depot to keep supply ahead of the marine flood, then pour minerals into a wave of marines from the rax. The depot timing should cover this production spike without leaving you supply-blocked or overcommitted on unused cap.
 
-[Step 4] Train a wave of 10 Marines to reinforce the bio core, keeping the rax humming and building a solid infantry mass while watching supply headroom to throw down depots as needed.
+[Step 4] Train a wave of Marines from the rax to build up a solid bio force, throw down a depot to keep supply headroom healthy for the ongoing production cycle, and keep SCV production rolling to keep the economy growing toward full saturation.
 
-[Step 5] Pump out a wave of Marines from the rax while throwing down a depot to keep supply headroom healthy for the ongoing production cycle.
+[Step 5] Flood out a wave of Marines from the rax to build up the bio core, then throw down a couple of depots to keep supply headroom ahead of the production curve without overcommitting minerals to unused cap.
 
-[Step 6] Keep marine production rolling out of the rax while throwing down depots to stay ahead of supply, making sure there's enough buffer for the next wave of units without overcommitting minerals to unused cap.
+[Step 6] Queue up a wave of Marines from the rax to build out the bio core, and keep an eye on supply headroom to throw down a depot before the next production cycle locks you out.
 
-[Step 7] Train a wave of Marines to reinforce the bio ball while throwing down 2 depots to keep supply headroom healthy for continued rax production.
+[Step 7] Train a wave of Marines to reinforce the army and keep rax production humming. Make sure there's enough depot headroom coming up so the next SCV and Marine cycles don't hit supply block, but don't overcommit minerals to unused supply cap either.
 
-[Step 8] Cycle through a wave of Marines across the rax lineup to keep production tempo on the production queues, and make sure depots are paced ahead so the incoming marine batch doesn't slam into the supply cap.
+[Step 8] Queue up a wave of Marines from the rax to reinforce the army and keep production tempo on the map. Make sure there's enough depot space coming online to handle this production spike without getting supply blocked.
 
-[Step 9] Flood out a wave of Marines across multiple production cycles while throwing down depots to keep supply from capping. The mineral dump into both units and depots keeps the macro tight, so pace the depot construction to stay just ahead of the incoming marine count without overshooting on unused supply.
+[Step 9] Queue up a wave of 10 marines across the rax to build a substantial bio force, and make sure to throw down depots ahead of this production spike so supply doesn't cap out mid-cycle.
 
-[Step 10] This is a pure mineral-flooded mass-Marine all-in that sacrifices all tech, upgrades, and unit diversity for maximum production tempo and overwhelming unupgraded infantry count. A classic "Marine go brrr" swarm-style build that banks on raw numbers and relentless macro cycles to drown opponents before any tech advantage can come online. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
+[Step 10] Keep marine production rolling from the rax while throwing down a couple of depots to stay ahead of the supply curve. The barracks should be pumping out a solid wave of marines, so make sure there's enough depot room without overcommitting minerals to unused supply cap.
+
+[Step 11] This is a classic one-base all-in cheese that commits everything to a hyper-aggressive Marine flood, gambling the game on overwhelming the opponent with raw bio numbers before any tech or economy can come online. Use this gameplan as your strategic baseline -- adapt your decisions based on what you scout and how the game unfolds.
 
