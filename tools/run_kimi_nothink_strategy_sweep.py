@@ -40,6 +40,7 @@ DEFAULT_DIFFICULTIES = ["medium", "mediumhard", "hard", "harder", "veryhard"]
 DEFAULT_NAMING_MODEL = "Kimi-k2.5"
 DEFAULT_ORDERING_MODEL = "Kimi-k2.5"
 DEFAULT_EXECUTOR_MODEL = "Kimi-k2.5"
+DEFAULT_DECISION_MODE = "three-stage"
 DEFAULT_ENEMY_BUILD = "random"
 DEFAULT_BATCH_NAME = "kimi_nothink_v7_strategies"
 DEFAULT_GAME_TIME_LIMIT = 20 * 60
@@ -105,6 +106,11 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--ordering-model", default=DEFAULT_ORDERING_MODEL)
     parser.add_argument("--executor-model", default=DEFAULT_EXECUTOR_MODEL)
     parser.add_argument(
+        "--decision-mode",
+        choices=("three-stage", "two-stage"),
+        default=DEFAULT_DECISION_MODE,
+    )
+    parser.add_argument(
         "--difficulties",
         default=",".join(DEFAULT_DIFFICULTIES),
         help="Comma-separated enemy difficulties.",
@@ -143,6 +149,7 @@ def _run_one(
     naming_model: str,
     ordering_model: str,
     executor_model: str,
+    decision_mode: str,
     enemy_build: str,
 ) -> tuple[MatchJob, int, str]:
     cmd = [
@@ -168,6 +175,8 @@ def _run_one(
         ordering_model,
         "--executor-model",
         executor_model,
+        "--decision-mode",
+        decision_mode,
         "--no-supply-managed",
         "--game-time-limit",
         str(game_time_limit),
@@ -217,6 +226,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         f"Models: naming={args.naming_model}, ordering={args.ordering_model}, "
         f"executor={args.executor_model}"
     )
+    print(f"Decision mode: {args.decision_mode}")
     print(f"Difficulties: {difficulties}")
     print(f"Enemy races: {enemy_races}")
     print(f"Enemy build: {args.enemy_build}")
@@ -244,6 +254,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args.naming_model,
                 args.ordering_model,
                 args.executor_model,
+                args.decision_mode,
                 args.enemy_build,
             ): job
             for job in jobs

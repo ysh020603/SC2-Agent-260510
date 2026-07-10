@@ -15,6 +15,9 @@ and launcher cleanup, but are not game-running experiment tools.
 - `test_naming_agent_prompt.py`
   - Verifies Naming Agent prompts include jargon and upgrade category hints.
   - Verifies Terran entity validation accepts exact canonical names only.
+- `test_ordered_naming_agent_prompt.py`
+  - Verifies two-stage Ordered Naming prompts keep the Naming-style contract.
+  - Verifies `ordered_names` parsing and rejection of old `items/count` output.
 
 ## Run
 

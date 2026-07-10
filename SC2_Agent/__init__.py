@@ -9,6 +9,10 @@ from .naming_agent import (
     build_naming_messages,
     parse_naming_response,
 )
+from .ordered_naming_agent import (
+    build_ordered_naming_messages,
+    parse_ordered_naming_response,
+)
 from .ordering_agent import (
     build_ordering_messages,
     parse_ordering_response,
@@ -22,6 +26,8 @@ __all__ = [
     "parse_top_agent_0_md",
     "build_naming_messages",
     "parse_naming_response",
+    "build_ordered_naming_messages",
+    "parse_ordered_naming_response",
     "build_ordering_messages",
     "parse_ordering_response",
     "build_executor_messages",

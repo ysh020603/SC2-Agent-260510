@@ -22,6 +22,7 @@ BOT_RACE="${BOT_RACE:-terran}"
 NAMING_MODEL="${NAMING_MODEL:-DeepSeek-V4-flash}"
 ORDERING_MODEL="${ORDERING_MODEL:-DeepSeek-V4-flash}"
 EXECUTOR_MODEL="${EXECUTOR_MODEL:-DeepSeek-V4-flash}"
+DECISION_MODE="${DECISION_MODE:-three-stage}"
 FORCE_STRATEGY="${FORCE_STRATEGY:-}"
 BATCH_NAME="${BATCH_NAME:-}"
 
@@ -52,6 +53,7 @@ write_batch_env_file() {
     printf '%s\n' "NAMING_MODEL=$(printf '%q' "$NAMING_MODEL")"
     printf '%s\n' "ORDERING_MODEL=$(printf '%q' "$ORDERING_MODEL")"
     printf '%s\n' "EXECUTOR_MODEL=$(printf '%q' "$EXECUTOR_MODEL")"
+    printf '%s\n' "DECISION_MODE=$(printf '%q' "$DECISION_MODE")"
     printf '%s\n' "FORCE_STRATEGY=$(printf '%q' "$FORCE_STRATEGY")"
     printf '%s\n' "BATCH_NAME=$(printf '%q' "$BATCH_NAME")"
     printf '%s\n' "RECORD_ROOT=$(printf '%q' "$RECORD_ROOT")"
@@ -101,6 +103,7 @@ if [[ "${1:-}" == "worker" ]]; then
       --naming-model "$NAMING_MODEL" \
       --ordering-model "$ORDERING_MODEL" \
       --executor-model "$EXECUTOR_MODEL" \
+      --decision-mode "$DECISION_MODE" \
       "${extra_flags[@]}" \
       --batch-name "$BATCH_NAME" \
       --run-index "$idx" \
@@ -122,7 +125,7 @@ MODE="${3:-fg}"
 
 if [[ -z "$BATCH_NAME" ]]; then
   TS="$(date +%Y%m%d_%H%M)"
-  BATCH_NAME="batch_${TS}_${MAP_NAME}_${BOT_RACE}V${ENEMY_RACE}_${ENEMY_DIFFICULTY}_$(slug_part "$NAMING_MODEL")_$(slug_part "$ORDERING_MODEL")"
+  BATCH_NAME="batch_${TS}_${MAP_NAME}_${BOT_RACE}V${ENEMY_RACE}_${ENEMY_DIFFICULTY}_$(slug_part "$DECISION_MODE")_$(slug_part "$NAMING_MODEL")_$(slug_part "$ORDERING_MODEL")"
 fi
 
 RECORD_ROOT="${RECORD_ROOT:-./game_records}"
@@ -136,6 +139,7 @@ echo " 批次文件夹 : $BATCH_NAME"
 echo " 运行总数   : $TOTAL 局"
 echo " 并发数量   : $CONCURRENCY"
 echo " 运行模式   : $MODE"
+echo " 决策模式   : $DECISION_MODE"
 echo " 单局录像   : $RECORD_ROOT/$BATCH_NAME/"
 echo " 终端日志   : $LOG_DIR"
 echo "=================================================="

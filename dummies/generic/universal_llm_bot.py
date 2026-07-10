@@ -37,6 +37,10 @@ from SC2_Agent.naming_agent import (
     build_naming_messages,
     parse_naming_response,
 )
+from SC2_Agent.ordered_naming_agent import (
+    build_ordered_naming_messages,
+    parse_ordered_naming_response,
+)
 from SC2_Agent.ordering_agent import (
     build_ordering_messages,
     parse_ordering_response,
@@ -125,6 +129,7 @@ class UniversalLLMBot(KnowledgeBot):
         naming_model_key: str = "",
         ordering_model_key: str = "",
         executor_model_key: str = "",
+        decision_mode: str = "three-stage",
         force_strategy: Optional[str] = None,
         bo_list: Optional[str] = None,
     ):
@@ -133,6 +138,7 @@ class UniversalLLMBot(KnowledgeBot):
         self.naming_model_key = naming_model_key.strip()
         self.ordering_model_key = ordering_model_key.strip()
         self.executor_model_key = executor_model_key.strip()
+        self.decision_mode = self._normalize_decision_mode(decision_mode)
         self.record_dir = record_dir.strip()
         force = (force_strategy or "").strip()
         self.force_strategy: Optional[str] = force if force and force.lower() != "none" else None
@@ -203,6 +209,25 @@ class UniversalLLMBot(KnowledgeBot):
         """``BO_list/{race}/`` 绝对路径。"""
         return os.path.normpath(os.path.join(self._bo_list_root, self.race_name))
 
+    @staticmethod
+    def _normalize_decision_mode(value: str) -> str:
+        mode = (value or "three-stage").strip().lower().replace("_", "-")
+        aliases = {
+            "three": "three-stage",
+            "3": "three-stage",
+            "3-stage": "three-stage",
+            "three-stage": "three-stage",
+            "two": "two-stage",
+            "2": "two-stage",
+            "2-stage": "two-stage",
+            "two-stage": "two-stage",
+        }
+        if mode not in aliases:
+            raise ValueError(
+                f"Unsupported decision mode {value!r}; expected 'three-stage' or 'two-stage'."
+            )
+        return aliases[mode]
+
     # ------------------------------------------------------------------
     # 生命周期
     # ------------------------------------------------------------------
@@ -226,6 +251,7 @@ class UniversalLLMBot(KnowledgeBot):
                 raise ValueError(
                     "UniversalLLMBot requires either --force-strategy or --bo-list."
                 )
+            self.decision_mode = self._normalize_decision_mode(self.decision_mode)
             self._apply_forced_strategy(self.force_strategy)
             self._refresh_strategy_steps()
         await super().on_start()
@@ -290,10 +316,16 @@ class UniversalLLMBot(KnowledgeBot):
 
         if trigger_reason is not None:
             self._last_macro_time = self.time
-            self._run_macro_pipeline_blocking(
-                trigger_reason=trigger_reason,
-                install_mode="append",
-            )
+            if self.decision_mode == "two-stage":
+                self._run_two_stage_macro_pipeline_blocking(
+                    trigger_reason=trigger_reason,
+                    install_mode="append",
+                )
+            else:
+                self._run_macro_pipeline_blocking(
+                    trigger_reason=trigger_reason,
+                    install_mode="append",
+                )
 
     # ------------------------------------------------------------------
     # Forced strategy
@@ -594,6 +626,7 @@ class UniversalLLMBot(KnowledgeBot):
             "trigger_reason": trigger_reason,
             "cycle": self._macro_cycle_count,
             "top_agent_strategy": self.selected_strategy,
+            "decision_mode": self.decision_mode,
         }
 
         self._llm_infer_emit(
@@ -811,6 +844,217 @@ class UniversalLLMBot(KnowledgeBot):
                 f"<<< MACRO PIPELINE END (total {record['wall_elapsed_seconds']:.2f}s wall)"
             )
 
+    def _run_two_stage_macro_pipeline_blocking(
+        self,
+        *,
+        trigger_reason: str = "unknown",
+        install_mode: str = "append",
+    ) -> None:
+        """Ordered Naming Agent -> tool mapping -> Supply -> Scheduler.
+
+        This optional mode merges the previous Naming and Ordering LLM calls
+        into one Ordered Naming call. The executor selector remains unchanged
+        and is still called by ``ExecutionScheduler`` for train actions with
+        multiple candidate producers.
+        """
+        game_time = self.time
+        pipeline_start = _wall_time.monotonic()
+        self._macro_cycle_count += 1
+
+        obs_text: str = ""
+        obs_snapshot: Optional[Dict[str, Any]] = None
+        record: Dict[str, Any] = {
+            "game_time": round(game_time, 2),
+            "trigger_reason": trigger_reason,
+            "cycle": self._macro_cycle_count,
+            "top_agent_strategy": self.selected_strategy,
+            "decision_mode": self.decision_mode,
+        }
+
+        self._llm_infer_emit(
+            f">>> TWO-STAGE MACRO PIPELINE START (trigger={trigger_reason}, "
+            f"cycle={self._macro_cycle_count}, game_time={game_time:.1f}s)"
+        )
+
+        try:
+            obs_text, obs_snapshot = self._capture_observation_bundle()
+            record["observation_at_this_moment"] = obs_text
+            record["observation_structured"] = obs_snapshot
+
+            self._llm_infer_emit("    [Observation @ decision]")
+            for _line in (obs_text or "").splitlines():
+                self._llm_infer_emit(f"      {_line}")
+
+            pending_summary = (
+                self.scheduler.pending_summary_text() if self.scheduler else "  (empty)"
+            )
+
+            record["pending_actions_before_step"] = pending_summary
+            current_step = self._current_strategy_step()
+            if current_step is None:
+                self._llm_infer_emit("    No strategy step available; skipping cycle.")
+                record["error"] = "strategy_step_empty"
+                return
+
+            mode = install_mode
+            plan_text = str(current_step["text"])
+            record["mode"] = mode
+            phase = current_step.get("phase", "step")
+            record["strategy_step"] = {
+                "number": current_step.get("number"),
+                "index": current_step.get("index"),
+                "is_last": current_step.get("is_last"),
+                "phase": phase,
+                "text": plan_text,
+            }
+            record["strategy_step_text"] = plan_text
+            self._llm_infer_emit(
+                f"    Strategy step {current_step.get('number')} "
+                f"(index={current_step.get('index')}, is_last={current_step.get('is_last')}): "
+                f"{plan_text}"
+            )
+
+            # ---------- Ordered Naming: canonical names, already ordered ----------
+            ordered_name_msgs = build_ordered_naming_messages(
+                race=self.race_name,
+                plan_text=plan_text,
+                terran_unit_names=terran_unit_names(),
+                terran_upgrade_names=terran_upgrade_names(),
+                obs_text=obs_text,
+                strategy_summary=self.strategy_summary,
+            )
+            ordered_name_raw = self._call_llm(ordered_name_msgs, agent="ordered_naming")
+            record["ordered_naming_raw"] = ordered_name_raw
+            ordered_names = parse_ordered_naming_response(ordered_name_raw) or []
+
+            valid_names: List[str] = []
+            dropped_names: List[str] = []
+            for raw_name in ordered_names:
+                if is_known_terran_entity(raw_name):
+                    valid_names.append(raw_name)
+                else:
+                    dropped_names.append(raw_name)
+                    self._llm_infer_emit(
+                        f"    Ordered Naming dropped unknown entity: {raw_name!r}"
+                    )
+            record["ordered_names"] = valid_names
+            record["ordered_name_dropped"] = dropped_names
+            self._llm_infer_emit(f"    Ordered Naming names: {valid_names}")
+
+            if not valid_names:
+                if self._is_supply_depot_step(plan_text):
+                    self._llm_infer_emit(
+                        "    Ordered Naming found no remaining depot demand; advancing supply-only step."
+                    )
+                    self._advance_strategy_step_after_install(current_step)
+                    record["next_strategy_step_index"] = self._next_strategy_step_index
+                    record["installed_pairs"] = []
+                    record["scheduler_active_after_install"] = (
+                        [
+                            a.short_label()
+                            for a in self.scheduler.all_planned_actions()
+                            if not a.is_terminal()
+                        ]
+                        if self.scheduler is not None
+                        else []
+                    )
+                    return
+                record["error"] = "ordered_naming_empty"
+                return
+
+            # ---------- Tool mapping: preserve the Ordered Naming sequence ----------
+            ordered_actions: List[str] = []
+            mapping_rows: List[Dict[str, str]] = []
+            unmapped_names: List[str] = []
+            for entity_name in valid_names:
+                action_name = self._primary_action_for_entity(entity_name)
+                if action_name is None:
+                    unmapped_names.append(entity_name)
+                    self._llm_infer_emit(
+                        f"    Two-stage mapping found no action for entity {entity_name!r}"
+                    )
+                    continue
+                ordered_actions.append(action_name)
+                mapping_rows.append({"name": entity_name, "action": action_name})
+
+            record["ordered_name_mapping"] = mapping_rows
+            record["unmapped_ordered_names"] = unmapped_names
+            record["ordered_actions"] = list(ordered_actions)
+            self._llm_infer_emit(f"    Two-stage mapped ordered actions: {ordered_actions}")
+            if not ordered_actions:
+                record["error"] = "mapping_empty"
+                return
+
+            # ---------- Supply handling ----------
+            record["supply_managed"] = self.SUPPLY_MANAGED
+            llm_depot_count = ordered_actions.count(SUPPLY_DEPOT_ACTION)
+            record["llm_depot_count"] = llm_depot_count
+
+            if self.SUPPLY_MANAGED:
+                non_supply = [a for a in ordered_actions if a != SUPPLY_DEPOT_ACTION]
+                ordered_with_supply, supply_trace = plan_supply_with_trace(
+                    non_supply, self, threshold=self.SUPPLY_THRESHOLD
+                )
+                algo_depot_count = ordered_with_supply.count(SUPPLY_DEPOT_ACTION)
+                record["algo_depot_count"] = algo_depot_count
+                self._llm_infer_emit(
+                    f"    Supply planner: Ordered Naming placed {llm_depot_count} depot(s), "
+                    f"algo placed {algo_depot_count} depot(s)"
+                )
+            else:
+                ordered_with_supply = ordered_actions
+                supply_trace = [
+                    f"SUPPLY_MANAGED=False: using Ordered Naming supply placement directly "
+                    f"({llm_depot_count} depot(s) placed by LLM)"
+                ]
+                self._llm_infer_emit(
+                    f"    SUPPLY_MANAGED=False: using Ordered Naming order as-is "
+                    f"({llm_depot_count} depot(s))"
+                )
+
+            record["ordered_with_supply"] = ordered_with_supply
+            record["supply_trace"] = supply_trace
+            self._llm_infer_emit(f"    Two-stage with supply: {ordered_with_supply}")
+            self._llm_infer_emit("    Supply derivation:")
+            for _tl in supply_trace:
+                self._llm_infer_emit(f"      {_tl}")
+
+            # ---------- Install into scheduler ----------
+            pairs: List[Tuple[str, int]] = self._collapse_runs(ordered_with_supply)
+            if self.scheduler is not None:
+                pairs = self._guard_prefetch_build_quantity(pairs)
+            if self.scheduler is not None:
+                self.scheduler.set_actions(pairs, mode=mode)
+                scheduler_active = [
+                    a.short_label()
+                    for a in self.scheduler.all_planned_actions()
+                    if not a.is_terminal()
+                ]
+            else:
+                scheduler_active = []
+            self._advance_strategy_step_after_install(current_step)
+            record["next_strategy_step_index"] = self._next_strategy_step_index
+            record["installed_pairs"] = pairs
+            record["scheduler_active_after_install"] = scheduler_active
+            self._llm_infer_emit(
+                f"    Requested {len(pairs)} planned action(s) for scheduler (mode={mode}): "
+                + str([f"{n} x{q}" for n, q in pairs])
+            )
+            self._llm_infer_emit(
+                f"    Scheduler active queue after install: {scheduler_active}"
+            )
+        except Exception as exc:
+            record["error"] = repr(exc)
+            self._llm_infer_emit(f"    TWO-STAGE MACRO PIPELINE EXCEPTION: {exc!r}")
+            logger.warning("[UniversalLLMBot] Two-stage macro pipeline failed: %s", exc)
+        finally:
+            record["wall_elapsed_seconds"] = round(_wall_time.monotonic() - pipeline_start, 3)
+            self._record_llm_interaction(record)
+            self._llm_infer_emit(
+                f"<<< TWO-STAGE MACRO PIPELINE END "
+                f"(total {record['wall_elapsed_seconds']:.2f}s wall)"
+            )
+
     # --- 阶段4 多重集对账 / 折叠 ---------------------------------------
 
     # --- prefetch guard (P2) -----------------------------------------------
@@ -984,6 +1228,7 @@ class UniversalLLMBot(KnowledgeBot):
         """根据 agent 类型选择对应的 model_key 调用 LLM。"""
         key_map = {
             "naming": self.naming_model_key,
+            "ordered_naming": self.naming_model_key,
             "ordering": self.ordering_model_key,
             "executor": self.executor_model_key,
         }

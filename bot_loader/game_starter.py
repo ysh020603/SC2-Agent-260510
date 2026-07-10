@@ -154,6 +154,12 @@ Builds:
             default="",
         )
         parser.add_argument(
+            "--decision-mode",
+            choices=("three-stage", "two-stage"),
+            help="UniversalLLMBot macro decision mode.",
+            default="three-stage",
+        )
+        parser.add_argument(
             "--force-strategy",
             help="Strategy folder name under SKILL/<race>/ for UniversalLLMBot (e.g. 'marine_rush'). Mutually exclusive with --bo-list.",
             default="",
@@ -286,6 +292,8 @@ Builds:
                 my_bot.ordering_model_key = args.ordering_model
             if getattr(args, "executor_model", None) and hasattr(my_bot, "executor_model_key"):
                 my_bot.executor_model_key = args.executor_model
+            if getattr(args, "decision_mode", None) and hasattr(my_bot, "decision_mode"):
+                my_bot.decision_mode = args.decision_mode
             if hasattr(my_bot, "force_strategy"):
                 fs = (getattr(args, "force_strategy", "") or "").strip()
                 my_bot.force_strategy = fs if fs and fs.lower() != "none" else None

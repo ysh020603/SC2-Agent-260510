@@ -38,6 +38,11 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--naming-model", default=run_vs_ai.DEFAULT_NAMING_MODEL)
     parser.add_argument("--ordering-model", default=run_vs_ai.DEFAULT_ORDERING_MODEL)
     parser.add_argument("--executor-model", default=run_vs_ai.DEFAULT_EXECUTOR_MODEL)
+    parser.add_argument(
+        "--decision-mode",
+        choices=("three-stage", "two-stage"),
+        default=run_vs_ai.DEFAULT_DECISION_MODE,
+    )
     parser.add_argument("--supply-managed", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--real-time", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument(
@@ -81,6 +86,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         naming_model=args.naming_model,
         ordering_model=args.ordering_model,
         executor_model=args.executor_model,
+        decision_mode=args.decision_mode,
         batch_name=args.batch_name or None,
         run_index=args.run_index,
         output_base_dir=str(ROOT / "game_records"),

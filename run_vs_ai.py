@@ -27,6 +27,8 @@ CLI 示例::
 ------------------------------------------------
 当前主线只保留五阶段增量流水线中的 LLM 调用点：
 ``--naming-model``、``--ordering-model``、``--executor-model``。
+``--decision-mode three-stage|two-stage`` 可选择保留 Naming+Ordering 分离，
+或将二者合并为 Ordered Naming。
 """
 
 from __future__ import annotations
@@ -66,6 +68,7 @@ DEFAULT_ENEMY_BUILD = "random"  # 内置 AI 风格；random 对应 RandomBuild
 DEFAULT_NAMING_MODEL = "DeepSeek-V4-flash"
 DEFAULT_ORDERING_MODEL = "DeepSeek-V4-flash"
 DEFAULT_EXECUTOR_MODEL = "DeepSeek-V4-flash"
+DEFAULT_DECISION_MODE = "three-stage"  # three-stage | two-stage
 
 # --- 固定策略 ---
 # 填 SKILL/<种族>/ 下的文件夹名，如 safe_tvt_raven → SKILL/terran/safe_tvt_raven/
@@ -140,6 +143,7 @@ def build_match_id(
     naming_model: str,
     ordering_model: str,
     executor_model: str,
+    decision_mode: str,
     run_index: Optional[int],
 ) -> str:
     parts: Sequence[str] = (
@@ -154,6 +158,7 @@ def build_match_id(
         _safe_match_part(naming_model or "no_naming"),
         _safe_match_part(ordering_model or "no_ordering"),
         _safe_match_part(executor_model or "no_executor"),
+        _safe_match_part(decision_mode or "three-stage"),
     )
     match_str = "_".join(_safe_match_part(p) for p in parts)
     if run_index is not None:
@@ -172,6 +177,7 @@ def play_vs_ai(
     naming_model: str = DEFAULT_NAMING_MODEL,
     ordering_model: str = DEFAULT_ORDERING_MODEL,
     executor_model: str = DEFAULT_EXECUTOR_MODEL,
+    decision_mode: str = DEFAULT_DECISION_MODE,
     batch_name: Optional[str] = None,
     run_index: Optional[int] = None,
     output_base_dir: str = OUTPUT_BASE_DIR,
@@ -202,6 +208,7 @@ def play_vs_ai(
         naming_model=naming_model,
         ordering_model=ordering_model,
         executor_model=executor_model,
+        decision_mode=decision_mode,
         run_index=run_index,
     )
 
@@ -232,6 +239,8 @@ def play_vs_ai(
         args.extend(["--ordering-model", ordering_model])
     if executor_model:
         args.extend(["--executor-model", executor_model])
+    if decision_mode:
+        args.extend(["--decision-mode", decision_mode])
     if force_strategy:
         args.extend(["--force-strategy", force_strategy])
     if bo_list:
@@ -248,6 +257,7 @@ def play_vs_ai(
         f" ▷ 流水线簇 : Naming=[{naming_model}], "
         f"Ordering=[{ordering_model}], Executor=[{executor_model}]"
     )
+    print(f" ▷ 决策模式 : {decision_mode}")
     if bo_list:
         print(f" ▷ 运行模式 : BO list 直接执行 ({bo_list})")
     else:
@@ -283,6 +293,12 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p.add_argument("--naming-model", default=DEFAULT_NAMING_MODEL, help="Naming Agent (stage 2)")
     p.add_argument("--ordering-model", default=DEFAULT_ORDERING_MODEL, help="Ordering Agent (stage 4)")
     p.add_argument("--executor-model", default=DEFAULT_EXECUTOR_MODEL, help="Executor Agent (train)")
+    p.add_argument(
+        "--decision-mode",
+        choices=("three-stage", "two-stage"),
+        default=DEFAULT_DECISION_MODE,
+        help="Macro LLM decision mode.",
+    )
     p.add_argument("--batch-name", default="", help="记录写入 game_records/<batch-name>/ 归档")
     p.add_argument("--run-index", type=int, default=None, help="批处理序号以防并发冲突")
     p.add_argument("--output-base-dir", default=OUTPUT_BASE_DIR, help="记录根目录")
@@ -328,6 +344,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         naming_model=ns.naming_model,
         ordering_model=ns.ordering_model,
         executor_model=ns.executor_model,
+        decision_mode=ns.decision_mode,
         batch_name=ns.batch_name or None,
         run_index=ns.run_index,
         output_base_dir=ns.output_base_dir,

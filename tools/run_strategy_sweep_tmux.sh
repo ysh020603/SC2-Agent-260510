@@ -19,6 +19,7 @@ START_INDEX="${START_INDEX:-0}"
 NAMING_MODEL="${NAMING_MODEL:-Kimi-k2.5}"
 ORDERING_MODEL="${ORDERING_MODEL:-Kimi-k2.5}"
 EXECUTOR_MODEL="${EXECUTOR_MODEL:-Kimi-k2.5}"
+DECISION_MODE="${DECISION_MODE:-three-stage}"
 DIFFICULTIES="${DIFFICULTIES:-medium,mediumhard,hard,harder,veryhard}"
 ENEMY_RACES="${ENEMY_RACES:-protoss,terran,zerg}"
 ENEMY_BUILD="${ENEMY_BUILD:-random}"
@@ -32,6 +33,7 @@ mkdir -p game_records
 echo "=== Strategy sweep ==="
 echo "Batch: ${BATCH_NAME} | Concurrency: ${CONCURRENCY} | Start: ${START_INDEX}"
 echo "Models: naming=${NAMING_MODEL} ordering=${ORDERING_MODEL} executor=${EXECUTOR_MODEL}"
+echo "Decision mode: ${DECISION_MODE}"
 echo "Difficulties: ${DIFFICULTIES}"
 echo "Enemy races: ${ENEMY_RACES}"
 echo "Enemy build: ${ENEMY_BUILD}"
@@ -47,6 +49,7 @@ python tools/run_kimi_nothink_strategy_sweep.py \
   --naming-model "${NAMING_MODEL}" \
   --ordering-model "${ORDERING_MODEL}" \
   --executor-model "${EXECUTOR_MODEL}" \
+  --decision-mode "${DECISION_MODE}" \
   --strategies "${STRATEGIES}" \
   --difficulties "${DIFFICULTIES}" \
   --enemy-races "${ENEMY_RACES}" \

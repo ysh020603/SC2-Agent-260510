@@ -45,7 +45,8 @@ tools/run_experiment.py
 
 ## 测试原则
 
-- 当前主线是固定策略 + Naming + DATA_TOOLS + Ordering + Supply Planner + ExecutionScheduler。
+- 当前主线默认是固定策略 + Naming + DATA_TOOLS + Ordering + Supply Planner + ExecutionScheduler。
+- `--decision-mode two-stage` 会将 Naming 与 Ordering 合并为 Ordered Naming；Executor Agent 仍保留。
 - 旧 Mid/Down Agent 声明式执行链路已删除，不再使用 `mid_model` / `down_model`。
 - Naming / Ordering 的漏项、错项、空输出是模型表现，不通过 Agent 代码自动补齐。
 - 排查重点是执行机制：当 LLM 已输出合法动作后，检查 scheduler 是否正确保留、等待、下发、计数、deferred、DONE。
@@ -88,6 +89,7 @@ cd C:\code\SC2_Agent_OLD
   bot_loader\game_starter.py `
   dummies\generic\universal_llm_bot.py `
   SC2_Agent\naming_agent.py `
+  SC2_Agent\ordered_naming_agent.py `
   SC2_Agent\ordering_agent.py `
   SC2_Agent\executor_agent.py `
   SC2_Agent\execution\scheduler.py `
@@ -129,6 +131,7 @@ $py='C:\Users\Descfly\.conda\envs\SC2_0615\python.exe'
   --naming-model DeepSeek-V4-pro `
   --ordering-model DeepSeek-V4-pro `
   --executor-model DeepSeek-V4-flash `
+  --decision-mode three-stage `
   --no-supply-managed `
   --game-time-limit 1200
 ```
@@ -152,6 +155,7 @@ $p=Start-Process -FilePath $py `
     '--naming-model', 'DeepSeek-V4-pro',
     '--ordering-model', 'DeepSeek-V4-pro',
     '--executor-model', 'DeepSeek-V4-flash',
+    '--decision-mode', 'three-stage',
     '--no-supply-managed',
     '--game-time-limit', '1200'
   ) `
@@ -175,8 +179,9 @@ $p=Start-Process -FilePath $py `
 - `--enemy-difficulty`：`easy | medium | hard | harder | veryhard` 等。
 - `--enemy-build`：`air | macro | rush | timing | power | random`。
 - `--naming-model`：Naming Agent 的 model key。
-- `--ordering-model`：Ordering Agent 的 model key。
+- `--ordering-model`：Ordering Agent 的 model key；`two-stage` 下保留但不调用。
 - `--executor-model`：Executor Agent 的 model key。
+- `--decision-mode`：`three-stage`（默认）或 `two-stage`。`two-stage` 使用 `--naming-model` 作为 Ordered Naming 模型。
 - `--supply-managed / --no-supply-managed`：是否让 Stage5 算法托管补给站。
 - `--game-time-limit`：写入 `SC2_GAME_TIME_LIMIT`，单位秒；默认 `1200`（20 游戏分钟）。
 - `--run-index`：并发/批量实验时区分同组运行。
@@ -201,6 +206,32 @@ executor_model = DeepSeek-V4-flash
 supply_managed = true
 ```
 
+两阶段 Kimi non-thinking 冒烟：
+
+```powershell
+$env:SC2_GAME_TIME_LIMIT='120'
+$py='C:\Users\Descfly\.conda\envs\SC2_0615\python.exe'
+& $py tools\run_experiment.py `
+  --strategy battle_cruisers `
+  --batch-name kimi_nothink_two_stage_smoke `
+  --match-prefix kimi2stage `
+  --enemy-race terran `
+  --enemy-difficulty easy `
+  --enemy-build random `
+  --decision-mode two-stage `
+  --naming-model Kimi-k2.5 `
+  --ordering-model Kimi-k2.5 `
+  --executor-model Kimi-k2.5 `
+  --game-time-limit 120
+```
+
+检查点：
+
+- `.llm_calls.json` 中应出现 `agent="ordered_naming"`。
+- `.llm_calls.json` 中不应出现 `agent="ordering"`。
+- `.json` 轨迹中应有 `decision_mode="two-stage"`、`ordered_naming_raw`、`ordered_names`、`ordered_name_mapping`。
+- Executor Agent 仍可能在 train 多候选时出现。
+
 ## 运行中观察
 
 查看 stderr/stdout：
@@ -221,17 +252,15 @@ Stage3 mapped ...
 Stage4 ordering gaps ...
 Stage5 SUPPLY_MANAGED ...
 Scheduler active queue after install ...
-... 全部 [Step N] 装完后切换到 Summary 模式 ...
-Strategy summary cycle (index=N): <# Summary 全文>
 ```
 
-判断当前 cycle 处于 step 还是 summary 模式，可看 `record.strategy_step.phase`（`"step"` / `"summary"`）或 stderr 日志的前缀（`Strategy step` vs `Strategy summary cycle`）。
+两阶段模式下关键日志会变为 `TWO-STAGE MACRO PIPELINE START`、`Ordered Naming names`、`Two-stage mapped ordered actions` 和 `Two-stage with supply`。
 
 筛选关键行：
 
 ```powershell
 Select-String -Path game_records\battle_cruisers_eval_stderr.log `
-  -Pattern 'Strategy step|Strategy summary cycle|Stage2 named|Stage3 mapped|Stage4 ordering gaps|Stage5 SUPPLY_MANAGED|Scheduler active queue|DirectBuild|Abandoned stuck|Result for player|Result:' |
+  -Pattern 'Strategy step|Stage2 named|Ordered Naming names|Stage3 mapped|Two-stage mapped|Stage4 ordering gaps|Stage5 SUPPLY_MANAGED|Two-stage with supply|Scheduler active queue|DirectBuild|Abandoned stuck|Result for player|Result:' |
   Select-Object -Last 100 |
   ForEach-Object { $_.Line }
 ```
@@ -419,7 +448,7 @@ tail -n 120 game_records/battle_cruisers_eval_stderr.log
 筛选关键行：
 
 ```bash
-grep -E 'Strategy step|Strategy summary cycle|Stage2 named|Stage3 mapped|Stage4 ordering gaps|Stage5 SUPPLY_MANAGED|Scheduler active queue|DirectBuild|Abandoned stuck|Result for player|Result:' \
+grep -E 'Strategy step|Stage2 named|Ordered Naming names|Stage3 mapped|Two-stage mapped|Stage4 ordering gaps|Stage5 SUPPLY_MANAGED|Two-stage with supply|Scheduler active queue|DirectBuild|Abandoned stuck|Result for player|Result:' \
   game_records/battle_cruisers_eval_stderr.log | tail -n 100
 ```
 

@@ -29,8 +29,9 @@ export BOT_RACE="${BOT_RACE:-terran}"
 export FORCE_STRATEGY="${FORCE_STRATEGY:-marine_rush}"
 
 # ---------------------------------------------------------------------------
-# 2. Five-stage pipeline model keys
+# 2. Macro decision mode and model keys
 # ---------------------------------------------------------------------------
+export DECISION_MODE="${DECISION_MODE:-three-stage}"  # three-stage | two-stage
 export NAMING_MODEL="${NAMING_MODEL:-DeepSeek-V4-flash}"
 export ORDERING_MODEL="${ORDERING_MODEL:-DeepSeek-V4-flash}"
 export EXECUTOR_MODEL="${EXECUTOR_MODEL:-DeepSeek-V4-flash}"

@@ -12,7 +12,18 @@
   -> Sharpy / SC2
 ```
 
-一句话说：玩家先固定一个人族策略目录，系统读取该策略的阶段说明，把每个阶段拆成标准单位、建筑、科技动作，再用命令式调度器逐帧执行。
+也可以用 `--decision-mode two-stage` 将 Naming 与 Ordering 合并为 `Ordered Naming Agent`：
+
+```text
+固定策略 Top_agent_<enemy_race>.md
+  -> Ordered Naming Agent
+  -> DATA_TOOLS 映射
+  -> Supply Planner
+  -> ExecutionScheduler
+  -> Sharpy / SC2
+```
+
+一句话说：玩家先固定一个人族策略目录，系统读取该策略的阶段说明，把每个阶段拆成标准单位、建筑、科技动作，再用命令式调度器逐帧执行。默认仍是原 `three-stage` 模式。
 
 当前主线只适配 Terran。Protoss / Zerg 的 Sharpy dummy bot 仍在仓库里，但 LLM 增量流水线和 `SKILL` 策略库目前按人族维护。
 
@@ -30,13 +41,14 @@
 
 - `UniversalLLMBot` 现在必须指定固定策略，`--force-strategy none` 会报错。
 - 旧的 t=0 交互式策略选择、Mid/Down Agent 声明式执行路径已删除。
-- 当前关键 LLM 调用点是 `--naming-model`、`--ordering-model`、`--executor-model`。
+- 当前关键 LLM 调用点是 `--naming-model`、`--ordering-model`、`--executor-model`；`--decision-mode` 控制 Naming/Ordering 是否合并。
 
 ## 仓库结构
 
 ```text
 SC2_Agent/
   naming_agent.py              # Stage 2: 策略 step + obs -> 标准实体名和数量
+  ordered_naming_agent.py      # two-stage: 策略 step + obs -> 有序标准实体名展开列表
   ordering_agent.py            # Stage 4: 对标准 action 排序
   executor_agent.py            # 为 train 选择执行单位（addon/morph 规则选）
   data_tools/                  # 内置 SC2 数据库、标准名、成本、前置、冲突、补给规划
@@ -48,7 +60,7 @@ SC2_Agent/
     scheduler.py               # ExecutionScheduler 核心调度器
 
 dummies/generic/
-  universal_llm_bot.py         # 编排策略读取、五阶段流水线、调度器和记录落盘
+  universal_llm_bot.py         # 编排策略读取、三/两阶段决策流水线、调度器和记录落盘
 
 SKILL/terran/
   registry.json                # 人族策略白名单/索引（force-strategy 模式）
@@ -118,7 +130,28 @@ SKILL/terran/marine_rush/
 
 Ordering 阶段不会用代码补齐 LLM 漏掉的动作。漏项和非法项会写入轨迹 JSON，用来保留模型评估信号。
 
-### 3. 命令式执行调度
+### 3. 两阶段 Ordered Naming 模式
+
+`--decision-mode two-stage` 会把 Naming 与 Ordering 合并为一次 LLM 调用：
+
+```bash
+python run_vs_ai.py --force-strategy marine_rush --decision-mode two-stage
+```
+
+该模式下 `Ordered Naming Agent` 直接输出有序的 canonical Unit/Upgrade 名称展开列表，例如：
+
+```json
+{"ordered_names":["SupplyDepot","Barracks","BarracksTechLab","Marine","Marine","Marine"]}
+```
+
+注意事项：
+
+- `--naming-model` 作为 `Ordered Naming Agent` 的模型 key 使用。
+- `--ordering-model` 保留参数但不会调用，方便旧实验脚本兼容。
+- `--executor-model` 不变，仍由 `ExecutionScheduler` 在 train 多候选时调用。
+- 下游 DATA_TOOLS 映射、Supply Planner、ExecutionScheduler 和 Executor Agent 都复用原实现。
+
+### 4. 命令式执行调度
 
 `ExecutionScheduler` 每帧执行 action 队列，核心机制包括：
 
@@ -131,7 +164,7 @@ Ordering 阶段不会用代码补齐 LLM 漏掉的动作。漏项和非法项会
 - train 可调用 Executor Agent 选择执行单位（addon / morph 由规则直选）
 - waiting 超时和 running 卡死放弃，避免宏观队列永久堵塞
 
-### 4. 策略工具轨
+### 5. 策略工具轨
 
 `create_plan()` 并行运行两条轨：
 
@@ -140,7 +173,7 @@ Ordering 阶段不会用代码补齐 LLM 漏掉的动作。漏项和非法项会
 
 没有全局后台战术 fallback。某个策略缺少侦察、攻击或防守工具时，需要在该策略自己的 `strategy_tools.py` 中补。
 
-### 5. BO list 直接执行模式（旁路 LLM 流水线）
+### 6. BO list 直接执行模式（旁路 LLM 流水线）
 
 除上面的「固定策略 + 五阶段流水线」之外，`UniversalLLMBot` 还支持一种 **BO 直接执行模式**：完全跳过 Naming / Ordering / Supply Planner，把 `BO.json` 中的标准 action 序列按 `BO_CHUNK_SIZE`（默认 **15**）分段注入 `ExecutionScheduler`（首段 `replace`，当前段 drain 后 `append` 下一段）。
 
@@ -262,6 +295,16 @@ python run_vs_ai.py \
   --executor-model DeepSeek-V4-flash
 ```
 
+两阶段模式示例（`--ordering-model` 可保留但不会调用）：
+
+```bash
+python run_vs_ai.py \
+  --force-strategy marine_rush \
+  --decision-mode two-stage \
+  --naming-model Kimi-k2.5 \
+  --executor-model Kimi-k2.5
+```
+
 注意：`API_config/config.json` 可能包含真实 API key，请不要提交或公开。
 
 reasoning 模型可以用单独的 `*_think` model_key 标注，例如
@@ -299,6 +342,7 @@ python run_vs_ai.py \
   --enemy-difficulty medium \
   --enemy-build random \
   --force-strategy battle_cruisers \
+  --decision-mode three-stage \
   --batch-name demo
 ```
 
@@ -351,6 +395,7 @@ export FORCE_STRATEGY="marine_rush"
 export NAMING_MODEL="DeepSeek-V4-flash"
 export ORDERING_MODEL="DeepSeek-V4-flash"
 export EXECUTOR_MODEL="DeepSeek-V4-flash"
+export DECISION_MODE="three-stage"
 ```
 
 ### 测试与运行脚本归档
@@ -384,11 +429,13 @@ game_records/<batch_name>/<match_id>/
 轨迹 JSON 会记录：
 
 - 固定策略名和策略说明
+- 决策模式：`three-stage` 或 `two-stage`
 - 每次触发原因：`initial_step`、`sequence_drained`、`executable_drained`
 - 当前 strategy step
-- Naming 原始输出和解析后的实体
+- `three-stage`：Naming 原始输出和解析后的实体
+- `two-stage`：Ordered Naming 原始输出、有序实体名、实体到 action 的顺序映射
 - DATA_TOOLS 映射结果
-- Ordering 原始输出、合法排序、漏项和丢弃项
+- `three-stage`：Ordering 原始输出、合法排序、漏项和丢弃项
 - Supply Planner 插入的补给动作
 - 注入 scheduler 的 action 序列
 - 决策时英文 obs 和结构化快照

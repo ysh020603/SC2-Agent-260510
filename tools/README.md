@@ -17,7 +17,7 @@ tools/
 └── archive/                  # 已废弃、仅供历史追溯的 launcher
 ```
 
-- 新实验优先复用 `run_experiment.py` 或现有批量入口。
+- 新实验优先复用 `run_experiment.py` 或现有批量入口。固定策略实验可用 `--decision-mode three-stage|two-stage` 切换宏观决策链。
 - 只有确实具有独立用途的脚本才新增到 `tools/`，避免为每次参数变化复制一个 launcher。
 - `tools/archive/` 中的脚本可能包含过期参数或旧路径，不应作为新测试入口。
 - 对局产物统一写入 `game_records/`，不应提交到本目录。
@@ -38,6 +38,7 @@ tools/
 - 临时 launcher 和检查脚本已经归档到正确目录。
 - 最终复现命令引用 `tools/` 中的正式脚本，而不是 `/tmp` 文件或终端历史。
 - 结果目录、模型名、地图、策略、对手和时限已经记录。
+- 若使用两阶段模式，记录 `decision_mode=two-stage`，并检查 `.llm_calls.json` 中有 `ordered_naming` 且无 `ordering` 调用。
 - 日志中已检查退出码、Traceback、关键动作和轨迹文件完整性。
 
 完整运行流程见 [`../docs/test-run-workflow.md`](../docs/test-run-workflow.md)。

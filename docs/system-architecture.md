@@ -27,6 +27,9 @@ strategy_description（Top_agent_<enemy_race>.md 全文）
 │ Stage4 Ordering Agent   当前 step + 前置/冲突/成本提示下排序     │
 │ Stage5 Supply 处理      按 SUPPLY_MANAGED 模式处理 depot        │
 └──────────────────────────────────────────────────────────────┘
+   │
+   ├─ 可选：--decision-mode two-stage 时 Stage2/Stage4 合并为 Ordered Naming
+   │        当前 obs + step → 有序 canonical unit/upgrade 名展开列表
    │  (action_name, quantity) 序列
    ▼
 ExecutionScheduler（命令式调度，每帧 execute）
@@ -68,6 +71,7 @@ sharpy-sc2/
 ├── SC2_Agent/                      # LLM 决策核心 + 知识库 + 执行调度
 │   ├── top_agent.py                # 策略 md 解析工具
 │   ├── naming_agent.py             # Stage2：增量 → 标准 unit/upgrade 名 + 数量
+│   ├── ordered_naming_agent.py     # two-stage：增量 → 有序标准名展开列表
 │   ├── ordering_agent.py           # Stage4：动作排序
 │   ├── executor_agent.py                 # Executor：train 选执行单位（addon/morph 规则选）
 │   ├── data_tools/                 # ★ 内置的 DATA_TOOLS 知识库（vendored + 扩展）
@@ -110,7 +114,18 @@ sharpy-sc2/
 
 ---
 
-## 3. 五阶段宏观流水线（`_run_macro_pipeline_blocking`）
+## 3. 宏观决策流水线
+
+`UniversalLLMBot` 通过 `--decision-mode` 选择固定策略下的宏观 LLM 决策链：
+
+| decision mode | LLM 决策链 | 默认 |
+|---|---|---|
+| `three-stage` | Naming Agent → Ordering Agent → Executor Agent | 是 |
+| `two-stage` | Ordered Naming Agent → Executor Agent | 否 |
+
+BO list 模式仍然由 `--bo-list` 单独启用，直接旁路宏观 LLM 决策链，仅保留 Executor Agent。
+
+### 3.1 五阶段宏观流水线（`_run_macro_pipeline_blocking`）
 
 入口在 `dummies/generic/universal_llm_bot.py`。每个触发周期串行执行下列阶段，
 全过程作为**一条交互记录**写入轨迹 JSON（含每阶段原始/解析结果）。
@@ -165,6 +180,47 @@ sharpy-sc2/
 - 记录字段：`llm_depot_count`（LLM 放置数）、`supply_trace`（说明使用了 LLM 排序）。
 
 最终得到 `[(action_name, quantity), ...]`，通过 `scheduler.set_actions(..., mode="append")` 注入调度器。
+
+---
+
+### 3.2 两阶段 Ordered Naming 流水线（`_run_two_stage_macro_pipeline_blocking`）
+
+`--decision-mode two-stage` 将 Stage2 Naming 与 Stage4 Ordering 合并为一次 LLM 调用：
+
+```
+Strategy Step Source
+  → Ordered Naming Agent
+  → DATA_TOOLS 映射（保留 Ordered Naming 顺序）
+  → Supply Planner
+  → ExecutionScheduler
+```
+
+`Ordered Naming Agent` 的 prompt 主体沿用 Naming Agent 架构：同样读取当前 obs、当前 strategy step、`# Summary`、人族 canonical Unit/Upgrade 名单、黑话提示和升级分类说明。输出契约改为：
+
+```json
+{"ordered_names":["SupplyDepot","Barracks","BarracksTechLab","Marine","Marine","Marine"]}
+```
+
+约束：
+
+- 输出的是 canonical Unit/Upgrade 名，不是 action/ability 名。
+- 不输出数量；需要多个单位时重复名称。
+- 列表顺序就是宏观执行顺序，DATA_TOOLS 只负责按顺序映射为 action key。
+- `--naming-model` 是 Ordered Naming 的模型 key；`--ordering-model` 保留但不调用。
+- `Executor Agent` 不变，仍由 scheduler 在 train 多候选时调用。
+
+轨迹字段：
+
+- `decision_mode="two-stage"`
+- `ordered_naming_raw`
+- `ordered_names`
+- `ordered_name_dropped`
+- `ordered_name_mapping`
+- `unmapped_ordered_names`
+- `ordered_actions`
+- `ordered_with_supply`
+
+`*.llm_calls.json` 中该模式会出现 `agent="ordered_naming"`，不会出现 `agent="ordering"`；Executor 调用仍按实际 train 多候选情况出现。
 
 ---
 
@@ -345,7 +401,7 @@ append 预取阶段如果遇到同类普通建筑仍 active 或 in-flight，新 
 
 | 模式 | 启用方式 | 策略来源 | LLM 流水线 |
 |---|---|---|---|
-| 默认（forced strategy） | `--force-strategy <name>` | `SKILL/<race>/<name>/Top_agent_<enemy_race>.md` | Stage2/3/4/5 + Executor |
+| 默认（forced strategy） | `--force-strategy <name>` | `SKILL/<race>/<name>/Top_agent_<enemy_race>.md` | `--decision-mode three-stage`：Stage2/3/4/5 + Executor；`two-stage`：Ordered Naming + Stage3/5 + Executor |
 | BO 直接执行 | `--bo-list <name>` | `BO_list/<race>/<name>/BO.json` | **仅** Executor |
 
 ### 5.5.1 目录约定
@@ -381,8 +437,9 @@ waiter 槽跨分段自然延续：下段 append 进来的 action 不会干扰当
 
 | LLM Agent | force-strategy 模式 | bo-list 模式 |
 |---|---|---|
-| Naming Agent (Stage2) | 启用 | **关闭**（不被调用） |
-| Ordering Agent (Stage4) | 启用 | **关闭**（不被调用） |
+| Naming Agent (Stage2) | `three-stage` 启用；`two-stage` 由 Ordered Naming 替代 | **关闭**（不被调用） |
+| Ordered Naming Agent | `two-stage` 启用 | **关闭**（不被调用） |
+| Ordering Agent (Stage4) | `three-stage` 启用；`two-stage` 不调用 | **关闭**（不被调用） |
 | Supply Planner (Stage5) | 启用 | **关闭**（不被调用） |
 | Executor Agent | 启用 | **保留**（仅 train 多候选时由 LLM 选执行单位；addon/morph 规则选） |
 
@@ -445,10 +502,12 @@ BO 模式下，`UniversalLLMBot._record_llm_interaction` 会写两类事件到 L
 ```python
 DEFAULT_NAMING_MODEL = DEFAULT_ORDERING_MODEL \
   = DEFAULT_EXECUTOR_MODEL = "DeepSeek-V4-flash"
+DEFAULT_DECISION_MODE = "three-stage"
 ```
 
 可分别用 `--naming-model / --ordering-model / --executor-model`
-覆盖单个阶段（取 `config.json` 里的 key）。
+覆盖单个阶段（取 `config.json` 里的 key）。`--decision-mode two-stage` 下，
+`--naming-model` 用于 Ordered Naming，`--ordering-model` 不调用但可保留。
 
 **当前模型评估推荐配置**：
 
@@ -472,12 +531,15 @@ export SC2PATH=/data2/SC2/StarCraftII/
 python run_vs_ai.py --enemy-difficulty medium --enemy-build random --batch-name demo
 # 短时冒烟（限制游戏时长，便于快速验证轨迹保存）
 SC2_GAME_TIME_LIMIT=240 python run_vs_ai.py --enemy-difficulty medium --enemy-build random --batch-name smoke
+# 两阶段 Ordered Naming 模式（Naming + Ordering 合并；Executor 保留）
+SC2_GAME_TIME_LIMIT=240 python run_vs_ai.py --force-strategy marine_rush --decision-mode two-stage --batch-name two_stage_smoke
 # BO list 直接执行模式（旁路 Naming/Ordering/Supply LLM；Executor LLM 仍生效（仅 train））
 python run_vs_ai.py --bo-list marine_rush --enemy-difficulty medium --batch-name bo_demo
 ```
 
 常用参数：`--bot-race/--enemy-race`、`--enemy-difficulty/--enemy-build`、
 `--force-strategy <name>` / `--bo-list <name>`（互斥）、
+`--decision-mode three-stage|two-stage`、
 `--naming-model/--ordering-model/--executor-model`、
 `--real-time`、`--batch-name/--run-index`。
 
