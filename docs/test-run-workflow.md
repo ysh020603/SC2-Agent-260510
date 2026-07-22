@@ -288,6 +288,25 @@ Get-ChildItem game_records\battle_cruisers_eval -Recurse |
 - `<match_id>.llm_calls.json`
 - `<match_id>.SC2Replay`
 
+### 检查宏观评估指标
+
+`<match_id>.json` 的 `metadata.macro_metrics` 应包含三个宏观评估指标（详见
+[system-architecture.md §9.1](system-architecture.md)）：`rur_consume_per_min`（消耗率，越高越好）、
+`rur_float_avg_bank`（囤积率，越高越差）、`apu_ratio`（人口利用率，`[0,1]`，越高越好）。
+
+```bash
+python -c "import json,sys; m=json.load(open(sys.argv[1]))['metadata']['macro_metrics']; print(m)" \
+  game_records/<batch>/<match_id>/<match_id>.json
+```
+
+合理性判据：`apu_ratio` ∈ [0,1]、`rur_consume_per_min` > 0、`rur_float_avg_bank` ≥ 0；
+各快照 `economy` 应带 `spent_/collected_minerals/vespene` 字段。
+
+> 实测（2026-07-22，Kimi-k2.5 non-thinking，`marine_rush` vs terran easy，并行 2 局各 1200s 上限）：
+> 两局均 Victory；`macro_metrics` 分别为
+> `{rur_consume_per_min: 774.0, rur_float_avg_bank: 55.0, apu_ratio: 0.435}` 与
+> `{rur_consume_per_min: 785.6, rur_float_avg_bank: 24.2, apu_ratio: 0.508}`，数值合理。
+
 ## 常见坑
 
 - `UnicodeEncodeError`：设置 `$env:PYTHONUTF8='1'` 和 `$env:PYTHONIOENCODING='utf-8'`。

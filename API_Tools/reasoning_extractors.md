@@ -26,6 +26,13 @@ in `API_config/config.json` choose one of these modes through
 | Qwen3 thinking off | `none` | `{"chat_template_kwargs": {"enable_thinking": false}}` |
 | `Qwen3-0.6b-sc2-executor-grpo-2x-5ep_think` | `content_think_tags` | same as Qwen3-1.7b thinking entries |
 | `Qwen3-0.6b` | `none` | `{"chat_template_kwargs": {"enable_thinking": false}}` |
+| `Qwen3-1.7b_73` / `Qwen3-1.7b-sc2-{executor,naming,ordering}_73` | `content_think_tags` | same as `Qwen3-1.7b_think` (`enable_thinking: true`) |
+| `Qwen3-1.7b-sc2-mix-grpo-v1-step200_think` | `content_think_tags` | same as `Qwen3-1.7b_think` (`enable_thinking: true`); endpoint `172.18.30.122:8014` |
+| `Qwen3-0.6b-sc2-mix-sft-cot_think` | `content_think_tags` | same as `Qwen3-0.6b_think` / `Qwen3-1.7b_think` (`enable_thinking: true`); endpoint `172.18.30.73:8200` |
+| `Qwen3-0.6b-sc2-mix-grpo-step100_think` | `content_think_tags` | same as `Qwen3-0.6b_think` / `Qwen3-1.7b_think` (`enable_thinking: true`); endpoint `172.18.30.73:8201` |
+| `Qwen3-1.7b-v2-{our-balanced,strategy-uniform,random-instance}-{two-stage,cot-only}_think` | `content_think_tags` | `enable_thinking: true`, `max_tokens: 4096`; endpoints `172.18.30.73:8300-8305` |
+| `Qwen3-1.7b-sc2-mix-grpo-v2-0719-step318_think` | `content_think_tags` | `enable_thinking: true`, `max_tokens: 4096`; endpoint `172.18.30.73:8306` |
+| `Qwen3-1.7b-base_8307_think` | `content_think_tags` | base `qwen3-1.7b`; `enable_thinking: true`, `max_tokens: 4096`; endpoint `172.18.30.73:8307` |
 
 ## Probe Workflow
 

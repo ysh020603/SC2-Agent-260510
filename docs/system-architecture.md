@@ -582,7 +582,13 @@ bash tools/run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
 {
   "metadata": { "result": "Victory|Defeat|Tie", "matchup": "...",
                 "game_duration_seconds": 240.0, "interval_seconds": 60.0,
-                "llm_interaction_count": 11, "record_count": 8 },
+                "llm_interaction_count": 11, "record_count": 8,
+                "macro_metrics": {                                  // 见 §9.1
+                  "rur_consume_per_min": 774.0,
+                  "rur_float_avg_bank": 55.0,
+                  "apu_ratio": 0.435,
+                  "sample_count": 8,
+                  "definition": "..." } },
   "interactions": [
     { "trigger_reason": "top_agent_initial_t0_forced", "top_agent_initial": {...} },
     { "cycle": 1, "trigger_reason": "initial_step", "mode": "replace",
@@ -603,6 +609,23 @@ bash tools/run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
 > ✅ 已在 `SC2_0615` 环境实测：一局 240s 对局产出 11 条交互 / 8 个快照的完整轨迹 JSON，
 > 五阶段原始与解析结果齐全。观测字段完整说明见
 > [`note/llm_observation_recorder.md`](../note/llm_observation_recorder.md)。
+
+### 9.1 宏观评估指标（`metadata.macro_metrics`）
+
+`LLMObservationRecorder.on_end` 在对局结束时调用 `_compute_macro_metrics()`，把三个宏观评估指标写入 `metadata.macro_metrics`，随轨迹 JSON 一起落盘（无论 `interactions` 还是 `records` 落盘分支都会带上）。指标来源全部是 recorder 已经在跟踪的数据，无需额外落盘。
+
+| 字段 | 含义 | 公式 | 方向 |
+|---|---|---|---|
+| `rur_consume_per_min` | RUR 资源消耗率 | `(spent_minerals + spent_vespene) / game_duration * 60`，末帧 `state.score` 精确取值 | 越高越好（资源花得出去，宏观强） |
+| `rur_float_avg_bank` | RUR 资源囤积率 | 未花掉存量 `minerals + vespene` 的时间加权平均 | 越高越差（钱囤着花不掉，宏观弱） |
+| `apu_ratio` | 平均人口利用率 | `supply_used / supply_cap` 的时间加权平均，取值 `[0,1]` | 越高越好（人口容量用得满） |
+
+补充说明：
+
+- `rur_float_avg_bank` / `apu_ratio` 基于每 `interval_seconds` 采一次的规则周期快照 `record_history`（内存中始终完整，即使有 LLM 交互也照常采样），时间加权用左值 `Σ value_i·(t_{i+1}-t_i) / Σ(t_{i+1}-t_i)`；样本不足或无时间跨度时退化为普通均值。`supply_cap<=0` 的样本在 APU 中跳过。
+- `rur_consume_per_min` 用对局结束时 `self.ai.state.score` 精确计算，不依赖采样序列。
+- `sample_count` 为参与时间加权的周期快照数；`definition` 内嵌一行英文口径说明便于自解释。
+- 相关：各周期/交互快照的 `economy` 也新增了 `spent_minerals / spent_vespene / collected_minerals / collected_vespene`（累计消耗 / 采集），来自 SC2 score 接口，缺失时降级为 0。
 
 ---
 

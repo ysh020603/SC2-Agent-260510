@@ -166,12 +166,24 @@ def find_record_dir(batch_name: str, run_index: int) -> Optional[Path]:
         for path in batch_dir.iterdir()
         if path.is_dir() and path.name.endswith(suffix)
     )
-    return matches[-1] if matches else None
+    if not matches:
+        return None
+    # Prefer a valid finished record; fall back to newest (may be in-progress).
+    for path in reversed(matches):
+        if is_valid_record_dir(path):
+            return path
+    return matches[-1]
 
 
 def is_job_completed(batch_name: str, job: MatchJob) -> bool:
-    record_dir = find_record_dir(batch_name, job.index)
-    return record_dir is not None and is_valid_record_dir(record_dir)
+    batch_dir = ROOT / "game_records" / batch_name
+    if not batch_dir.is_dir():
+        return False
+    suffix = f"_run{job.index}"
+    for path in batch_dir.iterdir():
+        if path.is_dir() and path.name.endswith(suffix) and is_valid_record_dir(path):
+            return True
+    return False
 
 
 def cleanup_invalid_batch_records(
@@ -203,10 +215,23 @@ def cleanup_invalid_batch_records(
 
     deleted = 0
     kept = 0
+    # Avoid deleting in-progress runs that have not written a final result yet.
+    recent_grace_sec = 30 * 60
+    now = time.time()
     for record_dir in sorted(batch_dir.iterdir()):
         if not record_dir.is_dir() or not record_dir.name.startswith("2026"):
             continue
         if is_valid_record_dir(record_dir):
+            kept += 1
+            continue
+        try:
+            newest_mtime = max(
+                (p.stat().st_mtime for p in record_dir.iterdir()),
+                default=record_dir.stat().st_mtime,
+            )
+        except OSError:
+            newest_mtime = record_dir.stat().st_mtime
+        if now - newest_mtime < recent_grace_sec:
             kept += 1
             continue
         shutil.rmtree(record_dir)

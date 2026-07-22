@@ -428,6 +428,7 @@ game_records/<batch_name>/<match_id>/
 
 轨迹 JSON 会记录：
 
+- `metadata.macro_metrics`：三个宏观评估指标——`rur_consume_per_min`（资源消耗率，越高越好）、`rur_float_avg_bank`（资源囤积率，越高越差）、`apu_ratio`（平均人口利用率，`[0,1]`，越高越好），对局结束时由 `LLMObservationRecorder` 计算并随日志一起落盘（详见 [docs/system-architecture.md](docs/system-architecture.md) §9.1）
 - 固定策略名和策略说明
 - 决策模式：`three-stage` 或 `two-stage`
 - 每次触发原因：`initial_step`、`sequence_drained`、`executable_drained`
