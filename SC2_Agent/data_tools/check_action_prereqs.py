@@ -1,10 +1,7 @@
-"""Check whether action prerequisites are present through first tech_chain entries.
+"""Validate ordered actions against the first available tech-chain entries.
 
-Vendored from DATA_TOOLS/tools/check_action_prereqs.py (import path adapted for
-the ``SC2_Agent.data_tools`` package) and EXTENDED with
-``tech_chain_relations()`` which reports, within a single action list, which
-action is a prerequisite of which other action (used as ordering hints for the
-ordering LLM).
+``tech_chain_relations()`` exposes dependencies between actions for diagnostics
+and tests. Runtime execution performs its own per-action prerequisite checks.
 """
 
 from __future__ import annotations
@@ -189,10 +186,9 @@ def check_action_prerequisites(
 
     current_entities = set(canonical_entities)
     ordered_reports: list[dict[str, Any]] = []
-    legacy_reports: dict[str, Any] = {}
     order_issues: list[dict[str, Any]] = []
 
-    for index, (original_action, action) in enumerate(zip(actions, canonical_actions)):
+    for index, action in enumerate(canonical_actions):
         ability = ability_index.get(action)
         if ability is None:
             report = {
@@ -205,7 +201,6 @@ def check_action_prerequisites(
                 "requirements": [],
             }
             ordered_reports.append(report)
-            legacy_reports[f"{index}:{original_action}"] = report
             continue
 
         chain, requirements = first_tech_chain_requirements(action, ability)
@@ -299,7 +294,6 @@ def check_action_prerequisites(
             "missing_executors": executor_missing,
         }
         ordered_reports.append(report)
-        legacy_reports[f"{index}:{original_action}"] = report
 
         if available_now:
             current_entities = _apply_action_state(
@@ -327,7 +321,6 @@ def check_action_prerequisites(
             for index, (action, results) in enumerate(zip(canonical_actions, action_results_by_index))
         ],
         "ordered_reports": ordered_reports,
-        "reports": legacy_reports,
         "note": "Actions are checked in list order. A later action result can trigger an order_issue but cannot satisfy an earlier action.",
     }
 
@@ -348,7 +341,7 @@ def tech_chain_relations(
 
     For each action, look at its first-tech-chain requirements and check whether
     another action in the same list produces the required entity. Order in the
-    input list is irrelevant here; the goal is purely to tell the ordering LLM
+    input list is irrelevant here; the result describes dependencies such as
     "action A must come before action B because B needs what A produces".
     When ``available_entities`` is provided, relations whose prerequisite is
     already satisfied by the current observation are suppressed by default.

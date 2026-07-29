@@ -1,360 +1,89 @@
-# 环境配置教程（Linux / Windows，conda 环境 `SC2_0615`）
+# Environment setup
 
-本教程一步步说明如何为 `sharpy-sc2`（LLM 增量驱动 + 命令式执行系统）搭建可运行环境。
-系统总览见 [`system-architecture.md`](system-architecture.md)。
+## Python
 
-> 本文档是本仓库唯一推荐的环境配置入口。不要再使用仓库根目录旧式
-> `requirements*.txt` 或临时 venv 命令安装依赖；依赖版本与平台经验以本文档为准。
-
----
-
-## 0. 关键前提：Python 版本与 `sc2pathlib`
-
-本项目统一使用 **Python 3.11**，环境名统一为 **`SC2_0615`**。
-
-Linux / macOS 下，仓库自带的 `sc2pathlib` 原生寻路扩展是预编译二进制，文件名类似：
-
-```
-sc2pathlib.cpython-311-x86_64-linux-gnu.so
-sc2pathlib.cpython-312-x86_64-linux-gnu.so
-sc2pathlib.cpython-313-x86_64-linux-gnu.so
-sc2pathlib.cpython-311-darwin.so   # macOS
-```
-
-Windows 下通常没有 `.pyd` 原生扩展；仓库提供了
-`sc2pathlib/sc2pathlib.py` 纯 Python fallback，用于本地测试和短时冒烟运行。
-如果 Linux 环境中存在 `.so`，Python 会优先加载 `.so`，不会使用 `.py` fallback。
-
-> 结论：所有平台都按本文档创建 `SC2_0615` + Python 3.11。
-
-### 0.1 `python-sc2` 固定来源
-
-Agent 仓库必须包含 `python-sc2/`。正式入口通过 `sc2_runtime.py` 基于文件绝对位置加载该快照，并检查关键升级映射；不会使用父仓库或 conda/site-packages 中安装的 `burnysc2`。完整规则见 [`python-sc2-runtime.md`](python-sc2-runtime.md)。
-
----
-
-## 1. 创建 conda 环境
-
-### Linux
+Python 3.11 is the established runtime. A minimal environment needs the SC2
+protocol/runtime packages, OpenAI client, Sharpy dependencies, and pytest:
 
 ```bash
-source /home/wyq/miniconda3/etc/profile.d/conda.sh   # 改成你自己的 conda 路径
-conda create -n SC2_0615 python=3.11 -y
-conda activate SC2_0615
+pip install s2clientprotocol mpyq portpicker openai requests aiohttp \
+  numpy scipy scikit-learn opencv-python-headless more-itertools six \
+  "protobuf==3.20.3" loguru pytest pytest-asyncio
 ```
 
-### Windows PowerShell
+The repository loads its bundled `python-sc2/` snapshot through
+`sc2_runtime.py`; do not rely on a different site-packages `sc2`.
+The existing Sharpy `bot_loader/` remains the common startup layer for both
+the retained demo bots and `UniversalLLMBot`.
 
-如果 `conda` 已在 PATH 中：
+## StarCraft II
+
+Set `SC2PATH` to the StarCraft II root and make sure the requested map exists.
+
+Windows PowerShell example:
 
 ```powershell
-conda create -n SC2_0615 python=3.11 pip -y
-conda activate SC2_0615
+$env:SC2PATH='C:\Program Files (x86)\StarCraft II'
+Get-ChildItem "$env:SC2PATH\Maps" -Recurse -Filter '*Kairos*'
 ```
 
-如果 `conda` 不在 PATH 中，但安装了 Anaconda，可直接使用：
-
-```powershell
-& 'C:\ProgramData\anaconda3\Scripts\conda.exe' create -n SC2_0615 python=3.11 pip -y
-& 'C:\ProgramData\anaconda3\Scripts\conda.exe' activate SC2_0615
-```
-
----
-
-## 2. 安装 Python 依赖
-
-直接安装下列**实测可用**的版本组合。不要使用 `requirements*.txt`：
-
-```bash
-pip install \
-  "s2clientprotocol" \
-  "mpyq" "portpicker" \
-  "openai" "requests" "aiohttp" \
-  "numpy" "scipy" "scikit-learn" \
-  "opencv-python-headless" \
-  "more-itertools" "six" \
-  "protobuf==3.20.3" \
-  "loguru"
-```
-
-测试工具单独安装：
-
-```bash
-pip install "pytest<7.0.0" "pytest-asyncio==0.20.3"
-```
-
-`SC2_0615` 实测关键版本（`pip freeze` 摘录，供对照）：
-
-```
-s2clientprotocol==5.0.15.95299.0
-protobuf==3.20.3             # 与 s2clientprotocol 兼容，勿装过高版本
-numpy==2.4.6  scipy==1.17.1  scikit-learn==1.9.0
-opencv-python-headless==4.13.0.92   # 服务器无显示用 headless 版
-openai==2.41.1  aiohttp==3.14.1  loguru==0.7.3
-mpyq==0.2.5  portpicker==1.6.0  more-itertools==11.1.0
-```
-
-`sc2` 本身来自仓库内 `python-sc2/`，不要求也不建议另外安装 `burnysc2`。即使环境中残留了该包，Agent 启动检查也会拒绝从 site-packages 加载它。
-
-> 说明：`sc2pathlib` 不需要 pip 安装。Linux / macOS 使用仓库内自带 `.so`，
-> Windows 使用仓库内的纯 Python fallback。
-
----
-
-## 3. 安装 StarCraft II 本体与地图
-
-### Linux
-
-1. 安装 Linux 版 SC2（Blizzard 官方 Linux 包），或复用机器上已有的安装目录。
-   本机示例路径：`/data2/SC2/StarCraftII/`，内含 `Versions/BaseXXXXX/SC2_x64`。
-2. 设置环境变量 `SC2PATH` 指向 SC2 根目录：
+Linux example:
 
 ```bash
 export SC2PATH=/data2/SC2/StarCraftII/
+find "$SC2PATH/Maps" -iname '*Kairos*'
 ```
 
-3. 确认对局地图（如 `KairosJunctionLE`）已放入 SC2 的 `Maps/` 目录。
-   验证二进制存在：
+## LLM configuration
 
-```bash
-ls "$SC2PATH"/Versions/*/SC2_x64 && echo "SC2 binary OK"
-```
-
-> 把 `export SC2PATH=...` 写进 `~/.bashrc` 或运行脚本，避免每次手动设置。
-
-### Windows
-
-1. 安装 Windows 版 StarCraft II。
-2. 常见安装路径：
-
-```text
-C:\Program Files (x86)\StarCraft II
-```
-
-3. 将 `SC2PATH` 写入 conda 环境变量：
-
-```powershell
-& 'C:\ProgramData\anaconda3\Scripts\conda.exe' env config vars set -n SC2_0615 SC2PATH='C:\Program Files (x86)\StarCraft II'
-```
-
-重新打开 PowerShell 并激活环境后检查：
-
-```powershell
-conda activate SC2_0615
-$env:SC2PATH
-Get-ChildItem "$env:SC2PATH\Maps" -Recurse -Filter '*Kairos*' | Select-Object -First 5 FullName
-```
-
-Windows 控制台建议启用 UTF-8，避免脚本打印中文或 `▷` 时出现 `UnicodeEncodeError`：
-
-```powershell
-$env:PYTHONUTF8='1'
-```
-
----
-
-## 4. 配置 LLM API
-
-编辑 `API_config/config.json` 的 `llm_agents_pool`，确认要用的 key 可用。
-本项目默认全部使用 **`DeepSeek-V4-flash`（`is_reasoning: false`，不开 thinking）**：
+Create `API_config/config.json` from the repository's expected config shape.
+The file is ignored by Git. The supported runtime accepts one model key:
 
 ```json
-"DeepSeek-V4-flash": {
-  "api_url": "https://api.deepseek.com/v1",
-  "api_key": "sk-...",            // 换成你自己的 key
-  "model_name": "deepseek-v4-flash",
-  "temperature": 0.7,
-  "is_reasoning": false
+{
+  "llm_agents_pool": {
+    "Kimi-k2.5": {
+      "api_url": "http://host/v1",
+      "api_key": "replace-locally",
+      "model_name": "kimi-k2.5",
+      "temperature": 1,
+      "top_p": null,
+      "max_tokens": null,
+      "is_reasoning": false,
+      "reasoning_extract_mode": "none",
+      "non_reasoning_temperature": 0.6,
+      "non_reasoning_extra_body": {
+        "thinking": {"type": "disabled"},
+        "chat_template_kwargs": {"thinking": false}
+      }
+    }
+  }
 }
 ```
 
-如需对单个阶段换模型，运行时加
-`--naming-model / --ordering-model / --executor-model <key>`。
+Never commit or echo the real credential.
 
----
-
-## 5. 验证安装
-
-### 5.1 导入自检（不启动游戏）
-
-Linux / macOS：
-
-```bash
-conda activate SC2_0615
-cd /data2/SC2_shy/SC2_OLD/sharpy-sc2
-python -c "
-from sc2_runtime import ensure_bundled_python_sc2
-origin = ensure_bundled_python_sc2()
-import sc2, sc2pathlib, sharpy
-from sharpy.plans.acts import ActBase
-from SC2_Agent.execution.scheduler import ExecutionScheduler
-from SC2_Agent.data_tools import actions_for_entities, plan_supply
-from dummies.generic.universal_llm_bot import UniversalLLMBot
-print('SC2 RUNTIME:', origin)
-print('ALL IMPORTS OK')
-"
-```
-
-Windows PowerShell：
+## Verify without a match
 
 ```powershell
-conda activate SC2_0615
-cd C:\code\SC2_Agent_OLD
-$env:PYTHONUTF8='1'
-@'
-from sc2_runtime import ensure_bundled_python_sc2
-origin = ensure_bundled_python_sc2()
-import sc2, sc2pathlib, sharpy
-from sharpy.plans.acts import ActBase
-from SC2_Agent.execution.scheduler import ExecutionScheduler
-from SC2_Agent.data_tools import actions_for_entities, plan_supply
-from dummies.generic.universal_llm_bot import UniversalLLMBot
-print('SC2 RUNTIME:', origin)
-print('ALL IMPORTS OK')
-'@ | python -
+python run_vs_ai.py --help
+python run_custom.py --help
+python tools\run_experiment.py --help
+python tools\run_kimi_nothink_strategy_sweep.py --dry-run
+python -m pytest tools\tests -q
 ```
 
-`SC2 RUNTIME` 必须指向当前 Agent 仓库的 `python-sc2/sc2/__init__.py`；随后输出 `ALL IMPORTS OK` 才表示依赖链完整。
-
-### 5.2 pytest 自检
-
-由于 `anyio` 会自动注册 pytest 插件，而旧版 pytest 会和它冲突，运行测试时关闭第三方插件自动加载，并手动加载 `pytest_asyncio`：
-
-Linux / macOS：
-
-```bash
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH="$PWD" \
-  python -m pytest -q -p pytest_asyncio
-```
-
-Windows PowerShell：
+## First match
 
 ```powershell
-$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
-$env:PYTHONPATH=(Resolve-Path .).Path
-python -m pytest -q -p pytest_asyncio
+$env:SC2_GAME_TIME_LIMIT='240'
+python tools\run_experiment.py `
+  --strategy marine_rush `
+  --decision-model Kimi-k2.5 `
+  --decision-interval 60 `
+  --enemy-race terran `
+  --enemy-difficulty medium `
+  --batch-name first_summary_queue_test
 ```
 
-当前实测结果：
-
-```text
-Linux (2026-06-18):  11 passed, 26 skipped
-Windows:              8 passed, 26 skipped
-```
-
-### 5.3 短时冒烟对局（验证轨迹保存）
-
-用 `SC2_GAME_TIME_LIMIT` 限制游戏时长，让对局尽快结束并触发轨迹落盘：
-
-Linux / macOS：
-
-```bash
-export SC2PATH=/data2/SC2/StarCraftII/
-SC2_GAME_TIME_LIMIT=240 python run_vs_ai.py --enemy-difficulty easy --batch-name smoke
-```
-
-Windows PowerShell：
-
-`run_vs_ai.py` 默认生成较长记录目录，Windows 下可能碰到路径过长问题。
-建议用 `run_custom.py` 指定短 `--record-dir` 与 `--match-id` 做冒烟，记录仍放在 `game_records/` 下：
-
-```powershell
-$env:SC2PATH='C:\Program Files (x86)\StarCraft II'
-$env:SC2_GAME_TIME_LIMIT='60'
-$env:PYTHONUTF8='1'
-New-Item -ItemType Directory -Force -Path .\game_records\smoke | Out-Null
-python run_custom.py `
-  -m KairosJunctionLE `
-  -p1 universal_llm.terran `
-  -p2 ai.terran.easy.macro `
-  --record-dir .\game_records\smoke `
-  --match-id smoke `
-  --naming-model DeepSeek-V4-flash `
-  --ordering-model DeepSeek-V4-flash `
-  --executor-model DeepSeek-V4-flash `
-  --force-strategy battle_cruisers
-```
-
-结束后检查产物：
-
-```bash
-ls -R game_records/smoke/
-# 应能看到 <match_id>.json / .SC2Replay / .log
-python -c "
-import json,glob
-f=glob.glob('game_records/smoke/**/*.json',recursive=True)[0]
-d=json.load(open(f))
-print('result:', d['metadata']['result'])
-print('interactions:', d['metadata']['llm_interaction_count'])
-"
-```
-能打印 `result` 与 `interactions` 数量即为成功。
-
----
-
-## 6. 常见问题
-
-| 现象 | 原因 / 解决 |
-|---|---|
-| `No module named 'sc2pathlib.sc2pathlib'` | Linux/macOS：Python 版本不匹配或 `.so` 缺失；Windows：确认仓库内有 `sc2pathlib/sc2pathlib.py` fallback |
-| `Bundled python-sc2 is missing` | Agent 仓库缺少 `python-sc2/` 固定快照；重新取得完整仓库，不要用 conda 包替代 |
-| `python-sc2 was imported before the Agent runtime bootstrap` | 某个入口先加载了 site-packages 版本；确保先调用 `sc2_runtime.ensure_bundled_python_sc2()` |
-| `s2clientprotocol` / protobuf 报错 | protobuf 版本过高 → 锁 `protobuf==3.20.3` |
-| 找不到 SC2 / 地图 | `SC2PATH` 未设或地图不在 `Maps/` → 见第 3 节 |
-| 服务器无显示导致 opencv 报错 | 用 `opencv-python-headless` 而非 `opencv-python` |
-| 对局一直不结束、消耗大量 API | 用 `SC2_GAME_TIME_LIMIT=<秒>` 限制时长（默认 30 游戏分钟） |
-| LLM 调用失败 / 401 | 检查 `API_config/config.json` 的 `api_key` 与 `api_url` |
-| Windows `UnicodeEncodeError` | 设置 `$env:PYTHONUTF8='1'` 后重跑 |
-| Windows 日志路径过长 | 用 `run_custom.py --record-dir .\game_records\smoke --match-id smoke` 指定短路径 |
-| pytest 启动时报 `_pytest.scope` | 使用第 5.2 节的 `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` 命令 |
-
----
-
-## 7. 一键速查
-
-### Linux
-
-```bash
-# 1) 环境
-source /home/wyq/miniconda3/etc/profile.d/conda.sh
-conda create -n SC2_0615 python=3.11 -y && conda activate SC2_0615
-pip install s2clientprotocol mpyq portpicker openai requests \
-  aiohttp numpy scipy scikit-learn opencv-python-headless more-itertools six \
-  protobuf==3.20.3 loguru
-
-# 2) SC2
-export SC2PATH=/data2/SC2/StarCraftII/
-
-# 3) 跑一局（限时冒烟）
-cd /data2/SC2_shy/SC2_OLD/sharpy-sc2
-SC2_GAME_TIME_LIMIT=240 python run_vs_ai.py --enemy-difficulty easy --batch-name smoke
-```
-
-### Windows PowerShell
-
-```powershell
-# 1) 环境
-& 'C:\ProgramData\anaconda3\Scripts\conda.exe' create -n SC2_0615 python=3.11 pip -y
-conda activate SC2_0615
-pip install s2clientprotocol mpyq portpicker openai requests `
-  aiohttp numpy scipy scikit-learn opencv-python-headless more-itertools six `
-  protobuf==3.20.3 loguru
-pip install "pytest<7.0.0" "pytest-asyncio==0.20.3"
-
-# 2) SC2
-& 'C:\ProgramData\anaconda3\Scripts\conda.exe' env config vars set -n SC2_0615 SC2PATH='C:\Program Files (x86)\StarCraft II'
-$env:SC2PATH='C:\Program Files (x86)\StarCraft II'
-$env:PYTHONUTF8='1'
-
-# 3) 自检
-cd C:\code\SC2_Agent_OLD
-$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
-$env:PYTHONPATH=(Resolve-Path .).Path
-python -m pytest -q -p pytest_asyncio
-
-# 4) 跑一局短时冒烟
-$env:SC2_GAME_TIME_LIMIT='60'
-New-Item -ItemType Directory -Force -Path .\game_records\smoke | Out-Null
-python run_custom.py -m KairosJunctionLE -p1 universal_llm.terran -p2 ai.terran.easy.macro `
-  --record-dir .\game_records\smoke --match-id smoke --force-strategy battle_cruisers
-```
+See [test-run-workflow.md](test-run-workflow.md) for record validation.

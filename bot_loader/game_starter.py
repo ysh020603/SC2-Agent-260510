@@ -139,34 +139,19 @@ Builds:
             help="File prefix for this match's log, replay, and LLM JSON.",
         )
         parser.add_argument(
-            "--naming-model",
-            help="Model key from config.json for Naming Agent (stage 2).",
+            "--decision-model",
+            help="Model key from config.json for the macro decision agent.",
             default="",
         )
         parser.add_argument(
-            "--ordering-model",
-            help="Model key from config.json for Ordering Agent (stage 4).",
-            default="",
-        )
-        parser.add_argument(
-            "--executor-model",
-            help="Model key from config.json for Executor Agent (train).",
-            default="",
-        )
-        parser.add_argument(
-            "--decision-mode",
-            choices=("three-stage", "two-stage"),
-            help="UniversalLLMBot macro decision mode.",
-            default="three-stage",
+            "--decision-interval",
+            type=float,
+            help="Macro replanning interval in in-game seconds.",
+            default=60.0,
         )
         parser.add_argument(
             "--force-strategy",
-            help="Strategy folder name under SKILL/<race>/ for UniversalLLMBot (e.g. 'marine_rush'). Mutually exclusive with --bo-list.",
-            default="",
-        )
-        parser.add_argument(
-            "--bo-list",
-            help="BO list strategy name under BO_list/<race>/ for direct-execute mode. Mutually exclusive with --force-strategy.",
+            help="Strategy folder name under SKILL/<race>/ for UniversalLLMBot.",
             default="",
         )
 
@@ -286,20 +271,13 @@ Builds:
                 recorder = getattr(my_bot, "llm_observation_recorder", None)
                 if recorder is not None:
                     recorder.output_folder = record_dir
-            if getattr(args, "naming_model", None) and hasattr(my_bot, "naming_model_key"):
-                my_bot.naming_model_key = args.naming_model
-            if getattr(args, "ordering_model", None) and hasattr(my_bot, "ordering_model_key"):
-                my_bot.ordering_model_key = args.ordering_model
-            if getattr(args, "executor_model", None) and hasattr(my_bot, "executor_model_key"):
-                my_bot.executor_model_key = args.executor_model
-            if getattr(args, "decision_mode", None) and hasattr(my_bot, "decision_mode"):
-                my_bot.decision_mode = args.decision_mode
+            if getattr(args, "decision_model", None) and hasattr(my_bot, "decision_model_key"):
+                my_bot.decision_model_key = args.decision_model
+            if getattr(args, "decision_interval", None) and hasattr(my_bot, "decision_interval_seconds"):
+                my_bot.decision_interval_seconds = float(args.decision_interval)
             if hasattr(my_bot, "force_strategy"):
                 fs = (getattr(args, "force_strategy", "") or "").strip()
                 my_bot.force_strategy = fs if fs and fs.lower() != "none" else None
-            if hasattr(my_bot, "bo_list"):
-                bo = (getattr(args, "bo_list", "") or "").strip()
-                my_bot.bo_list = bo if bo and bo.lower() != "none" else None
             if args.release:
                 my_bot.config = get_config(False)
 

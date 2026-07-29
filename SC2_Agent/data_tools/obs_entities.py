@@ -57,8 +57,8 @@ def collect_entities(ai: Any) -> dict[str, list[str]]:
     """Return ``{"completed": [...], "in_progress": [...], "pending": [...]}``.
 
     ``completed`` is what ``check_action_prereqs`` should treat as available now.
-    The other two buckets let the scheduler know a prerequisite is "coming" so it
-    does not wrongly insert a duplicate prerequisite action.
+    The other two buckets let the scheduler recognize a prerequisite that is
+    already on its way and keep the dependent action waiting.
     """
     completed: set[str] = set()
     in_progress: set[str] = set()

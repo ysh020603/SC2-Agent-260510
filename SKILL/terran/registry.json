@@ -1,18 +1,27 @@
 {
   "_comment": "Terran strategy folders available for fixed --force-strategy runs. Keep this list in sync with SKILL/terran/<strategy>/ directories.",
   "registered_strategies": [
-    "marine_rush",
-    "battle_cruisers",
     "banshees",
+    "battle_cruisers",
     "bio",
+    "bio_mine_macro",
+    "blueflame_locks",
     "cyclones",
+    "marine_rush",
+    "old_rusty_anvil",
     "one_base_turtle",
-    "rusty",
-    "safe_tvt_raven",
     "raven_liberator_tank",
+    "raven_screams",
+    "rusty",
+    "rusty_bio_mines",
+    "safe_211_mine",
+    "safe_tvt_raven",
+    "stim_rush_relay",
     "tank_thor_mech",
     "terran_silver_bio",
     "three_rax_stim",
-    "two_base_tanks"
+    "two_base_matrix_tanks",
+    "two_base_tanks",
+    "yamato_rust_fleet"
   ]
 }

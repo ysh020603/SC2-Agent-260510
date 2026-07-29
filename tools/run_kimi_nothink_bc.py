@@ -1,4 +1,4 @@
-"""Kimi non-thinking naming/ordering/executor with battle_cruisers strategy."""
+"""Run one Kimi non-thinking battle-cruiser smoke match."""
 
 from __future__ import annotations
 
@@ -18,9 +18,8 @@ def short_match_id(**kwargs):
 def main() -> None:
     run_vs_ai.build_match_id = short_match_id
     run_vs_ai.play_vs_ai(
-        naming_model="Kimi-k2.5",
-        ordering_model="Kimi-k2.5",
-        executor_model="Kimi-k2.5",
+        decision_model="Kimi-k2.5",
+        decision_interval=60,
         force_strategy="battle_cruisers",
         batch_name="kimi_nothink_bc",
         skip_version_update=True,

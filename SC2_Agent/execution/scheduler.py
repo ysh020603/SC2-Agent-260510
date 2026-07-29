@@ -1,41 +1,31 @@
-"""Command-style execution scheduler (replaces the declarative ActLLMOngoingTasks).
+"""Command-style execution scheduler for model-generated macro queues.
 
 ``ExecutionScheduler`` is a sharpy ``ActBase`` driven every frame. It walks an
 ordered list of :class:`PlannedAction` plus a separate single waiter slot:
 
 * **independent waiter slot** (``self.waiter``): at most one ``PlannedAction``
-  is held in ``WAITING`` outside of ``self.actions``. New step actions appended
-  via :py:meth:`set_actions` never disturb the waiter; it persists until issued
-  or abandoned. The slot is consulted *first* every frame so that a waiter
-  whose resources/tech are now satisfied is fired immediately.
-* **three-tier priority scan** based on ``cost.supply`` sign:
-
-  - **P0** (``cost.supply < 0``): supply-providing actions
-    (e.g. ``TERRANBUILD_SUPPLYDEPOT``, ``TERRANBUILD_COMMANDCENTER``).
-  - **P1** (``cost.supply == 0``): supply-neutral actions
-    (most builds, addons, upgrades, ``BuildGas``).
-  - **P2** (``cost.supply > 0``): supply-consuming train/morph actions.
-
-  The scan visits priority tiers in ascending numeric order. A lower tier is
-  scanned only when the higher tier has no PA blocked (``PENDING``) and the
-  current waiter, if any, is not from a higher tier. Within a tier we keep
-  the original *resource reservation + overtake* semantics: actions later in
-  the list may execute as long as they do not consume the waiter's reserved
-  minerals / gas / supply.
+  is held in ``WAITING`` outside of ``self.actions``. The slot is consulted
+  *first* every frame so that a waiter whose resources/tech are now satisfied
+  is fired immediately. A newly accepted macro decision may discard this local
+  uncommitted waiter as part of replacing the queue.
+* **ordered scan with skip/overtake**: model order is primary. When an earlier
+  action is blocked, it occupies the waiter and reserves its minerals, gas,
+  and supply. Later actions may still execute when they fit in the remaining
+  resources. This permits later affordable actions without globally moving
+  supply providers ahead of the model's ordered queue.
 * **prerequisite / tech-chain checks** via ``data_tools.prereq_runtime`` (obs
   three-state aware): blocked actions become the waiter (or remain
   ``PENDING`` when the slot is taken); missing prerequisites are not inserted
   automatically.
-* **execution split**: ``train`` may use the executor LLM after rule candidate
-  filtering; ``morph`` uses rule selection directly; ``build/research/addon``
-  delegate to a lazily-created sharpy Act or to :class:`DirectBuildExecutor` for
-  hand-managed Terran structures.
+* **deterministic execution**: producer selection is entirely code-driven;
+  ``build/research/addon`` delegate to a lazily-created sharpy Act or to
+  :class:`DirectBuildExecutor` for hand-managed Terran structures.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
@@ -46,7 +36,6 @@ from SC2_Agent.data_tools import (
     chain_in_progress,
     is_available_now,
 )
-from SC2_Agent.data_tools.supply_planner import current_free_supply
 from SC2_Agent.execution import mapping
 from SC2_Agent.execution.command import (
     ABANDONED,
@@ -61,14 +50,9 @@ from SC2_Agent.execution.direct_build import (
     DirectBuildExecutor,
     direct_build_unit_type,
 )
-from SC2_Agent.execution import executor_select
+from SC2_Agent.execution import producer_selector
 
 logger = logging.getLogger("SC2_Agent.execution.scheduler")
-
-#: 22.4 game frames per second on "Faster" speed.
-FRAMES_PER_SECOND = 22.4
-#: Executor-LLM result cache lifetime (seconds) to throttle execution-time calls.
-EXECUTOR_CACHE_SEC = 3.0
 
 TERRAN_PRODUCTION_FLYING_EQUIVALENTS = {
     UnitTypeId.BARRACKS: UnitTypeId.BARRACKSFLYING,
@@ -92,7 +76,6 @@ TERRAN_BUILDING_EQUIVALENTS = {
     ),
 }
 
-TERRAN_DEFER_APPEND_BUILD_TYPES = DIRECT_TERRAN_BUILD_TYPES
 TERRAN_STICKY_BUILD_ACTIONS = {
     "TERRANBUILD_COMMANDCENTER",
 }
@@ -107,29 +90,6 @@ TERRAN_MORPH_SOURCE_TARGETS = {
     ),
 }
 
-
-#: Type of the executor-LLM callback the bot injects.
-#: (ability_name, candidate_text, cost_hint, pending_summary,
-#:  waiting_summary, conflict_hints, legal_tags, tag_map) -> Optional[int]
-ExecutorLLM = Callable[..., Optional[int]]
-
-
-#: Priority tiers (lower number = higher priority).
-P0_SUPPLY_PROVIDER = 0
-P1_SUPPLY_NEUTRAL = 1
-P2_SUPPLY_CONSUMER = 2
-
-PRIORITY_TIERS = (P0_SUPPLY_PROVIDER, P1_SUPPLY_NEUTRAL, P2_SUPPLY_CONSUMER)
-
-
-def _priority_for(pa: "PlannedAction") -> int:
-    """Classify a PA by its ``cost.supply`` sign (no DB lookup).
-
-    Delegates to :py:meth:`PlannedAction.priority_tier` so the two views agree.
-    """
-    return pa.priority_tier()
-
-
 class ExecutionScheduler(ActBase):
     def __init__(self, wait_abandon_sec: float = 20.0, running_abandon_sec: float = 25.0):
         super().__init__()
@@ -138,7 +98,7 @@ class ExecutionScheduler(ActBase):
         #: :attr:`waiter` exclusively.
         self.actions: List[PlannedAction] = []
         #: The single ``WAITING`` action, kept outside ``self.actions`` so
-        #: that step transitions appending to the list cannot disturb it.
+        #: that the normal priority scan cannot create multiple waiters.
         self.waiter: Optional[PlannedAction] = None
         self.wait_abandon_sec = wait_abandon_sec
         #: build/research 动作在 RUNNING 状态停留超过该秒数仍未下单成功（例如
@@ -146,136 +106,89 @@ class ExecutionScheduler(ActBase):
         #: 正常 build 在 worker 下达建造指令的下一帧就会翻成 DONE，故该阈值远大于
         #: 任何正常情形，触发即代表确实卡死。
         self.running_abandon_sec = running_abandon_sec
-        self.executor_llm: Optional[ExecutorLLM] = None
-        # action_name -> (tag, time) short-term executor cache
-        self._executor_cache: dict = {}
         self._direct_build_executor: Optional[DirectBuildExecutor] = None
 
     # ------------------------------------------------------------------
     # plan management
     # ------------------------------------------------------------------
-    def set_actions(self, pairs: List[Tuple[str, int]], mode: str = "replace") -> None:
-        """Install a new ordered plan.
+    def uncommitted_actions(self) -> List[PlannedAction]:
+        """Return cancellable work in original queue order.
 
-        The waiter slot (``self.waiter``) is **never modified** by this call.
-        Same-name merging in ``append`` mode only considers PAs in
-        ``self.actions``; new appended PAs that happen to share a name with the
-        waiter are kept as their own PA in the list to avoid silently bumping
-        the waiter's quantity.
-
-        :param pairs: ``[(action_name, quantity), ...]`` already ordered and with
-                      supply depots injected.
-        :param mode:  ``"replace"`` discards the unfinished plan; ``"append"``
-                      keeps still-running/pending actions and adds these after.
+        ``issued_count`` is the commit boundary: issued copies already live in
+        the SC2 engine and are intentionally absent from this view.
         """
-        new_actions = [
-            PlannedAction.from_action_name(name, qty)
-            for name, qty in pairs
+        if getattr(self, "ai", None) is not None:
+            self._mark_satisfied_actions(float(getattr(self.ai, "time", 0.0)))
+        rows = [
+            action
+            for action in self.all_planned_actions()
+            if not action.is_terminal() and int(action.quantity) > int(action.issued_count)
         ]
-        now = float(getattr(self.ai, "time", 0.0)) if getattr(self, "ai", None) else 0.0
-        for pa in new_actions:
-            pa.enqueue_time = now
+        return sorted(
+            rows,
+            key=lambda action: (
+                int(action.queue_id),
+                int(action.queue_position),
+            ),
+        )
 
-        if mode == "append":
-            kept = [a for a in self.actions if not a.is_terminal()]
-            # 同名 build/addon 直接合并到 list 中现存的同名 PA（不波及 waiter）。
-            # 详细动机参见 docs/system-architecture.md §3.2 与 §10.6。
-            merged_new = []
-            deferred_new = 0
-            for pa in new_actions:
-                if self._defer_append_build_if_needed(pa, kept, now):
-                    deferred_new += 1
-                    merged_new.append(pa)
-                    continue
-                merged = False
-                if pa.category in (mapping.CAT_BUILD, mapping.CAT_ADDON):
-                    for existing in kept:
-                        if existing.action_name == pa.action_name and not existing.is_terminal():
-                            existing.quantity += pa.quantity
-                            if existing._act is not None:
-                                if existing.category == mapping.CAT_BUILD and existing._act_target_count is not None:
-                                    existing._act_target_count += pa.quantity
-                                if hasattr(existing._act, 'to_count'):
-                                    existing._act.to_count += pa.quantity
-                            if existing._direct_build_target_count is not None:
-                                existing._direct_build_target_count += pa.quantity
-                                if existing._direct_build_helper is not None:
-                                    existing._direct_build_helper.to_count = existing._direct_build_target_count
-                            merged = True
-                            break
-                if not merged:
-                    merged_new.append(pa)
-            self.actions = kept + merged_new
-            if deferred_new:
-                logger.info(
-                    "Scheduler append deferred %d build action(s)", deferred_new
-                )
-        else:
-            carried = self._carry_replace_actions(new_actions)
-            # replace 模式下，列表中其他未完成 act 的 worker 必须解锁（避免该 SCV
-            # 被锁死在已废弃的 Building 任务上，参见 docs §10.3）。
-            for old in self.actions:
-                if old in carried:
-                    continue
-                if old._act is not None and getattr(old._act, "clear_worker", None):
-                    try:
-                        old._act.clear_worker()
-                    except Exception:
-                        pass
-                self._clear_direct_build_worker(old)
-            self.actions = carried + new_actions
-            # waiter 单独处理：仅当其为 sticky build 且新计划未覆盖时保留；
-            # 否则也作为 stale 清理（释放 worker 与槽位）。
-            if self.waiter is not None:
-                new_names = {a.action_name for a in new_actions}
-                keep_waiter = (
-                    self._is_sticky_build_action(self.waiter)
-                    and self.waiter.action_name not in new_names
-                )
-                if not keep_waiter:
-                    stale = self.waiter
-                    if stale._act is not None and getattr(stale._act, "clear_worker", None):
-                        try:
-                            stale._act.clear_worker()
-                        except Exception:
-                            pass
-                    self._clear_direct_build_worker(stale)
-                    self.waiter = None
-            if carried:
-                self._emit_status(
-                    "replace carried %d unfinished strategic action(s): %s",
-                    len(carried),
-                    ", ".join(a.short_label() for a in carried),
-                )
-        self._executor_cache.clear()
-        logger.info("Scheduler installed %d actions (mode=%s)", len(new_actions), mode)
+    def uncommitted_canonical_names(self) -> List[str]:
+        names: List[str] = []
+        for action in self.uncommitted_actions():
+            remaining = max(0, int(action.quantity) - int(action.issued_count))
+            names.extend([action.canonical_name] * remaining)
+        return names
+
+    def replace_uncommitted_queue(
+        self,
+        tasks: List[Tuple[str, str]],
+        *,
+        queue_id: int,
+    ) -> List[str]:
+        """Atomically discard local uncommitted work and install a new queue.
+
+        ``tasks`` contains ``(canonical_name, action_name)`` pairs. Commands
+        already issued to the SC2 simulation remain untouched; only scheduler
+        objects, reservations, and worker handles for not-yet-issued work are
+        released.
+        """
+        old_names = self.uncommitted_canonical_names()
+        old_actions = self.all_planned_actions()
+        for old in old_actions:
+            if old._act is not None and getattr(old._act, "clear_worker", None):
+                try:
+                    old._act.clear_worker()
+                except Exception:
+                    pass
+            self._clear_direct_build_worker(old)
+
+        now = float(getattr(self.ai, "time", 0.0)) if getattr(self, "ai", None) else 0.0
+        self.waiter = None
+        self.actions = []
+        for position, (canonical_name, action_name) in enumerate(tasks, start=1):
+            action = PlannedAction.from_action_name(
+                action_name,
+                1,
+                canonical_name=canonical_name,
+                queue_id=queue_id,
+                queue_position=position,
+            )
+            action.enqueue_time = now
+            self.actions.append(action)
+        logger.info(
+            "Scheduler replaced uncommitted queue with queue_id=%d (%d actions)",
+            queue_id,
+            len(self.actions),
+        )
+        return old_names
 
     def is_drained(self) -> bool:
         """True when both the action list and waiter slot are fully terminal."""
+        if getattr(self, "ai", None) is not None:
+            self._mark_satisfied_actions(float(getattr(self.ai, "time", 0.0)))
         if self.waiter is not None and not self.waiter.is_terminal():
             return False
         return all(a.is_terminal() for a in self.actions) if self.actions else True
-
-    def has_no_executable_actions(self) -> bool:
-        """True when no non-terminal, non-deferred action remains in the list.
-
-        The waiter slot counts as executable work: if a PA is waiting for
-        resources, supply, tech, or a producer, the current strategic step is
-        not drained yet.
-        """
-        if self.waiter is not None and not self.waiter.is_terminal():
-            return False
-        for a in self.actions:
-            if a.is_terminal():
-                continue
-            if getattr(a, '_defer_until_build_type', None) is not None:
-                continue
-            return False
-        return True
-
-    def is_drained_for_macro(self) -> bool:
-        """Macro pipeline may advance when no executable actions remain."""
-        return self.is_drained() or self.has_no_executable_actions()
 
     def get_waiter(self) -> Optional[PlannedAction]:
         return self.waiter
@@ -285,37 +198,6 @@ class ExecutionScheduler(ActBase):
         if self.waiter is None:
             return list(self.actions)
         return list(self.actions) + [self.waiter]
-
-    def pending_summary_text(self, limit: int = 40) -> str:
-        lines = []
-        if self.waiter is not None and not self.waiter.is_terminal():
-            lines.append(f"  * {self.waiter.short_label()} [{self.waiter.state}] (waiter)")
-        for a in self.actions:
-            if a.is_terminal():
-                continue
-            lines.append(f"  - {a.short_label()} [{a.state}]")
-            if len(lines) >= limit:
-                break
-        return "\n".join(lines) or "  (empty)"
-
-    def _nonterminal_names(self, exclude: Optional[PlannedAction] = None) -> List[str]:
-        names = [a.action_name for a in self.actions if not a.is_terminal() and a is not exclude]
-        if (
-            self.waiter is not None
-            and not self.waiter.is_terminal()
-            and self.waiter is not exclude
-        ):
-            names.append(self.waiter.action_name)
-        return names
-
-    def _waiting_summary(self, exclude: Optional[PlannedAction] = None) -> str:
-        if (
-            self.waiter is not None
-            and self.waiter.is_waiting()
-            and self.waiter is not exclude
-        ):
-            return f"  - {self.waiter.short_label()} [{self.waiter.state}]"
-        return "  (none)"
 
     def _is_sticky_build_action(self, pa: PlannedAction) -> bool:
         return (
@@ -401,12 +283,21 @@ class ExecutionScheduler(ActBase):
 
     def _research_action_satisfied(self, pa: PlannedAction) -> bool:
         upgrade = mapping.upgrade_for(pa.target_result or "")
-        if upgrade is None:
+        try:
+            if upgrade is not None and upgrade in self.ai.state.upgrades:
+                return True
+        except Exception:
+            pass
+        if pa.ability is None:
             return False
         try:
-            return upgrade in self.ai.state.upgrades
+            for structure in self.ai.structures:
+                for order in structure.orders:
+                    if order.ability.id == pa.ability:
+                        return True
         except Exception:
             return False
+        return False
 
     def _morph_action_satisfied(self, pa: PlannedAction) -> bool:
         source_target = TERRAN_MORPH_SOURCE_TARGETS.get(pa.action_name.upper())
@@ -421,19 +312,6 @@ class ExecutionScheduler(ActBase):
         except Exception:
             return False
         return int(satisfied_total) >= int(target_count)
-
-    def _carry_replace_actions(self, new_actions: List[PlannedAction]) -> List[PlannedAction]:
-        carried: List[PlannedAction] = []
-        new_names = {a.action_name for a in new_actions}
-        for old in self.actions:
-            if old.is_terminal():
-                continue
-            if not self._is_sticky_build_action(old):
-                continue
-            if old.action_name in new_names:
-                continue
-            carried.append(old)
-        return carried
 
     # ------------------------------------------------------------------
     # waiter-slot helpers
@@ -554,9 +432,8 @@ class ExecutionScheduler(ActBase):
         * If the slot is empty, ``pa`` becomes the waiter.
         * If ``pa`` already is the waiter, just refresh state/note.
         * Otherwise the slot is held by another PA; ``pa`` may displace it
-          when ``preempt`` is True or when ``pa`` has a strictly higher
-          priority (lower numeric tier). The displaced PA is pushed back to
-          the action list as ``PENDING``.
+          only when ``preempt`` is explicitly True. The displaced PA is pushed
+          back to the action list as ``PENDING``.
         * If preemption is not allowed, ``pa`` stays where it is (in
           ``self.actions``) marked ``PENDING`` with note "pending: wait slot
           occupied". Returns ``False``.
@@ -571,10 +448,7 @@ class ExecutionScheduler(ActBase):
             self._move_to_waiter(pa, now, note)
             return True
 
-        new_prio = _priority_for(pa)
-        cur_prio = _priority_for(self.waiter)
-        can_preempt = preempt or new_prio < cur_prio
-        if not can_preempt:
+        if not preempt:
             if pa.is_waiting():
                 pa.state = PENDING
                 pa.wait_start_time = None
@@ -584,10 +458,9 @@ class ExecutionScheduler(ActBase):
         old = self.waiter
         old.state = PENDING
         old.wait_start_time = None
-        old.note = "pending: preempted by higher-priority action"
+        old.note = "pending: preempted by retained strategic action"
         self.waiter = None
-        if old not in self.actions:
-            self.actions.append(old)
+        self._insert_in_queue_order(old)
         self._move_to_waiter(pa, now, note)
         return True
 
@@ -605,13 +478,27 @@ class ExecutionScheduler(ActBase):
 
         Called once :py:meth:`_try_issue` (or DONE detection) has advanced
         the PA out of ``WAITING``. Done/abandoned PAs are still re-appended
-        so that any downstream introspection (logs, ``pending_summary_text``)
-        can see them; the next frame's terminal-skip filters will ignore them.
+        so that queue snapshots can see them; the next frame's terminal-skip
+        filters will ignore them.
         """
         if self.waiter is pa:
             self.waiter = None
-        if pa not in self.actions:
-            self.actions.append(pa)
+        self._insert_in_queue_order(pa)
+
+    def _insert_in_queue_order(self, pa: PlannedAction) -> None:
+        """Insert a waiter back at its immutable model-produced position."""
+        if pa in self.actions:
+            return
+        key = (int(pa.queue_id), int(pa.queue_position))
+        for index, existing in enumerate(self.actions):
+            existing_key = (
+                int(existing.queue_id),
+                int(existing.queue_position),
+            )
+            if existing_key > key:
+                self.actions.insert(index, pa)
+                return
+        self.actions.append(pa)
 
     # ------------------------------------------------------------------
     # main per-frame loop
@@ -639,15 +526,9 @@ class ExecutionScheduler(ActBase):
         if self.waiter is not None:
             await self._try_issue_waiter(now, spent, issued_this_frame)
 
-        # 3) priority-tier scan. Stop descending tiers as soon as a higher tier
-        #    has any blocked / waiting PA, so lower-priority actions cannot
-        #    overtake an unsatisfied higher-priority demand.
-        for prio in PRIORITY_TIERS:
-            if self.waiter is not None and _priority_for(self.waiter) < prio:
-                break
-            blocked = await self._scan_priority_group(prio, now, spent, issued_this_frame)
-            if blocked:
-                break
+        # 3) Scan in model order. A blocked earlier action reserves its cost;
+        #    later actions may overtake only when they fit around that reserve.
+        await self._scan_ordered_queue(now, spent, issued_this_frame)
 
         return True
 
@@ -686,7 +567,7 @@ class ExecutionScheduler(ActBase):
         need_supply = self._live_supply_cost(pa)
         avail_min = self.ai.minerals - spent["min"]
         avail_gas = self.ai.vespene - spent["gas"]
-        avail_supply = current_free_supply(self.ai) - spent["supply"]
+        avail_supply = float(getattr(self.ai, "supply_left", 0) or 0) - spent["supply"]
         if avail_min < need_min or avail_gas < need_gas or avail_supply < need_supply:
             if avail_min < need_min or avail_gas < need_gas:
                 note = "waiting: resources"
@@ -710,32 +591,18 @@ class ExecutionScheduler(ActBase):
             # remained waiting (e.g. no free producer); keep in slot
             return
 
-    async def _scan_priority_group(
-        self, prio: int, now: float, spent: dict, issued_this_frame: set
-    ) -> bool:
-        """Scan all PAs of ``prio`` in ``self.actions``.
-
-        Within the tier we keep the original *resource reservation + overtake*
-        logic: the waiter's cost is reserved out of available funds, but later
-        actions that fit the leftover may still execute.
-
-        Returns ``True`` if the tier has any non-issued (PENDING / WAITING /
-        deferred-not-released) PA after the scan. The caller uses this to
-        decide whether to stop descending into lower-priority tiers.
-        """
+    async def _scan_ordered_queue(
+        self, now: float, spent: dict, issued_this_frame: set
+    ) -> None:
+        """Scan the queue in model order with waiter reservation and overtake."""
         # Recompute reservation each iteration: waiter may have changed.
         reserved_min, reserved_gas, reserved_supply = self._waiter_reservation(self.waiter)
 
         for pa in list(self.actions):
             if pa.is_terminal():
                 continue
-            if _priority_for(pa) != prio:
-                continue
             if id(pa) in issued_this_frame:
                 continue
-            if not self._release_or_skip_deferred(pa):
-                continue
-
             # 1) prerequisite / tech gate
             try:
                 available = is_available_now(self.ai, pa.action_name)
@@ -764,7 +631,11 @@ class ExecutionScheduler(ActBase):
             need_supply = self._live_supply_cost(pa)
             avail_min = self.ai.minerals - reserved_min - spent["min"]
             avail_gas = self.ai.vespene - reserved_gas - spent["gas"]
-            avail_supply = current_free_supply(self.ai) - reserved_supply - spent["supply"]
+            avail_supply = (
+                float(getattr(self.ai, "supply_left", 0) or 0)
+                - reserved_supply
+                - spent["supply"]
+            )
 
             if avail_min >= need_min and avail_gas >= need_gas and avail_supply >= need_supply:
                 issued = await self._try_issue(pa, now)
@@ -791,20 +662,6 @@ class ExecutionScheduler(ActBase):
                 preempt = self._is_sticky_build_action(pa)
                 if self._claim_wait_slot(pa, now, note, preempt=preempt):
                     reserved_min, reserved_gas, reserved_supply = self._waiter_reservation(self.waiter)
-
-        # Determine whether this tier still has unsatisfied work.
-        if self.waiter is not None and _priority_for(self.waiter) == prio:
-            return True
-        for pa in self.actions:
-            if pa.is_terminal():
-                continue
-            if _priority_for(pa) != prio:
-                continue
-            if getattr(pa, "_defer_until_build_type", None) is not None:
-                continue
-            if pa.state == PENDING:
-                return True
-        return False
 
     # ------------------------------------------------------------------
     # helpers
@@ -851,164 +708,6 @@ class ExecutionScheduler(ActBase):
             except Exception:
                 pass
         pa._direct_build_worker_tag = None
-
-    def _defer_append_build_if_needed(
-        self,
-        pa: PlannedAction,
-        kept: List[PlannedAction],
-        now: float,
-    ) -> bool:
-        """Keep future build demand queued without merging it into an active batch."""
-        if pa.category != mapping.CAT_BUILD:
-            return False
-        unit_type = mapping.unit_type_for(pa.target_result or "")
-        if unit_type not in TERRAN_DEFER_APPEND_BUILD_TYPES:
-            return False
-
-        # Active same-name PAs may live either in the kept list or in the waiter slot.
-        candidates: List[PlannedAction] = list(kept)
-        if self.waiter is not None and not self.waiter.is_terminal():
-            candidates.append(self.waiter)
-
-        for existing in candidates:
-            if existing is pa:
-                continue
-            if existing.action_name != pa.action_name:
-                continue
-            if existing.is_terminal():
-                continue
-            self._mark_deferred_build(
-                pa,
-                unit_type,
-                now,
-                "same build action is still %s" % existing.state,
-            )
-            self._emit_status(
-                "append deferred %s x%d: same build action is still %s",
-                pa.action_name,
-                pa.quantity,
-                existing.state,
-            )
-            return True
-
-        if self._field_build_in_flight(unit_type):
-            self._mark_deferred_build(
-                pa,
-                unit_type,
-                now,
-                "%s already in flight" % unit_type.name,
-            )
-            self._emit_status(
-                "append deferred %s x%d: %s already in flight",
-                pa.action_name,
-                pa.quantity,
-                unit_type.name,
-            )
-            return True
-
-        return False
-
-    def _mark_deferred_build(
-        self,
-        pa: PlannedAction,
-        unit_type: UnitTypeId,
-        now: float,
-        reason: str,
-    ) -> None:
-        pa._defer_until_build_type = unit_type
-        pa._defer_reason = reason
-        pa._defer_created_time = now
-        pa.state = PENDING
-        pa.note = "deferred: " + reason
-        pa.wait_start_time = None
-        pa.running_start_time = None
-
-    def _release_or_skip_deferred(self, pa: PlannedAction) -> bool:
-        unit_type = getattr(pa, "_defer_until_build_type", None)
-        if unit_type is None:
-            return True
-
-        if self._has_active_same_build_action(pa):
-            pa.note = "deferred: same build action still active"
-            return False
-
-        if self._field_build_in_flight(unit_type):
-            pa.note = "deferred: %s already in flight" % unit_type.name
-            return False
-
-        self._emit_status(
-            "append released %s x%d: %s is no longer in flight",
-            pa.action_name,
-            pa.quantity,
-            unit_type.name,
-        )
-        pa._defer_until_build_type = None
-        pa._defer_reason = ""
-        pa._defer_created_time = None
-        pa.note = "pending: deferred build released"
-        pa.state = PENDING
-        return True
-
-    def _has_active_same_build_action(self, pa: PlannedAction) -> bool:
-        # Waiter shares the same defer-prevention semantics as list-resident actions.
-        if (
-            self.waiter is not None
-            and self.waiter is not pa
-            and not self.waiter.is_terminal()
-            and getattr(self.waiter, "_defer_until_build_type", None) is None
-            and self.waiter.action_name == pa.action_name
-        ):
-            return True
-        for other in self.actions:
-            if other is pa:
-                return False
-            if other.is_terminal():
-                continue
-            if getattr(other, "_defer_until_build_type", None) is not None:
-                continue
-            if other.action_name == pa.action_name:
-                return True
-        return False
-
-    def _field_build_in_flight(self, unit_type: UnitTypeId) -> bool:
-        try:
-            for structure in self.ai.structures:
-                if structure.type_id != unit_type:
-                    continue
-                if getattr(structure, "build_progress", 1.0) < 1.0:
-                    return True
-        except Exception:
-            pass
-
-        return bool(self._worker_build_order_positions_without_structure(unit_type))
-
-    def _worker_build_order_positions_without_structure(self, unit_type: UnitTypeId) -> List[Point2]:
-        try:
-            creation_ability_id = self.ai._game_data.units[unit_type.value].creation_ability.id
-        except Exception:
-            return []
-
-        positions: List[Point2] = []
-        try:
-            workers = self.ai.workers
-        except Exception:
-            return positions
-
-        for worker in workers:
-            for order in worker.orders:
-                if order.ability.id != creation_ability_id:
-                    continue
-                try:
-                    target = Point2.from_proto(order.target)
-                except Exception:
-                    break
-                try:
-                    if not self.ai.structures.closer_than(1.0, target).exists:
-                        positions.append(target)
-                except Exception:
-                    positions.append(target)
-                break
-        return positions
 
     def _emit_status(self, message: str, *args) -> None:
         text = message % args if args else message
@@ -1232,7 +931,7 @@ class ExecutionScheduler(ActBase):
             existing += self.cache.own(flying_type).amount
         return existing
 
-    # --- train / morph via executor selection -------------------------
+    # --- train / morph via deterministic producer selection -----------
     async def _issue_train_addon_morph(self, pa: PlannedAction, now: float) -> bool:
         if pa.ability is None:
             pa.state = ABANDONED
@@ -1247,14 +946,14 @@ class ExecutionScheduler(ActBase):
                     pa.wait_start_time = None
                     return False
 
-        candidates = await executor_select.candidate_executors(self.ai, pa.ability)
+        candidates = await producer_selector.candidate_producers(self.ai, pa.ability)
         if not candidates:
             self._enter_wait(pa, now, "waiting: no free producer")
             return False
 
-        chosen = self._choose_executor(pa, candidates, now)
+        chosen = producer_selector.choose_producer(candidates)
         if chosen is None:
-            self._enter_wait(pa, now, "waiting: no executor chosen")
+            self._enter_wait(pa, now, "waiting: no eligible producer")
             return False
 
         try:
@@ -1322,67 +1021,6 @@ class ExecutionScheduler(ActBase):
             return 0
         return count
 
-    def _choose_executor(self, pa: PlannedAction, candidates, now: float):
-        units_by_tag = {u.tag: u for u, _ in candidates}
-
-        # single candidate -> rule pick, never call the LLM
-        if len(candidates) == 1:
-            return candidates[0][0]
-
-        # Only train actions may ask the Executor LLM. Morphs are deterministic:
-        # prefer an idle executor, then the first candidate returned by SC2.
-        if pa.category != mapping.CAT_TRAIN:
-            return self._rule_choose_executor(candidates)
-
-        # short-term cache to avoid an LLM call every frame
-        cached = self._executor_cache.get(pa.action_name)
-        if cached and (now - cached[1]) < EXECUTOR_CACHE_SEC and cached[0] in units_by_tag:
-            return units_by_tag[cached[0]]
-
-        chosen_unit = None
-        if self.executor_llm is not None:
-            try:
-                pending_names = self._nonterminal_names(exclude=pa)
-                tag_aliases = executor_select.prompt_tag_aliases(candidates)
-                tag_map = {}
-                for real_tag, prompt_tag in tag_aliases.items():
-                    if prompt_tag in tag_map:
-                        tag_map = {}
-                        logger.warning(
-                            "Executor prompt tag collision for %s on tag%%%s; using rule fallback.",
-                            pa.action_name,
-                            1000,
-                        )
-                        break
-                    tag_map[prompt_tag] = real_tag
-
-                if tag_map:
-                    tag = self.executor_llm(
-                        ability_name=pa.action_name,
-                        candidate_text=executor_select.candidates_text(candidates, tag_aliases=tag_aliases),
-                        cost_hint=self._cost_hint(pa),
-                        pending_summary=self.pending_summary_text(),
-                        waiting_summary=self._waiting_summary(exclude=pa),
-                        conflict_hints=executor_select.executor_conflict_hints(candidates, pending_names),
-                        legal_tags=set(tag_map.keys()),
-                        tag_map=tag_map,
-                    )
-                    if tag in units_by_tag:
-                        chosen_unit = units_by_tag[tag]
-            except Exception as exc:  # pragma: no cover
-                logger.debug("executor LLM failed for %s: %s", pa.action_name, exc)
-
-        if chosen_unit is None:
-            chosen_unit = self._rule_choose_executor(candidates)
-
-        self._executor_cache[pa.action_name] = (chosen_unit.tag, now)
-        return chosen_unit
-
-    @staticmethod
-    def _rule_choose_executor(candidates):
-        idle = [u for u, _ in candidates if getattr(u, "is_idle", False)]
-        return idle[0] if idle else candidates[0][0]
-
     def _live_cost(self, pa: PlannedAction) -> Tuple[float, float]:
         """Real minerals/gas cost of issuing ``pa`` right now (DB cost fallback)."""
         if pa.ability is not None:
@@ -1404,10 +1042,3 @@ class ExecutionScheduler(ActBase):
             except Exception:
                 pass
         return max(0.0, float(pa.cost_supply))
-
-    def _cost_hint(self, pa: PlannedAction) -> str:
-        seconds = pa.cost_time_frames / FRAMES_PER_SECOND if pa.cost_time_frames else 0.0
-        return (
-            f"minerals {pa.cost_minerals}, gas {pa.cost_gas}, "
-            f"supply {pa.cost_supply}, ~{seconds:.0f}s"
-        )

@@ -1,7 +1,7 @@
-"""Canonical Terran Unit/Upgrade name lists.
+"""Canonical Terran unit and upgrade names used by macro decisions.
 
-The naming LLM (stage 2) maps free-form natural-language increments onto the
-canonical entity names used by ``data_base_add_graph.json``. This module
+The decision model emits names from these lists; the runtime validates them
+against the canonical entities in ``data_base_add_graph.json``. This module
 exports:
 
 * ``terran_unit_names()``: macro-selectable Terran Unit names.
@@ -63,8 +63,8 @@ _MACRO_UNIT_TARGET_KINDS = {
 }
 
 # Macro-significant morph targets are not "built" or "trained", but they are
-# valid economy/tech goals for Stage2. Pure unit mode states stay out of the
-# naming table and are handled by tactics or explicit post-processing instead.
+# valid economy/tech goals. Pure unit mode states stay out of the canonical
+# macro list and are handled by tactics or explicit post-processing instead.
 _MACRO_MORPH_UNIT_NAMES = {
     "OrbitalCommand",
     "PlanetaryFortress",

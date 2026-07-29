@@ -1,642 +1,229 @@
-# StarCraft II — LLM 增量驱动宏观决策 + 命令式执行系统
+# Current system architecture
 
-> 本文档是 `sharpy-sc2` 仓库当前版本（2026-06，`SC2_0615` 环境）的**权威总览**。
-> 它整合了原有的若干 markdown 说明（见文末「相关文档」），并完整描述新的
-> **「LLM 增量驱动 + DATA_TOOLS 标准化 + 命令式执行调度」** 架构。
+## 1. Scope
 
----
+The runtime has one LLM responsibility: periodically produce a complete,
+ordered macro queue in canonical Terran names. Naming and ordering are one
+operation. Concrete execution is code-owned.
 
-## 0. 一句话概述
+There is no:
 
-底层是基于规则的《星际争霸 II》Bot 平台 **Sharpy**（封装 `python-sc2`/`burnysc2`）。
-在其之上，本项目用 **多个 LLM 阶段 + 一套 DATA_TOOLS 知识库 + 一个命令式执行调度器**，
-把"自然语言战略"逐级降维成"按顺序执行、带资源/科技/补给约束的绝对增量动作序列"，
-再交给 Sharpy 的执行原语落地。**当前仅适配人族（Terran）**。
+- Naming Agent;
+- Ordering Agent;
+- Ordered Naming mode switch;
+- Executor LLM;
+- Supply Planner;
+- BO-list execution mode;
+- per-step strategy instruction.
 
-```
-固定策略 / 策略库
-   │
-   ▼  读取固定策略（--force-strategy）
-strategy_description（Top_agent_<enemy_race>.md 全文）
-   │
-   ▼  每 60s 或「actions 列表执行完 / 仅剩 deferred」触发一次宏观流水线（waiter 槽不参与） ↓↓↓
-┌──────────────────────────────────────────────────────────────┐
-│ Strategy Step Source    Top_agent_<enemy_race>.md 当前 [Step N] 文本 │
-│ Stage2 Naming Agent     当前 obs + step → 标准 unit/upgrade 名 + 数量 │
-│ Stage3 DATA_TOOLS 映射  标准名 → 标准 Action key                │
-│ Stage4 Ordering Agent   当前 step + 前置/冲突/成本提示下排序     │
-│ Stage5 Supply 处理      按 SUPPLY_MANAGED 模式处理 depot        │
-└──────────────────────────────────────────────────────────────┘
-   │
-   ├─ 可选：--decision-mode two-stage 时 Stage2/Stage4 合并为 Ordered Naming
-   │        当前 obs + step → 有序 canonical unit/upgrade 名展开列表
-   │  (action_name, quantity) 序列
-   ▼
-ExecutionScheduler（命令式调度，每帧 execute）
-   ├─ 普通 Terran build → DirectBuildExecutor；Refinery/Expand/research/addon → Sharpy Act
-   ├─ train                              → Executor Agent（LLM）选执行单位
-   ├─ 独立 waiter 槽（与 actions 列表解耦）+ 矿/气/人口预留 + 同档超车
-   ├─ P0/P1/P2 三档优先级扫描（按 cost.supply 符号分档：增/中/减）
-   ├─ 序列耗尽续作（append；waiter 跨 step 持续保留）
-   ├─ 等待超时放弃（60s）/ RUNNING 卡死放弃（25s）
-   ├─ 科技链路等待 / 自动补前置
-   ├─ DirectBuild 独立 PA reservation/target + SCV 提前移动
-        ║ 并行
-        ▼
-StrategyTools（只加载当前策略自己的 `strategy_tools.py`，且只能包含不消耗矿/气/supply 的工具）
-```
+This scope does not remove or rewrite Sharpy itself. `sharpy/`, `python-sc2/`,
+the non-LLM bots in `dummies/`, `bot_loader/`, and ladder/general-purpose
+scripts remain in the repository. The new architecture applies to
+`dummies/generic/universal_llm_bot.py` and the `SC2_Agent/` modules it uses.
 
----
-
-## 1. 与旧版（Top/Mid/Down 声明式）的区别
-
-| | 旧版（legacy） | 新版（当前） |
-|---|---|---|
-| 规划粒度 | Mid 给"目标数量 `to_count`"（声明式） | `Top_agent_<enemy_race>.md` step 给固定阶段要求，Stage2 结合 obs 产生命令式增量 |
-| 翻译链路 | Down Agent → action JSON | Naming Agent + DATA_TOOLS 映射 |
-| 排序 | 无显式排序 | Ordering Agent（带当前 step、前置/冲突/成本提示） |
-| 补给 | 战术 `AutoDepot` | `SUPPLY_MANAGED=True`：LLM 可输出 depot，算法按阈值重新插入；`False`：信任 LLM 的 depot 排序 |
-| 执行 | 旧 `ActLLMOngoingTasks`（已删除） | `ExecutionScheduler`（独立 waiter 槽 + 三档优先级 + 资源保留同档超车 / 科技等待 / RUNNING 超时 / SCV 预移动） |
-| 选执行单位 | 由 Sharpy Act 内部决定 | train 由 Executor Agent 选；addon/morph 由规则选；build/research 仍交 Sharpy |
-
-旧的 `mid_agent.py` / `down_agent.py` / `ActLLMOngoingTasks` 声明式执行路径已删除。
-当前只保留固定策略 + 五阶段宏观流水线 + `ExecutionScheduler`。
-
----
-
-## 2. 目录结构
-
-```
-sharpy-sc2/
-├── SC2_Agent/                      # LLM 决策核心 + 知识库 + 执行调度
-│   ├── top_agent.py                # 策略 md 解析工具
-│   ├── naming_agent.py             # Stage2：增量 → 标准 unit/upgrade 名 + 数量
-│   ├── ordered_naming_agent.py     # two-stage：增量 → 有序标准名展开列表
-│   ├── ordering_agent.py           # Stage4：动作排序
-│   ├── executor_agent.py                 # Executor：train 选执行单位（addon/morph 规则选）
-│   ├── data_tools/                 # ★ 内置的 DATA_TOOLS 知识库（vendored + 扩展）
-│   │   ├── data_base_add_graph.json    # 单位/升级/动作 + 科技图谱数据库
-│   │   ├── sc2_data_common.py          # 数据库加载（带缓存）
-│   │   ├── entity_to_actions.py        # 标准实体名 → 标准 Action key
-│   │   ├── action_cost.py              # 动作的矿/气/帧数成本
-│   │   ├── detect_action_conflicts.py  # 执行单位冲突检测
-│   │   ├── check_action_prereqs.py     # 前置缺失 + 同列表内科技链路关系
-│   │   ├── terran_names.py             # 人族标准 unit/upgrade 名集合
-│   │   ├── obs_entities.py             # 实况 obs → 数据库实体名（completed/in_progress/pending）
-│   │   ├── prereq_runtime.py           # 运行时前置判定（可执行/缺失链/在建/补前置）
-│   │   └── supply_planner.py           # Stage5：按阈值插入 supply depot
-│   └── execution/                  # ★ 命令式执行调度
-│       ├── command.py                  # PlannedAction 数据类（状态机）
-│       ├── mapping.py                  # 标准名 ↔ python-sc2 枚举 / Sharpy Act
-│       ├── direct_build.py             # 普通 Terran 建筑直接下令 + PA 独立 reservation/target
-│       ├── executor_select.py          # train 候选单位筛选 + 冲突提示（addon/morph 规则直选）
-│       └── scheduler.py                # ExecutionScheduler（核心）
-├── dummies/generic/universal_llm_bot.py  # 核心 Bot：编排五阶段 + 调度器
-├── SKILL/terran/                       # --force-strategy 模式的策略库
-│   ├── registry.json               # 策略白名单
-│   └── <strategy>/
-│       ├── Top_agent_terran.md     # 对 Terran 策略说明（# Summary / # Details）
-│       ├── Top_agent_protoss.md    # 对 Protoss 策略说明（# Summary / # Details）
-│       ├── Top_agent_zerg.md       # 对 Zerg 策略说明（# Summary / # Details）
-│       └── strategy_tools.py       # ★ 当前策略自己的免费工具轨（可选，无全局 fallback）
-├── BO_list/terran/                     # --bo-list 模式的策略库（旁路 LLM 流水线）
-│   ├── registry.json               # 已注册 BO 策略名单
-│   └── <strategy>/
-│       ├── BO.json                 # 标准 action 名顺序列表，整条灌入 ExecutionScheduler
-│       └── strategy_tools.py       # 与 SKILL 同名文件等价的免费工具轨
-├── API_config/config.json          # LLM 模型池
-├── API_Tools/llm_caller.py         # OpenAI 兼容调用封装（按 is_reasoning 注入 thinking 开关）
-├── bot_loader/                     # 注册 + 启动（含 game_time_limit）
-├── run_vs_ai.py                    # 单局入口（DEFAULT_* 配置）
-├── tools/                          # 批量并发、实验 sweep 等运行脚本
-└── game_records/                   # 录像 / 日志 / 轨迹 JSON
-```
-
----
-
-## 3. 宏观决策流水线
-
-`UniversalLLMBot` 通过 `--decision-mode` 选择固定策略下的宏观 LLM 决策链：
-
-| decision mode | LLM 决策链 | 默认 |
-|---|---|---|
-| `three-stage` | Naming Agent → Ordering Agent → Executor Agent | 是 |
-| `two-stage` | Ordered Naming Agent → Executor Agent | 否 |
-
-BO list 模式仍然由 `--bo-list` 单独启用，直接旁路宏观 LLM 决策链，仅保留 Executor Agent。
-
-### 3.1 五阶段宏观流水线（`_run_macro_pipeline_blocking`）
-
-入口在 `dummies/generic/universal_llm_bot.py`。每个触发周期串行执行下列阶段，
-全过程作为**一条交互记录**写入轨迹 JSON（含每阶段原始/解析结果）。
-
-### 触发机制（`pre_step_execute`）
-所有触发判定**只看 `scheduler.actions` 列表**；`scheduler.waiter`（独立 waiter 槽）
-不参与判定，可以跨 step 自然延续，新 step 的动作 append 进列表也不会影响它。
-
-1. 首次且 `actions` 为空 → `initial_step` 装第一个 step（`append`）。
-2. 距上次触发 ≥ `MACRO_MIN_RETRIGGER`（默认 **5s**）且 `scheduler.is_drained()`（actions 全 terminal）→ `sequence_drained`（`append` 装下一步）。
-3. 距上次触发 ≥ `MACRO_MIN_RETRIGGER` 且 `scheduler.has_no_executable_actions()`（actions 中无 PENDING/RUNNING、只剩 deferred）→ `executable_drained`（`append` 装下一步）。
-- 每次触发都会先把**当前 obs 完整打印进 `.log`**（`[Observation @ decision]`），便于回看决策依据。
-- 全程使用 `mode="append"`；不再调用 `replace`。
-
-### Strategy Step Source（`Top_agent_<enemy_race>.md`）
-- **输入**：根据对手种族选择的当前策略文件 `# Details` 中的 `[Step N]` 文本；同时解析 `# Summary` 作为**宏观指导**注入 Stage2 / Stage4 prompt（见下）。
-- **输出**：当前 step 原文，直接传给 Stage2；不再调用额外规划 LLM。
-- **推进规则**：初始传 Step 1；当 `actions` 列表全 terminal 或仅剩 deferred 时传下一个 step（`append`）；waiter 不影响推进。
-- **末步循环**：到达最后一个 `[Step N]` 后**索引不再前进**，后续每个 macro cycle 都复用同一个最后 step 文本，直到对局结束。`record.strategy_step.phase` 始终为 `"step"`，`is_last=True` 在最后一个 step 上持续为真；`# Summary` 仅作为宏观指导段使用，不再作为 plan_text。
-
-### Stage 2 — Naming Agent（`naming_agent.py`）
-- **输入**：当前 obs、当前 strategy step、人族标准 unit/upgrade 名集合（`terran_names.py`）、`# Summary` 全文（作为 `[Strategy Summary]` 注入 system prompt，提供宏观指导）；prompt 内额外包含常见黑话提示与升级分类说明，帮助模型选择正确 canonical 名。
-- **输出**：`{"items": [{"name": "Barracks", "count": 1}, {"name": "Marine", "count": 2}]}`
-- **要点**：代码侧只接受精确 canonical unit/upgrade 名（`is_known_terran_entity` 校验），不再执行 alias/黑话兜底归一；模型输出错误或不在标准名单内的实体会直接丢弃。supply depot 作为普通宏观目标保留，是否托管给算法由 Stage5 决定。`[Strategy Step]` 仍是本轮要下发什么的权威来源；`[Strategy Summary]` 只用于理解整体阵容与节奏方向。
-
-### Stage 3 — DATA_TOOLS 映射（`entity_to_actions.py`）
-- 标准实体名 → 标准 **Action key**（如 `Barracks → TERRANBUILD_BARRACKS`、
-  `Marine → BARRACKSTRAIN_MARINE`、`OrbitalCommand → UPGRADETOORBITAL_ORBITALCOMMAND`）。
-- 纯工具调用，无 LLM。
-
-### Stage 4 — Ordering Agent（`ordering_agent.py`）
-排序 Agent 会同时读取当前 strategy step、当前 obs，以及 DATA_TOOLS 生成的三类提示：
-- **Strategy Summary**：来自 `Top_agent_<enemy_race>.md` 的 `# Summary` 全文，作为宏观指导段 `[Strategy Summary]` 注入 system prompt；只用于理解整体节奏，不影响动作集合；
-- **Strategy Step**：来自 `Top_agent_<enemy_race>.md` 的当前 `[Step N]` 原文，用于理解战略优先级和预期时机；动作列表仍是权威来源，排序阶段不得因 step 增删 action；
-- **前置提示**（`check_action_prereqs.tech_chain_relations`）：序列内动作之间的科技先后关系；
-- **冲突提示**（`detect_action_conflicts`）：可能争抢同一执行单位的动作；
-- **成本提示**（`action_cost`）：每个动作的矿/气/时间（帧→秒按游戏帧率换算）。
-- **输出**：`{"ordered_actions": [...]}`。`TERRANBUILD_SUPPLYDEPOT` 作为普通动作参与排序。
-- 当前评估模式不再为 Ordering LLM 做动作补齐兜底：Stage4 只保留 LLM 实际返回且合法的动作，记录 `ordering_gaps = {"missing": ..., "dropped": ...}`；如果排序结果为空，直接记录 `ordering_empty` 并不安装 fallback 动作。这样可以把模型漏项作为模型能力结果保留下来。
-
-### Stage 5 — Supply 处理（`supply_planner.plan_supply`，受 `SUPPLY_MANAGED` 控制）
-
-行为由 `UniversalLLMBot.SUPPLY_MANAGED` 实验参数决定：
-
-**`SUPPLY_MANAGED=True`（默认，算法托管）**
-- 从 Stage4 输出中**提取并丢弃**所有 `TERRANBUILD_SUPPLYDEPOT`，得到无 depot 的纯动作序列。
-- 沿该序列**模拟 supply 走势**，当预测剩余补给跌破阈值（`SUPPLY_THRESHOLD`，默认 **8**）时插入 depot；训练连发前额外预留 `training_reserve`（默认 **4**）。
-- 记录字段：`llm_depot_count`（LLM 放置数）、`algo_depot_count`（算法插入数）、`supply_trace`（推导日志）。
-
-**`SUPPLY_MANAGED=False`（实验性，LLM 自主排序）**
-- 直接使用 Stage4 输出（含 LLM 自行放置的 depot），不再运行 Supply Planner 算法。
-- 记录字段：`llm_depot_count`（LLM 放置数）、`supply_trace`（说明使用了 LLM 排序）。
-
-最终得到 `[(action_name, quantity), ...]`，通过 `scheduler.set_actions(..., mode="append")` 注入调度器。
-
----
-
-### 3.2 两阶段 Ordered Naming 流水线（`_run_two_stage_macro_pipeline_blocking`）
-
-`--decision-mode two-stage` 将 Stage2 Naming 与 Stage4 Ordering 合并为一次 LLM 调用：
-
-```
-Strategy Step Source
-  → Ordered Naming Agent
-  → DATA_TOOLS 映射（保留 Ordered Naming 顺序）
-  → Supply Planner
-  → ExecutionScheduler
-```
-
-`Ordered Naming Agent` 的 prompt 主体沿用 Naming Agent 架构：同样读取当前 obs、当前 strategy step、`# Summary`、人族 canonical Unit/Upgrade 名单、黑话提示和升级分类说明。输出契约改为：
-
-```json
-{"ordered_names":["SupplyDepot","Barracks","BarracksTechLab","Marine","Marine","Marine"]}
-```
-
-约束：
-
-- 输出的是 canonical Unit/Upgrade 名，不是 action/ability 名。
-- 不输出数量；需要多个单位时重复名称。
-- 列表顺序就是宏观执行顺序，DATA_TOOLS 只负责按顺序映射为 action key。
-- `--naming-model` 是 Ordered Naming 的模型 key；`--ordering-model` 保留但不调用。
-- `Executor Agent` 不变，仍由 scheduler 在 train 多候选时调用。
-
-轨迹字段：
-
-- `decision_mode="two-stage"`
-- `ordered_naming_raw`
-- `ordered_names`
-- `ordered_name_dropped`
-- `ordered_name_mapping`
-- `unmapped_ordered_names`
-- `ordered_actions`
-- `ordered_with_supply`
-
-`*.llm_calls.json` 中该模式会出现 `agent="ordered_naming"`，不会出现 `agent="ordering"`；Executor 调用仍按实际 train 多候选情况出现。
-
----
-
-## 4. 命令式执行调度（`execution/scheduler.py`）
-
-`ExecutionScheduler(ActBase)` 每帧 `execute()`，维护两个独立结构：
-
-* `self.actions: List[PlannedAction]`：按 LLM 排序保存的命令式动作列表，**不含 `WAITING`**。
-* `self.waiter: Optional[PlannedAction]`：唯一的 `WAITING` 槽，与 `actions` 列表完全解耦——`set_actions(append)` 注入新 step 不会动它，状态超时机制单独处理。
-
-### 4.1 PlannedAction 状态机
-
-```
-              ┌─ self.actions（不含 WAITING）─┐    ┌─ self.waiter ─┐
-PENDING ──► RUNNING ──► DONE                       WAITING ──► 资源/科技到位 → 下发
-   │            │                                    │
-   │            └──► ABANDONED（RUNNING 超时）         └──► ABANDONED（等待超时）
-   │
-   └──► （扫描时遇阻）─────────────────────────► WAITING
-```
-
-| 状态 | 所在容器 | 含义 |
-|---|---|---|
-| `PENDING` | `actions` | 尚未轮到或 waiter 槽被占用而被降级 |
-| `WAITING` | `waiter` | 阻塞于科技链、执行单位、矿/气或人口；`note` 区分具体原因 |
-| `RUNNING` | `actions` | 已调用 Sharpy Act 或已下达 train/addon/morph，尚未完成 |
-| `DONE` | `actions` | 本动作数量已满足 |
-| `ABANDONED` | `actions` 或 `waiter` | 超时放弃或无法映射/启动 act |
-
-`WAITING` 的 `note` 示例：`waiting: resources`、`waiting: supply`、`waiting: tech missing`、`waiting: prerequisite in progress`、`waiting: no free producer` 等。
-
-### 4.2 独立 waiter 槽 + 三档优先级扫描
-
-**同一时刻最多只有一个动作处于 `WAITING`，并且它住在 `self.waiter` 中而不是 `self.actions` 列表里。**
-
-设计目的：让宏观流水线在 `actions` 列表 drain 时立刻可以 append 下一步，而 waiter 自然跨 step 持续保留——它无需被搬来搬去，也不会被同名新动作误并合并到一起。
-
-#### 优先级分档（按 `cost.supply` 符号）
-
-| 档位 | 规则 | 典型动作 |
-|---|---|---|
-| **P0**（最高） | `cost.supply < 0` —— 提供 supply | `TERRANBUILD_SUPPLYDEPOT`（-8）、`TERRANBUILD_COMMANDCENTER`（-15） |
-| **P1** | `cost.supply == 0` —— 不影响 supply | 大多数 build / addon / research / `BuildGas` |
-| **P2**（最低） | `cost.supply > 0` —— 消耗 supply | 所有 train/morph 单位（SCV、Marine、Tank …） |
-
-档位由 `PlannedAction.priority_tier()` 计算（也由 scheduler 内 `_priority_for(pa)` 复用）。
-
-#### 每帧扫描顺序
-
-```
-1) 先尝试下发 self.waiter      （tech ok && resources ok → issue → 释放槽）
-2) 按 P0 → P1 → P2 顺序遍历 self.actions，每档执行同档资源预留+超车
-3) 任一档存在 PENDING 阻塞，或 waiter 自身就在该档，立即 break，不再扫描更低档
-```
-
-waiter 优先于其他动作下发——只要它资源/科技/产线本帧已满足，就不需要等到下一帧。
-
-#### 进 / 出 waiter 槽
-
-- **进**（`_claim_wait_slot`）：
-  - waiter 槽空 → 直接占用（从 `actions` 移除并赋给 `self.waiter`）。
-  - 槽被占且新 PA **优先级更高**（例如 P0 抢 P1 占用）或 **sticky build**（如 CommandCenter）→ **抢占**：旧 waiter 退回 `actions` 末尾标 `PENDING (preempted)`，新 PA 占槽。
-  - 否则新 PA 留在 `actions` 中标 `PENDING (wait slot occupied)`。
-- **出**（`_release_waiter_back_to_actions`）：waiter 一旦下发成功且不再 `WAITING`，被 push 回 `actions` 末尾（携带 `RUNNING/DONE/ABANDONED` 状态），交由后续帧的扫描逻辑继续处理或视为终态忽略。
-
-### 4.3 资源保留 + 同档超车（overtake）
-
-凡 waiter 槽内的等待者，统一对其成本做**矿 + 气 + 人口**预留：
-
-```python
-reserved_min, reserved_gas, reserved_supply = _waiter_reservation(self.waiter)
-avail_min = ai.minerals - reserved_min - spent_min
-avail_gas = ai.vespene - reserved_gas - spent_gas
-avail_supply = current_free_supply(ai) - reserved_supply - spent_supply
-```
-
-- **`_live_cost`**：优先 `ai.calculate_cost(ability)` 取**实时增量成本**（正确处理 morph/addon 差价，例如升轨道只算 +150 矿）。
-- **`_live_supply_cost`**：同上取 supply；回退 `pa.cost_supply`。
-- **`current_free_supply`**（`supply_planner.py`）：当前空闲人口 + 已在途 supply depot 的 headroom。
-- **`spent_min` / `spent_gas` / `spent_supply`**：本帧已成功下发的动作累计扣减，防止同帧重复「花同一笔钱/人口」。
-- **同档超车**：waiter 占住预留后，扫描**当前优先级档内**的其他动作；若某动作所需矿/气/人口 ≤ 当前可用余额（已扣除预留与本帧已花费），则**先执行该动作**。
-- **跨档隔离**：waiter 所在档的下方档（数值更大、优先级更低）**不会被扫描**，直到 waiter 所在档完全清空；这是「优先 supply 提供」「不消耗 supply 优先于消耗 supply」语义的硬约束。
-- **同帧防重复下发**：waiter 在 step 1 中成功下发后释放回 `actions`，priority scan 通过 `issued_this_frame` 集合跳过它，不会同帧再下发一次。
-
-等科技的动作进入 `WAITING` 时**同样锁定矿/气/人口**，避免后续动作在账本里「透支」等待者即将使用的资源。
-
-### 4.4 等待超时放弃
-
-| 参数 | 调度器默认 | Bot 实际注入 | 作用 |
-|---|---|---|---|
-| `wait_abandon_sec` | `20.0` | **`60.0`**（`UniversalLLMBot.WAIT_ABANDON_SEC`） | `WAITING` 持续超过该秒数 → `ABANDONED`，释放等待槽与资源预留 |
-| `running_abandon_sec` | `25.0` | 未覆盖，用默认 | `RUNNING` 的 build/research/addon 超过该秒数仍未完成（典型：找不到落点、act 每帧返回 False）→ `ABANDONED`，避免永久阻塞 macro；下轮流水线可重新请求 |
-
-设为 `0` 表示永不因超时放弃。
-
-### 4.5 科技链路等待 / 自动补前置（`prereq_runtime.py`）
-
-每帧对每个非终态动作先做 `is_available_now`：
-
-1. **前置已在建造/研究中**（`chain_in_progress`）→ 占等待槽，`WAITING`（note: prerequisite in progress），满足后立即下发。
-2. **前置缺失且未在进行** → `_insert_gap_fills` 在队列当前位置**前插**缺失前置动作（去重）；插入后 `break` 本帧循环，下帧再扫。
-3. 无法插入且仍不满足 → `WAITING`（note: tech missing）。
-
-### 4.6 SCV 提前移动（pre-move）
-
-`WAITING` 的 **build** 动作在矿/气/人口不足时，调用 `_premove_scv`：用 `find_placement` 选点并把 SCV `move` 到建造点附近，资源到位后减少首帧卡顿。
-
-### 4.7 DirectBuild 独立 PA reservation / target
-
-普通 Terran 建筑（如 `SUPPLYDEPOT`、`BARRACKS`、`FACTORY`、`STARPORT`、`FUSIONCORE`）优先走 `DirectBuildExecutor`。Sharpy 只用于选择落点和 SCV；真正的 `worker.build(unit_type, position)` 由 scheduler 下发，生命周期归 scheduler 管。
-
-每个 `PlannedAction` 都绑定自己的 direct-build 状态：
-
-- `_direct_build_target_count`：该 PA 自己要完成的目标数量。
-- `_direct_build_reserved_positions`：该 PA 自己刚下令、等待引擎确认的 fresh reservation。
-- `_direct_build_completed_positions`：该 PA 自己已确认生成过结构的位置。
-- `_direct_build_worker_tag`：当前绑定的 SCV。
-
-`DONE` 判定只看该 PA 自己拥有的进度：`owned existing + owned en_route >= target`。不能让多个相同建筑 PA 共享同一个全局 `en_route` 完成条件，否则第一个兵营/星港/补给站一旦进入 en route，后续同名 PA 会一起误判完成。
-
-append 预取阶段如果遇到同类普通建筑仍 active 或 in-flight，新 PA 不丢弃、不合并进旧 PA，而是标记为 `[deferred]`。等前一批同类建筑完成或不再 in-flight 后，再释放成普通 `PENDING`，保持每个 PA 的 reservation/target 独立。
-
-### 4.8 执行分派
-
-- **build / research / addon**：**不经过 Executor LLM**：
-  - 普通 Terran 建筑 → `DirectBuildExecutor`，每个 PA 独立 reservation/target。
-  - `Refinery → BuildGas`；`CommandCenter → Expand`；升级 → `Tech`；挂件 → `BuildAddon`。
-  - `to_count` = 现存数量 + 本动作增量。
-- **train**：走 **Executor Agent**。**addon / morph** 多候选时直接用规则选择（优先空闲→首个），不调 LLM。
-  1. `executor_select.candidate_executors` 规则筛选能执行该 ability 的单位；
-  2. 生成冲突提示（候选是否也被后续动作需要）；
-  3. `executor_agent.py` 让 LLM 在候选里选一个，带 3s 缓存与 idle 回退。
-
-> Executor 的提示词显式要求：**不要一味追求效率而阻碍后续冲突动作**
-> （例如没挂 add-on 的 Barracks 先去造 Marine，会导致短期无法挂 Tech Lab 而卡住）。
-
-### 4.9 每帧主循环（简图）
-
-```
-1) 帧首维护：
-   _enforce_single_waiter()                   # 防御性：actions 内不应有 WAITING
-   _abandon_waiter_if_timed_out(self.waiter)  # WAITING 超 60s（sticky/direct-build 进度时延长）
-   _abandon_stuck_running()                   # RUNNING 超 25s（sticky 改为重新进 waiter 槽）
-
-2) 优先尝试 waiter（独立槽）：
-   _try_issue_waiter() ─┬─ tech 不通过 → 留在槽
-                        ├─ direct build 已满足 → 标 DONE，释放槽
-                        ├─ 资源/人口不足 → 留在槽
-                        └─ 资源足 → try_issue → 成功后 spent += cost、释放回 actions
-
-3) 按 P0 → P1 → P2 分档扫描 actions：
-   if waiter 优先级更高（数值更小）→ break
-   for pa in actions (本档，按 list 顺序):
-       if pa 终态 / 已在 issued_this_frame / 被 deferred: continue
-       [1] 科技门 ──不满足──► _claim_wait_slot(pa) 进 waiter 槽（或停 PENDING）
-       [2] 资源+人口门 ──不足──► _claim_wait_slot(pa, preempt=sticky)
-                       ──足够──► try_issue → spent += cost
-   if 本档仍有 PENDING 或 waiter 在本档 → break，不扫下一档
-```
-
----
-
-## 5. 策略工具轨（`strategy_tools.py`）
-
-`create_plan()` 当前返回两条**并行**轨：`ExecutionScheduler` + 当前策略自己的 `strategy_tools.py`。
-
-加载规则很严格：只尝试 `SKILL/<race>/<selected_strategy>/strategy_tools.py`，不再加载全局后台战术，也没有通用 scout/attack fallback。找不到该文件时使用 `EmptyTactics`。
-
-`strategy_tools.py` 只能包含不消耗 minerals / gas / supply 的工具，避免与 `ExecutionScheduler` 抢资源。会消耗资源的职责必须交给 LLM 流水线和 scheduler，例如补给、升轨道、维修、防御建筑、生产与科技。
-
-这个设计的测试含义是：如果某策略没有自己的工具文件，就不要把“缺少侦察/攻击兜底”当成框架 bug；它是当前策略配置的一部分。
-
----
-
-## 5.5 BO list 直接执行模式（`--bo-list`）
-
-`UniversalLLMBot` 提供两种相互**互斥**的运行模式：
-
-| 模式 | 启用方式 | 策略来源 | LLM 流水线 |
-|---|---|---|---|
-| 默认（forced strategy） | `--force-strategy <name>` | `SKILL/<race>/<name>/Top_agent_<enemy_race>.md` | `--decision-mode three-stage`：Stage2/3/4/5 + Executor；`two-stage`：Ordered Naming + Stage3/5 + Executor |
-| BO 直接执行 | `--bo-list <name>` | `BO_list/<race>/<name>/BO.json` | **仅** Executor |
-
-### 5.5.1 目录约定
+## 2. End-to-end flow
 
 ```text
-BO_list/<race>/registry.json          # "registered_strategies": ["marine_rush", ...]
-BO_list/<race>/<name>/
-  BO.json                             # JSON array of standard action keys
-  strategy_tools.py                   # 与 SKILL 同名文件等价的免费工具轨
+Top_agent_<enemy>.md: # Summary
+                 +
+current structured/text observation
+                 +
+uncommitted canonical names from previous queue
+                 │
+                 ▼
+SC2_Agent/decision_agent.py
+                 │
+        {reason, ordered_names}
+                 │
+                 ▼
+data_tools canonical validation and entity-to-action mapping
+                 │
+        valid response?
+          ├─ no: retain old local queue
+          └─ yes
+                 │
+                 ▼
+ExecutionScheduler.replace_uncommitted_queue()
+                 │
+                 ▼
+priority scan, waiter, prerequisite/resource gates,
+skip/overtake, deterministic producer/worker selection
+                 │
+                 ▼
+SC2 simulation engine
 ```
 
-`BO.json` 中的字符串就是 `ExecutionScheduler.set_actions` 直接接受的标准 action key（与 Stage3 输出同口径），如 `TERRANBUILD_SUPPLYDEPOT`、`COMMANDCENTERTRAIN_SCV`、`UPGRADETOORBITAL_ORBITALCOMMAND`、`BARRACKSTECHLABRESEARCH_STIMPACK`。
+## 3. Trigger rules
 
-未在 `registry.json` 的 `registered_strategies` 中列出的名字会直接报错，避免误用未维护的 BO。
+`UniversalLLMBot.pre_step_execute()` evaluates the trigger every frame.
 
-### 5.5.2 装载与运行流程
+1. `initial_decision`: first decision after startup.
+2. `interval_elapsed`: default 60 in-game seconds after the previous attempt.
+3. `queue_drained`: an accepted non-empty queue transitions from active to
+   fully terminal, with a five-second anti-loop guard.
 
-`UniversalLLMBot.on_start` 检测 `self.bo_list` 后：
+`queue_drained` means every scheduler task and the separate waiter are
+terminal. A queue with one uncommitted task is not drained and does not trigger
+early replanning. An accepted empty queue marks that cycle as having no work;
+it cannot cause an immediate drain loop and waits for `interval_elapsed`.
 
-1. 读取并校验 `BO_list/<race>/registry.json`；
-2. 加载 `BO_list/<race>/<name>/BO.json` 到 `self._bo_actions`；
-3. 把 `selected_strategy` 设为 `<name>`，使 `_load_strategy_tools()` 走 `BO_list.<race>.<name>.strategy_tools` 这条 import 路径（而不是 `SKILL.<race>.<name>.strategy_tools`）。
+The interval is measured in game time, not wall-clock time.
 
-`pre_step_execute` 在 BO 模式下按分段逐步注入：
+## 4. Prompt and output
 
-1. **首帧**：取前 `BO_CHUNK_SIZE`（默认 **15**）条 action，`mode="replace"` 注入 scheduler；
-2. **续作触发**：当前 actions 列表 drain（`is_drained_for_macro()` 为 True）且距上次装载 ≥ `MACRO_MIN_RETRIGGER`（5s）时，取下一段 `BO_CHUNK_SIZE` 条，`mode="append"` 注入；
-3. **末段**：最后一段可能不足 15 条，`_bo_next_index >= len(_bo_actions)` 后停止续作。
+Every prompt contains:
 
-waiter 槽跨分段自然延续：下段 append 进来的 action 不会干扰当前 waiter 的资源预留与等待；每段 drain 判定也会检查 waiter 是否仍为非终态。BO 所有分段耗尽后 scheduler 队列保持空闲，`strategy_tools.py` 后台战术继续运行。
+- the entire strategy `# Summary`;
+- the current observation;
+- Terran canonical unit and upgrade names;
+- previous queue names that are not committed yet.
 
-### 5.5.3 LLM 调用点
+The unfinished section contains only an ordered JSON array of canonical names.
+It deliberately omits status, action keys, quantities, producers, and metadata.
+Repeated names represent repeated requested copies.
 
-| LLM Agent | force-strategy 模式 | bo-list 模式 |
-|---|---|---|
-| Naming Agent (Stage2) | `three-stage` 启用；`two-stage` 由 Ordered Naming 替代 | **关闭**（不被调用） |
-| Ordered Naming Agent | `two-stage` 启用 | **关闭**（不被调用） |
-| Ordering Agent (Stage4) | `three-stage` 启用；`two-stage` 不调用 | **关闭**（不被调用） |
-| Supply Planner (Stage5) | 启用 | **关闭**（不被调用） |
-| Executor Agent | 启用 | **保留**（仅 train 多候选时由 LLM 选执行单位；addon/morph 规则选） |
+The model is told that accepting this decision discards the listed old local
+work. It must repeat any still-important old item in the new queue and may omit
+items it wants to abandon. It must inspect the observation to avoid recreating
+work already submitted to the engine.
 
-`--naming-model` / `--ordering-model` 在 BO 模式下不会被调用；`--executor-model` 仍然必需（或使用默认值），因为 `ExecutionScheduler` 在执行 train 类 action 时通过 `executor_llm` 回调向 LLM 询问 producer tag；addon/morph 完全规则选择，不调 LLM。
+Output:
 
-### 5.5.4 与 Scheduler 机制的关系
-
-BO 模式**不修改** `ExecutionScheduler`。下列机制在 BO 模式下原样保留（详见 §4.2 / §4.3）：
-
-- 独立 `waiter` 槽 + 跨步保留；
-- waiter 槽跨分段延续：分段更换时 waiter 保持原状，`mode="append"` 不会干扰已有的 waiter 资源预留与等待；
-- 矿 / 气 / 人口预留 + **同档超车**：BO 中某条昂贵建筑被推入 waiter 等矿时，BO 后续同优先级档内的小动作（如 `COMMANDCENTERTRAIN_SCV`）只要资源够仍可超车下发；
-- **跨档隔离**：waiter 在 P0（supply 提供者）等矿时，更低档的训练 action 不会越过它消耗矿；
-- `deferred` 同名 build 防并发下单（同名 build action 顺序串行）；
-- `wait_abandon_sec=60s` 与 `running_abandon_sec=25s` 卡死保护，避免单条 BO action 永久阻塞后续整条 BO；
-- DirectBuild 独立 PA reservation/target、SCV 提前移动等。
-
-也就是说，BO list 拿到的是与 LLM 流水线**一模一样**的命令式执行底座，仅仅替换了 action 列表的来源。
-
-### 5.5.5 落盘记录
-
-BO 模式下，`UniversalLLMBot._record_llm_interaction` 会写两类事件到 LLM 轨迹 JSON：
-
-- `trigger_reason="bo_list_loaded"`：`on_start` 阶段 `_apply_bo_list` 完成时记录，含策略名与完整 action 列表（尚未注入 scheduler）。
-- `trigger_reason="bo_list_chunk_installed"`：每段注入后记录一条，含 `chunk_index`、`total_chunks`、`chunk_range`、`chunk_size`、`all_chunks_installed`、`installed_pairs` 与 active 队列快照；BO 模式全程共产生 N（总段数）条此类事件。
-
-`.log` 中对应出现 `>>> BO LIST: '<name>' loaded (<N> actions)` 与 `[BO list] installed chunk X/Y: ...` 行；全程**不应**出现 `>>> MACRO PIPELINE START`。
-
-便于在 `*.llm_calls.json` / observation JSON 中复盘 BO 是否被正确装载、各段注入时机与 scheduler 之后的执行轨迹是否符合预期。
-
----
-
-## 6. 关键可调参数
-
-`dummies/generic/universal_llm_bot.py`：
-
-| 常量 | 默认 | 含义 |
-|---|---|---|
-| `BO_CHUNK_SIZE` | `15` | BO 模式每段注入的 action 数量 |
-| `MACRO_POLL_INTERVAL` | `60.0` | 宏观流水线固定触发周期（秒） |
-| `MACRO_MIN_RETRIGGER` | `5.0` | actions 列表 drain 后再触发的最短间隔（秒） |
-| `WAIT_ABANDON_SEC` | **`60.0`** | `WAITING` 放弃超时（秒）；`0` = 永不放弃 |
-| `running_abandon_sec` | `25.0`（仅调度器构造参数，Bot 未覆盖） | `RUNNING` 的 build/research/addon 卡死放弃超时（秒） |
-| `SUPPLY_THRESHOLD` | `8.0` | 预测剩余补给低于此值则插 supply depot（仅 `SUPPLY_MANAGED=True` 生效） |
-| `SUPPLY_MANAGED` | `True` | 实验参数：`True` = 算法托管（从 LLM 输出提取 depot 后重新插入）；`False` = 信任 LLM 的 depot 排序，直接执行 |
-
-`bot_loader/game_starter.py`：`game_time_limit` 默认 30 游戏分钟，可用环境变量
-`SC2_GAME_TIME_LIMIT=<秒>` 覆盖（冒烟测试 / 控制时长很有用）。
-
----
-
-## 7. LLM 配置
-
-模型池在 `API_config/config.json` 的 `llm_agents_pool`。每个 key 含
-`api_url / api_key / model_name / temperature / is_reasoning(thinking 开关)`。
-`API_Tools/llm_caller.py` 按 `is_reasoning` 向厂商 API 注入 thinking 开关并自动剥离 `<think>` 段。
-
-**代码默认**：`run_vs_ai.py` 顶部仍默认使用 **`DeepSeek-V4-flash`（`is_reasoning: false`，不开 thinking）**。
-
-```python
-DEFAULT_NAMING_MODEL = DEFAULT_ORDERING_MODEL \
-  = DEFAULT_EXECUTOR_MODEL = "DeepSeek-V4-flash"
-DEFAULT_DECISION_MODE = "three-stage"
-```
-
-可分别用 `--naming-model / --ordering-model / --executor-model`
-覆盖单个阶段（取 `config.json` 里的 key）。`--decision-mode two-stage` 下，
-`--naming-model` 用于 Ordered Naming，`--ordering-model` 不调用但可保留。
-
-**当前模型评估推荐配置**：
-
-- `naming_model="DeepSeek-V4-pro"`
-- `ordering_model="DeepSeek-V4-pro"`
-- `executor_model="DeepSeek-V4-flash"`
-
-评估不同模型时，不对 Naming / Ordering 的 LLM 漏项、错项、空输出做代码兜底修复；这些要作为模型表现记录。排查重点只放在 Agent 执行机制：LLM 已经输出合法动作后，scheduler 是否正确保留、等待、下发、计数和完成。
-
----
-
-## 8. 运行
-
-> 环境搭建详见 [`environment-setup.md`](environment-setup.md)。以下假设已在 `SC2_0615` 环境内、
-> 且已 `export SC2PATH=/path/to/StarCraftII/`。
-
-### 单局
-```bash
-conda activate SC2_0615
-export SC2PATH=/data2/SC2/StarCraftII/
-python run_vs_ai.py --enemy-difficulty medium --enemy-build random --batch-name demo
-# 短时冒烟（限制游戏时长，便于快速验证轨迹保存）
-SC2_GAME_TIME_LIMIT=240 python run_vs_ai.py --enemy-difficulty medium --enemy-build random --batch-name smoke
-# 两阶段 Ordered Naming 模式（Naming + Ordering 合并；Executor 保留）
-SC2_GAME_TIME_LIMIT=240 python run_vs_ai.py --force-strategy marine_rush --decision-mode two-stage --batch-name two_stage_smoke
-# BO list 直接执行模式（旁路 Naming/Ordering/Supply LLM；Executor LLM 仍生效（仅 train））
-python run_vs_ai.py --bo-list marine_rush --enemy-difficulty medium --batch-name bo_demo
-```
-
-常用参数：`--bot-race/--enemy-race`、`--enemy-difficulty/--enemy-build`、
-`--force-strategy <name>` / `--bo-list <name>`（互斥）、
-`--decision-mode three-stage|two-stage`、
-`--naming-model/--ordering-model/--executor-model`、
-`--real-time`、`--batch-name/--run-index`。
-
-### 批量
-```bash
-bash tools/start_experiments.sh                 # 预设参数 + tmux 批量
-bash tools/run_vs_ai_batch.sh <总局数> <并发数> [fg|tmux]
-```
-
----
-
-## 9. 对局产出与轨迹 JSON
-
-每局结束（`LLMObservationRecorder.on_end`）在
-`game_records/<batch_name>/<match_id>/` 写出：
-
-| 文件 | 内容 |
-|---|---|
-| `<match_id>.log` | 完整运行日志，含 `[UniversalLLMBot][LLM-INFER]` 各阶段行（每次 strategy step 下发前含完整 obs） |
-| `<match_id>.SC2Replay` | 录像 |
-| `<match_id>.json` | **LLM 交互完整记录（关键产物）** |
-| `<match_id>.llm_calls.json` | **每一次 LLM 调用的原始 prompt 与 output**（按调用顺序记录，含 agent/model_key/game_time，边运行边落盘） |
-
-### `*.llm_calls.json` 结构
 ```json
 {
-  "match": "<match_id>",
-  "llm_call_count": 15,
-  "calls": [
-    { "seq": 1, "game_time": 0.0, "macro_cycle": 1,
-      "agent": "naming", "model_key": "DeepSeek-V4-flash",
-      "prompt": [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}],
-      "output": "..." }
-  ]
+  "reason": "Concise public decision explanation.",
+  "ordered_names": ["SupplyDepot", "Barracks", "Marine", "Marine"]
 }
 ```
 
-### 轨迹 JSON 结构
+The model plans only the near-term horizon before the next decision and is
+asked to keep the queue compact, normally no more than 20 names. This prevents
+the summary from being expanded into a full-game build order every minute.
+
+`reason` is persisted for auditing but is not chain-of-thought. Empty
+`ordered_names` is legal. A malformed response, or a non-empty response for
+which no name can be mapped, leaves the old queue unchanged.
+
+Unknown or individually unmappable names are recorded and dropped. If at least
+one valid task remains, the valid mapped queue is accepted.
+
+## 5. Queue replacement and commit boundary
+
+`issued_count` is the boundary between local intent and engine-owned work.
+
+- `quantity - issued_count` copies are uncommitted, cancellable, and eligible
+  to appear in the next prompt.
+- Once a command has been issued, it belongs to the SC2 simulation. Replanning
+  does not cancel it, hide it from the game state, or attempt to recover it into
+  the new local queue.
+- Research crosses the same commit boundary as soon as its matching ability is
+  present in a structure's active orders. It does not wait for the upgrade to
+  finish before disappearing from the uncommitted prompt list.
+
+On an accepted decision the scheduler:
+
+1. snapshots the old uncommitted canonical names;
+2. releases local Act/worker/reservation handles;
+3. removes the old action list and waiter;
+4. creates one `PlannedAction` per new canonical name, retaining queue id and
+   position;
+5. starts executing the new queue.
+
+This is an atomic replacement of local scheduler state. It is not append,
+merge, or automatic deduplication.
+
+## 6. Execution scheduler
+
+The scheduler keeps the established skip/overtake model:
+
+- one independent waiter for the currently blocked action;
+- one ordered scan in the exact sequence produced by the model;
+- later tasks may overtake a blocked earlier task when they do not spend
+  resources reserved for the waiter;
+- supply-providing tasks are not globally moved ahead of the model order;
+- prerequisites are checked against runtime state and are not silently added.
+
+Normal Terran structures use `DirectBuildExecutor` where supported. Other
+build, research, add-on, and morph actions use Sharpy Acts. Train actions use
+`producer_selector.py`, which deterministically prefers idle producers, then
+shorter order queues, then stable unit tag order. No LLM is called to choose a
+producer or SCV.
+
+There is no automatic Supply Depot insertion. `supply_left` is still used by
+the resource gate so impossible train commands wait, but the model must place
+`SupplyDepot` in its own queue.
+
+## 7. Strategy knowledge
+
+`SC2_Agent/top_agent.py` parses only the text under `# Summary`. The selected
+file is:
+
+```text
+SKILL/terran/<strategy>/Top_agent_<enemy_race>.md
+```
+
+The same complete summary is provided at every decision. Strategy-specific
+`strategy_tools.py` remains loaded for non-macro tactical/background behavior;
+it is not a second macro planner.
+
+## 8. Record schema
+
+The main interaction stream uses `schema_version: 2`. A decision record stores:
+
 ```json
 {
-  "metadata": { "result": "Victory|Defeat|Tie", "matchup": "...",
-                "game_duration_seconds": 240.0, "interval_seconds": 60.0,
-                "llm_interaction_count": 11, "record_count": 8,
-                "macro_metrics": {                                  // 见 §9.1
-                  "rur_consume_per_min": 774.0,
-                  "rur_float_avg_bank": 55.0,
-                  "apu_ratio": 0.435,
-                  "sample_count": 8,
-                  "definition": "..." } },
-  "interactions": [
-    { "trigger_reason": "top_agent_initial_t0_forced", "top_agent_initial": {...} },
-    { "cycle": 1, "trigger_reason": "initial_step", "mode": "replace",
-      "strategy_step": {"number": 1, "text": "..."},             // Step source
-      "strategy_step_text": "...",
-      "naming_raw": "...", "named_items": [...],               // Stage2 canonical-only items
-      "mapped_actions": {...},                                 // Stage3
-      "ordering_raw": "...", "ordered_actions": [...],         // Stage4
-      "ordered_with_supply": [...],                            // Stage5
-      "installed_pairs": [["TERRANBUILD_BARRACKS", 1], ...],   // 注入调度器
-      "observation_at_this_moment": "...",                     // 决策时英文 obs
-      "observation_structured": {...},                         // 结构化快照
-      "top_agent_strategy": "battle_cruisers", "wall_elapsed_seconds": 4.37 }
-  ]
+  "cycle": 2,
+  "trigger_reason": "interval_elapsed",
+  "old_uncommitted_canonical_names": ["Barracks", "Marine"],
+  "decision": {
+    "reason": "Keep production growing while covering supply.",
+    "ordered_names": ["SupplyDepot", "Barracks", "Marine"],
+    "accepted_ordered_names": ["SupplyDepot", "Barracks", "Marine"],
+    "mapped_actions": []
+  },
+  "queue_transition": {
+    "carried_forward_names": ["Barracks", "Marine"],
+    "discarded_old_names": [],
+    "newly_introduced_names": ["SupplyDepot"]
+  },
+  "committed_work_untouched": true
 }
 ```
 
-> ✅ 已在 `SC2_0615` 环境实测：一局 240s 对局产出 11 条交互 / 8 个快照的完整轨迹 JSON，
-> 五阶段原始与解析结果齐全。观测字段完整说明见
-> [`note/llm_observation_recorder.md`](../note/llm_observation_recorder.md)。
+The companion `*.llm_calls.json` has one `agent: "macro_decision"` entry per
+model call. `decision_reason` is the public response field. Any provider-side
+reasoning is stored separately as `provider_reasoning`; in Kimi non-thinking
+mode it should be empty and `is_reasoning` should be false.
 
-### 9.1 宏观评估指标（`metadata.macro_metrics`）
+## 9. Main files
 
-`LLMObservationRecorder.on_end` 在对局结束时调用 `_compute_macro_metrics()`，把三个宏观评估指标写入 `metadata.macro_metrics`，随轨迹 JSON 一起落盘（无论 `interactions` 还是 `records` 落盘分支都会带上）。指标来源全部是 recorder 已经在跟踪的数据，无需额外落盘。
-
-| 字段 | 含义 | 公式 | 方向 |
-|---|---|---|---|
-| `rur_consume_per_min` | RUR 资源消耗率 | `(spent_minerals + spent_vespene) / game_duration * 60`，末帧 `state.score` 精确取值 | 越高越好（资源花得出去，宏观强） |
-| `rur_float_avg_bank` | RUR 资源囤积率 | 未花掉存量 `minerals + vespene` 的时间加权平均 | 越高越差（钱囤着花不掉，宏观弱） |
-| `apu_ratio` | 平均人口利用率 | `supply_used / supply_cap` 的时间加权平均，取值 `[0,1]` | 越高越好（人口容量用得满） |
-
-补充说明：
-
-- `rur_float_avg_bank` / `apu_ratio` 基于每 `interval_seconds` 采一次的规则周期快照 `record_history`（内存中始终完整，即使有 LLM 交互也照常采样），时间加权用左值 `Σ value_i·(t_{i+1}-t_i) / Σ(t_{i+1}-t_i)`；样本不足或无时间跨度时退化为普通均值。`supply_cap<=0` 的样本在 APU 中跳过。
-- `rur_consume_per_min` 用对局结束时 `self.ai.state.score` 精确计算，不依赖采样序列。
-- `sample_count` 为参与时间加权的周期快照数；`definition` 内嵌一行英文口径说明便于自解释。
-- 相关：各周期/交互快照的 `economy` 也新增了 `spent_minerals / spent_vespene / collected_minerals / collected_vespene`（累计消耗 / 采集），来自 SC2 score 接口，缺失时降级为 0。
-
----
-
-## 10. 相关文档
-
-| 文档 | 内容 |
+| File | Responsibility |
 |---|---|
-| [`environment-setup.md`](environment-setup.md) | **环境搭建（conda `SC2_0615`）分步教程** |
-| [`README.md`](../README.md) | 仓库入口（旧版 Top/Mid/Down 说明 + 指向本文档） |
-| [`sharpy-overview.md`](sharpy-overview.md) | Sharpy 底层框架说明 |
-| [`bot-inheritance.md`](bot-inheritance.md) | Sharpy Bot 继承关系、dummies 目录 |
-| [`sharpy-modules-and-config.md`](sharpy-modules-and-config.md) | Sharpy 模块与 `config.ini` |
-| [`note/llm_observation_recorder*.md`](../note/) | 观测文本生成规则（v1~v3） |
-| [`direct-build-executor-notes-20260617.md`](direct-build-executor-notes-20260617.md) | DirectBuild、多 PA reservation/target、deferred 经验总结 |
+| `dummies/generic/universal_llm_bot.py` | trigger, prompt call, validation, replacement, records |
+| `SC2_Agent/decision_agent.py` | sole model prompt and response parser |
+| `SC2_Agent/top_agent.py` | summary-only strategy parser |
+| `SC2_Agent/data_tools/entity_to_actions.py` | canonical name to action mapping |
+| `SC2_Agent/execution/scheduler.py` | queue state and deterministic execution |
+| `SC2_Agent/execution/producer_selector.py` | deterministic train producer selection |
+| `SC2_Agent/execution/command.py` | `PlannedAction` including queue identity |
+| `bot_loader/game_starter.py` | preserved Sharpy launcher with current agent options |
+| `run_vs_ai.py` | supported agent match CLI built on the existing bot loader |
+
+## 10. Retained versus removed code
+
+Retained:
+
+- Sharpy and bundled python-sc2 framework code;
+- all original demo/race bots and their bot definitions;
+- ladder, packaging, map, and general run scripts;
+- deterministic execution code required to turn canonical names into SC2
+  commands;
+- strategy-specific tactical/background `strategy_tools.py`.
+
+Removed:
+
+- separate Naming, Ordering, and Executor model agents;
+- automatic Supply Planner and prerequisite gap-fill insertion;
+- BO-list execution mode and its duplicated strategy data;
+- launchers, tests, and archives whose only purpose was configuring those
+  removed stages.

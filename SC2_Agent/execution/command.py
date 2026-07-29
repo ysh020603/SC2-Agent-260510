@@ -29,6 +29,9 @@ ABANDONED = "ABANDONED"      # waited too long, given up
 class PlannedAction:
     action_name: str
     category: str
+    canonical_name: str = ""
+    queue_id: int = 0
+    queue_position: int = 0
     quantity: int = 1
     ability: Optional[AbilityId] = None
     target_result: Optional[str] = None
@@ -50,7 +53,6 @@ class PlannedAction:
     _act: Any = field(default=None, repr=False)
     _act_started: bool = field(default=False, repr=False)
     _act_target_count: Optional[int] = field(default=None, repr=False)
-    _is_gap_fill: bool = field(default=False, repr=False)
     _direct_build_helper: Any = field(default=None, repr=False)
     _direct_build_base_count: Optional[int] = field(default=None, repr=False)
     _direct_build_target_count: Optional[int] = field(default=None, repr=False)
@@ -59,13 +61,10 @@ class PlannedAction:
     _direct_build_completed_positions: list = field(default_factory=list, repr=False)
     _direct_build_last_issue_time: Optional[float] = field(default=None, repr=False)
     _direct_build_attempts: int = field(default=0, repr=False)
-    _defer_until_build_type: Any = field(default=None, repr=False)
-    _defer_reason: str = field(default="", repr=False)
-    _defer_created_time: Optional[float] = field(default=None, repr=False)
     # 用于侦测 build act 的进度推进：每次新派出 SCV/下单成功（`actual_placements`
     # 增加），scheduler 会更新此快照并把 `running_start_time` 重置为当前时刻。
     # 这样 `_abandon_stuck_running` 不会在「多 quantity build 正在按节奏推进」时
-    # 误杀 PA（参见 docs/同类建筑重复下单与提前完成问题分析.md §15）。
+    # 误杀仍在正常推进的 PA。
     _last_placement_progress: int = field(default=0, repr=False)
 
     @classmethod
@@ -74,7 +73,9 @@ class PlannedAction:
         action_name: str,
         quantity: int = 1,
         *,
-        is_gap_fill: bool = False,
+        canonical_name: str = "",
+        queue_id: int = 0,
+        queue_position: int = 0,
     ) -> "PlannedAction":
         info = cost_for_action(action_name)
         cost = info.get("cost") or {}
@@ -82,6 +83,9 @@ class PlannedAction:
         return cls(
             action_name=action_name,
             category=category,
+            canonical_name=canonical_name or (info.get("target_result") or action_name),
+            queue_id=int(queue_id),
+            queue_position=int(queue_position),
             quantity=max(1, int(quantity)),
             ability=mapping.ability_for(action_name),
             target_result=info.get("target_result"),
@@ -89,7 +93,6 @@ class PlannedAction:
             cost_gas=int(cost.get("gas", 0) or 0),
             cost_supply=float(cost.get("supply", 0) or 0),
             cost_time_frames=float(cost.get("time", 0) or 0),
-            _is_gap_fill=is_gap_fill,
         )
 
     # --- helpers ---
@@ -100,34 +103,34 @@ class PlannedAction:
         return self.state == WAITING
 
     def short_label(self) -> str:
-        suffix = " [deferred]" if self._defer_until_build_type is not None else ""
         if self.quantity > 1:
-            return f"{self.action_name} x{self.quantity} ({self.issued_count}/{self.quantity} issued){suffix}"
-        return f"{self.action_name}{suffix}"
+            return f"{self.action_name} x{self.quantity} ({self.issued_count}/{self.quantity} issued)"
+        return self.action_name
 
     def to_dict(self) -> dict:
         return {
             "action": self.action_name,
+            "canonical_name": self.canonical_name,
+            "queue_id": self.queue_id,
+            "queue_position": self.queue_position,
             "category": self.category,
             "quantity": self.quantity,
             "issued": self.issued_count,
             "state": self.state,
-            "priority": self.priority_tier(),
+            "supply_tier": self.supply_tier(),
             "cost": {
                 "minerals": self.cost_minerals,
                 "gas": self.cost_gas,
                 "supply": self.cost_supply,
             },
             "note": self.note,
-            "deferred": self._defer_until_build_type is not None,
-            "defer_reason": self._defer_reason,
         }
 
-    def priority_tier(self) -> int:
-        """Return the priority tier (lower = higher) used by the scheduler.
+    def supply_tier(self) -> int:
+        """Classify the action by supply effect for diagnostics.
 
-        Mirrors :py:func:`SC2_Agent.execution.scheduler._priority_for` but
-        kept inline here to avoid an import cycle. ``cost.supply``:
+        The scheduler remains ordered; this value does not reorder tasks.
+        ``cost.supply``:
 
         * ``< 0`` -> tier 0 (supply provider, e.g. SupplyDepot, CommandCenter)
         * ``== 0`` -> tier 1 (supply neutral)

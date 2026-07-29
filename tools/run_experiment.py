@@ -19,7 +19,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import run_vs_ai
-from dummies.generic.universal_llm_bot import UniversalLLMBot
 
 
 def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -35,15 +34,12 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--enemy-race", default="terran")
     parser.add_argument("--enemy-difficulty", default="medium")
     parser.add_argument("--enemy-build", default="random")
-    parser.add_argument("--naming-model", default=run_vs_ai.DEFAULT_NAMING_MODEL)
-    parser.add_argument("--ordering-model", default=run_vs_ai.DEFAULT_ORDERING_MODEL)
-    parser.add_argument("--executor-model", default=run_vs_ai.DEFAULT_EXECUTOR_MODEL)
+    parser.add_argument("--decision-model", default=run_vs_ai.DEFAULT_DECISION_MODEL)
     parser.add_argument(
-        "--decision-mode",
-        choices=("three-stage", "two-stage"),
-        default=run_vs_ai.DEFAULT_DECISION_MODE,
+        "--decision-interval",
+        type=float,
+        default=run_vs_ai.DEFAULT_DECISION_INTERVAL,
     )
-    parser.add_argument("--supply-managed", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--real-time", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument(
         "--game-time-limit",
@@ -73,7 +69,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     os.environ["SC2_GAME_TIME_LIMIT"] = str(args.game_time_limit)
 
-    UniversalLLMBot.SUPPLY_MANAGED = bool(args.supply_managed)
     _install_short_match_id(args.match_prefix)
 
     run_vs_ai.play_vs_ai(
@@ -83,10 +78,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         enemy_difficulty=args.enemy_difficulty,
         enemy_build=args.enemy_build,
         bot_race=args.bot_race,
-        naming_model=args.naming_model,
-        ordering_model=args.ordering_model,
-        executor_model=args.executor_model,
-        decision_mode=args.decision_mode,
+        decision_model=args.decision_model,
+        decision_interval=args.decision_interval,
         batch_name=args.batch_name or None,
         run_index=args.run_index,
         output_base_dir=str(ROOT / "game_records"),

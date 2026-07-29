@@ -127,11 +127,9 @@ def make_addon_act(action_name: str, to_count: int):
     ``BUILD_REACTOR_*`` action.
 
     ``BuildAddon`` checks for free space to the building's right via
-    ``find_placement`` BEFORE issuing the addon, so a building never lifts off
-    to chase addon space (the raw ability issue used previously would make the
-    structure fly, e.g. a Factory floating away when a Tech Lab is ordered with
-    no room — which then breaks tech-chain prerequisites that need a *landed*
-    producer). Returns ``None`` if the names cannot be resolved.
+    ``find_placement`` before issuing the addon, so a building does not lift
+    off while looking for addon space. Returns ``None`` if the names cannot be
+    resolved.
     """
     from sharpy.plans.acts.terran import BuildAddon
 
