@@ -28,12 +28,25 @@ from sharpy.plans.tactics.terran import (
     PlanZoneGatherTerran,
     ScanEnemy,
 )
+from SC2_Agent.prompt_context import terran_automation_profile
+
+
+AUTOMATION_PROFILE = terran_automation_profile(
+    strategy="blueflame_locks",
+    attack_threshold=50,
+    attack_gate=(
+        "The attack is additionally gated until any one condition is true: "
+        "Cyclone lock-on damage research is at least 95% complete and 6 Cyclones "
+        "exist/include pending; or 2 Thors and 8 Cyclones exist/include pending; "
+        "or game time reaches 10:00."
+    ),
+)
 
 
 class BlueflameLocksStrategyTools(BuildOrder):
     """Blueflame locks tools that do not spend minerals, gas, or supply."""
 
-    def __init__(self, attack_value: int = 50):
+    def __init__(self, attack_value: int = AUTOMATION_PROFILE.attack_threshold):
         super().__init__(
             SequentialList([
                 MineOpenBlockedBase(),

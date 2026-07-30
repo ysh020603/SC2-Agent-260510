@@ -27,6 +27,10 @@ from .sc2_data_common import (
 @dataclass(frozen=True)
 class RaceMechanics:
     race: str
+    overview: str
+    strengths: tuple[str, ...]
+    tradeoffs: tuple[str, ...]
+    decision_implications: tuple[str, ...]
     worker: str
     supply_provider: str
     townhall: str
@@ -47,6 +51,27 @@ class ActionCandidate:
 RACE_MECHANICS: dict[str, RaceMechanics] = {
     "terran": RaceMechanics(
         race="Terran",
+        overview=(
+            "Terran uses conventional structure construction, separate unit "
+            "production buildings, and building-specific TechLab/Reactor add-ons. "
+            "Its army rewards combined arms, ranged concentration, and flexible "
+            "production switches."
+        ),
+        strengths=(
+            "Durable ranged armies and strong defensive structures.",
+            "Reactors increase unit throughput while TechLabs unlock advanced units and research.",
+            "Orbital Command energy provides MULE economy and Scanner Sweep information.",
+        ),
+        tradeoffs=(
+            "SCVs remain occupied while constructing and can be exposed.",
+            "Add-ons need clear space and bind technology/throughput to a specific production building.",
+            "Many strong compositions need several complementary production lines and upgrades.",
+        ),
+        decision_implications=(
+            "Plan concrete Barracks/Factory/Starport add-ons before dependent units or research.",
+            "Add enough production capacity to spend mineral banks; do not rely on automated macro spending.",
+            "Leave MULEs, scans, depot lowering, repair-adjacent tactics, positioning, and combat control to scripts.",
+        ),
         worker="SCV",
         supply_provider="SupplyDepot",
         townhall="CommandCenter",
@@ -62,6 +87,28 @@ RACE_MECHANICS: dict[str, RaceMechanics] = {
     ),
     "protoss": RaceMechanics(
         race="Protoss",
+        overview=(
+            "Protoss invests in expensive, high-impact units and technology. "
+            "Most structures depend on Pylon power, Gateway production can shift "
+            "to WarpGate, and Chrono Boost accelerates selected production or research."
+        ),
+        strengths=(
+            "High unit quality and strong technology power spikes.",
+            "WarpGate enables flexible reinforcement once researched and morphed.",
+            "Chrono Boost can accelerate important production and upgrades.",
+        ),
+        tradeoffs=(
+            "Units and technology are expensive, so losses and premature tech branches are costly.",
+            "Most structures stop functioning without nearby Pylon power.",
+            "Gateway and WarpGate share the same strategic production role rather than being independent capacity.",
+        ),
+        decision_implications=(
+            "Build a Pylon before structures that need power and protect production power coverage.",
+            "Request Gateway units by canonical unit name; the runtime chooses Gateway training or WarpGate warp-in.",
+            "WarpGate is not a macro output: request Gateway for added capacity "
+            "and WarpGateResearch for the upgrade; scripts perform the morph.",
+            "Leave Chrono Boost assignment, WarpGate morphing, warp-in positions, and combat control to scripts.",
+        ),
         worker="Probe",
         supply_provider="Pylon",
         townhall="Nexus",
@@ -75,6 +122,26 @@ RACE_MECHANICS: dict[str, RaceMechanics] = {
     ),
     "zerg": RaceMechanics(
         race="Zerg",
+        overview=(
+            "Zerg shares Larva between workers and most army units, consumes "
+            "Drones to morph structures, and uses Hatchery tech morphs plus creep "
+            "to expand its production and map presence."
+        ),
+        strengths=(
+            "Larva allows rapid production switches and large reinforcement bursts.",
+            "Queens provide Larva injection and creep support without consuming Larva.",
+            "Mobile armies and morph paths can adapt an existing composition.",
+        ),
+        tradeoffs=(
+            "Workers and army directly compete for Larva.",
+            "Every normal structure costs a Drone in addition to minerals.",
+            "Most structures require creep and advanced units depend on morph/tech chains.",
+        ),
+        decision_implications=(
+            "Balance Drone growth against immediate army Larva; repeated unit names consume repeated Larva commands.",
+            "Account for the Drone lost to each structure and rebuild workers when economically appropriate.",
+            "Leave injections, creep spread, Overlord scouting, positions, and combat control to scripts.",
+        ),
         worker="Drone",
         supply_provider="Overlord",
         townhall="Hatchery",
@@ -417,12 +484,22 @@ def action_candidates_for_entity(race: str, name: str) -> list[ActionCandidate]:
 
 def race_prompt_context(race: str) -> str:
     mechanics = race_mechanics(race)
+    strengths = "\n".join(f"* {item}" for item in mechanics.strengths)
+    tradeoffs = "\n".join(f"* {item}" for item in mechanics.tradeoffs)
+    implications = "\n".join(
+        f"* {item}" for item in mechanics.decision_implications
+    )
     notes = "\n".join(f"* {note}" for note in mechanics.notes)
     return (
+        f"Overview: {mechanics.overview}\n"
+        f"Strengths:\n{strengths}\n"
+        f"Tradeoffs:\n{tradeoffs}\n"
+        f"Macro decision implications:\n{implications}\n"
         f"Worker: {mechanics.worker}\n"
         f"Supply provider: {mechanics.supply_provider}\n"
         f"Town hall: {mechanics.townhall}\n"
         f"Gas structure: {mechanics.gas_structure}\n"
+        "Exact mechanics:\n"
         f"{notes}"
     )
 

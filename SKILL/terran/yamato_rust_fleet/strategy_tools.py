@@ -30,6 +30,18 @@ from sharpy.plans.tactics.terran import (
     PlanZoneGatherTerran,
     ScanEnemy,
 )
+from SC2_Agent.prompt_context import terran_automation_profile
+
+
+AUTOMATION_PROFILE = terran_automation_profile(
+    strategy="yamato_rust_fleet",
+    attack_threshold=50,
+    special_behaviors=(
+        "Once more than one Battlecruiser exists, TacticalJumpIn orders all "
+        "Battlecruisers to tactical-jump behind the enemy main exactly once.",
+        "Worker distribution uses a four-worker gas weighting for this gas-heavy fleet.",
+    ),
+)
 
 
 class TacticalJumpIn(ActBase):
@@ -55,7 +67,7 @@ class TacticalJumpIn(ActBase):
 class YamatoRustFleetStrategyTools(BuildOrder):
     """Yamato rust fleet tools that do not spend minerals, gas, or supply."""
 
-    def __init__(self, attack_value: int = 50):
+    def __init__(self, attack_value: int = AUTOMATION_PROFILE.attack_threshold):
         super().__init__(
             SequentialList([
                 MineOpenBlockedBase(),

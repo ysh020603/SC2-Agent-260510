@@ -14,17 +14,14 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-DEFAULT_STRATEGIES = [
-    "bio",
-    "safe_tvt_raven",
-    "three_rax_stim",
-    "two_base_tanks",
-    "tank_thor_mech",
-    "battle_cruisers",
-]
+from SC2_Agent.strategy_registry import enabled_strategy_names
+
+DEFAULT_STRATEGIES = ["enabled"]
 DEFAULT_MAPS = ["KairosJunctionLE", "AutomatonLE", "AbyssalReefLE"]
-DEFAULT_BOT_RACES = ["terran"]
+DEFAULT_BOT_RACES = ["terran", "protoss", "zerg"]
 DEFAULT_ENEMY_RACES = ["protoss", "terran", "zerg"]
 DEFAULT_DIFFICULTIES = ["medium", "mediumhard", "hard", "harder", "veryhard"]
 
@@ -62,24 +59,33 @@ def _jobs(
     repeats: int,
 ) -> List[MatchJob]:
     result: List[MatchJob] = []
-    missing = [
-        f"{bot_race}/{strategy}"
-        for bot_race in bot_races
-        for strategy in strategies
-        if not (ROOT / "SKILL" / bot_race / strategy).is_dir()
-    ]
-    if missing:
+    use_enabled = list(strategies) == ["enabled"]
+    disabled = []
+    for bot_race in bot_races:
+        selected = (
+            enabled_strategy_names(bot_race) if use_enabled else tuple(strategies)
+        )
+        enabled = set(enabled_strategy_names(bot_race))
+        disabled.extend(
+            f"{bot_race}/{strategy}"
+            for strategy in selected
+            if strategy not in enabled
+        )
+    if disabled:
         raise ValueError(
-            "Strategies do not exist for the selected bot race(s): "
-            + ", ".join(missing)
+            "Strategies are missing or temporarily disabled for the selected "
+            "bot race(s): " + ", ".join(disabled)
         )
 
     for bot_race in bot_races:
+        race_strategies = (
+            enabled_strategy_names(bot_race) if use_enabled else tuple(strategies)
+        )
         for map_name in maps:
             for enemy_race in enemy_races:
                 for difficulty in difficulties:
                     for repeat in range(1, repeats + 1):
-                        for strategy in strategies:
+                        for strategy in race_strategies:
                             result.append(
                                 MatchJob(
                                     index=len(result),

@@ -70,16 +70,37 @@ git diff --check
 
 重点自动化不变量：
 
-- 三个种族的 Registry 与实际策略目录完全一致。
+- 三个种族的 `registry.json` 各只注册本指南选定的 5 个代表策略；其他历史策略
+  目录可以保留，但生产入口必须明确拒绝，不能静默加载或回退到空战术。
 - 每个策略目录只有一个 `Top_agent.md`。
 - `Top_agent.md` 只使用一个 `# Summary` 顶级标题。
-- 所有目录都能导入 `strategy_tools.py`。
+- 所有已注册策略都能导入 `strategy_tools.py`，且导出
+  `AUTOMATION_PROFILE`；其中攻击阈值必须与实际 `PlanZoneAttack` 一致。
 - 模型实体能解析到当前种族的合法 SC2 `AbilityId`、`UnitTypeId` 或
   `UpgradeId`。
 - 大小写兼容不能重新引入 `OverlordTransport` 等歧义碰撞。
 - Gateway/WarpGate 候选、Archon 双单位合成、Larva 生产和 Zergling 双产出
   必须保留测试。
 - 已进入引擎的升级、建造和变形必须成为 commit boundary，不能被新决策取消。
+
+通用 prompt 或策略摘要修改后，先运行不启动 SC2 的 15 策略模型探针。它使用
+当前分层 prompt、种族机制、自动托管行为和 canonical catalog，任何 JSON
+解析失败、unknown 或 unmapped 都以非零退出码结束：
+
+```powershell
+python tools\probe_prompt_matrix.py `
+  --model-key Kimi-k2.5 `
+  --enemy-race terran `
+  --concurrency 5
+
+python tools\probe_prompt_matrix.py `
+  --model-key DeepSeek-V4-flash_think `
+  --enemy-race terran `
+  --concurrency 5
+```
+
+探针只能证明 prompt 输出契约，不能代替 SC2 对局。其后仍须按第 4、5 节运行真实
+短局，检查 worker/producer 选择、建筑地基、升级订单和后台攻击触发。
 
 ## 4. 三种族短局冒烟测试
 
@@ -197,7 +218,7 @@ WarpGate，同一个单位从 Gateway 与 WarpGate 生产时都必须选择当�
 | Protoss | `four_gate` | WarpGate、同步折跃、Blink、地面进攻 |
 | Protoss | `robo` | Observer、Immortal、RoboticsBay |
 | Protoss | `voidray` | Stargate、FleetBeacon、空军升级 |
-| Zerg | `lings` | Larva、Queen、虫狗速度、大批量生产 |
+| Zerg | `twelve_pool` | Larva、早期 Zergling 双产出、低经济持续增援 |
 | Zerg | `roach_hydra` | Lair、双兵种、地面升级、三基地 |
 | Zerg | `mutalisk` | Spire、飞龙、空军升级和地面支援 |
 

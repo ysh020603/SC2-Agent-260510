@@ -38,7 +38,7 @@ JOBS = [
     Job(2, "two_base_matrix_tanks", "terran", "AbyssalReefLE", "t_2bmt_ab"),
     Job(3, "four_gate", "protoss", "AutomatonLE", "p_4gate_au"),
     Job(4, "voidray", "protoss", "AbyssalReefLE", "p_void_ab"),
-    Job(5, "lings", "zerg", "KairosJunctionLE", "z_lings_kj"),
+    Job(5, "twelve_pool", "zerg", "KairosJunctionLE", "z_12pool_kj"),
     Job(6, "roach_hydra", "zerg", "AutomatonLE", "z_rh_au"),
 ]
 

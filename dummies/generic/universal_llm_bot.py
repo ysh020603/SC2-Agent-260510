@@ -41,14 +41,11 @@ from SC2_Agent.decision_agent import (
     parse_decision_response,
 )
 from SC2_Agent.execution.scheduler import ExecutionScheduler
+from SC2_Agent.prompt_context import StrategyAutomationProfile
+from SC2_Agent.strategy_registry import require_enabled_strategy
 from SC2_Agent.top_agent import parse_strategy_summary
 
 logger = logging.getLogger("UniversalLLMBot")
-
-class EmptyTactics(BuildOrder):
-    def __init__(self):
-        super().__init__([])
-
 
 class UniversalLLMBot(KnowledgeBot):
     """Single-decision-agent macro runtime."""
@@ -78,6 +75,8 @@ class UniversalLLMBot(KnowledgeBot):
 
         self.selected_strategy: Optional[str] = None
         self.strategy_summary: str = ""
+        self.strategy_automation_context: str = ""
+        self.strategy_enemy_race: str = ""
 
         self.scheduler: Optional[ExecutionScheduler] = None
         self._last_decision_time = -self.decision_interval_seconds
@@ -172,6 +171,7 @@ class UniversalLLMBot(KnowledgeBot):
         return race_name
 
     def _apply_forced_strategy(self, name: str) -> None:
+        name = require_enabled_strategy(self.race_name, name)
         target_dir = os.path.join(self._skill_race_dir, name)
         enemy_race = self._strategy_enemy_race_name()
         filename = "Top_agent.md"
@@ -182,8 +182,22 @@ class UniversalLLMBot(KnowledgeBot):
             summary = parse_strategy_summary(handle.read())
         if not summary:
             raise ValueError(f"Strategy summary is empty: {path}")
+        module_path = f"SKILL.{self.race_name}.{name}.strategy_tools"
+        module = importlib.import_module(module_path)
+        profile = getattr(module, "AUTOMATION_PROFILE", None)
+        if not isinstance(profile, StrategyAutomationProfile):
+            raise ValueError(
+                f"Enabled strategy must export AUTOMATION_PROFILE: {module_path}"
+            )
+        if profile.race != self.race_name or profile.strategy != name:
+            raise ValueError(
+                f"Automation profile identity mismatch in {module_path}: "
+                f"{profile.race}/{profile.strategy}"
+            )
         self.selected_strategy = name
         self.strategy_summary = summary
+        self.strategy_automation_context = profile.render()
+        self.strategy_enemy_race = enemy_race
         self._llm_infer_emit(
             f">>> STRATEGY: forced '{name}' vs {enemy_race} from {filename} "
             f"(summary={len(summary)} chars)"
@@ -199,6 +213,7 @@ class UniversalLLMBot(KnowledgeBot):
                     "selected_strategy": name,
                     "strategy_file": filename,
                     "strategy_summary": summary,
+                    "automation_profile": self.strategy_automation_context,
                 },
             }
         )
@@ -248,6 +263,12 @@ class UniversalLLMBot(KnowledgeBot):
                 canonical_unit_names=race_unit_names(self.race_name),
                 canonical_upgrade_names=race_upgrade_names(self.race_name),
                 race_context=race_prompt_context(self.race_name),
+                strategy_automation_context=self.strategy_automation_context,
+                decision_cycle=self._decision_cycle_count,
+                trigger_reason=trigger_reason,
+                game_time_seconds=game_time,
+                decision_interval_seconds=self.decision_interval_seconds,
+                enemy_race=self.strategy_enemy_race,
             )
             api_result = call_openai_detailed(
                 messages=messages,
@@ -515,16 +536,16 @@ class UniversalLLMBot(KnowledgeBot):
         )
 
     def _load_strategy_tools(self) -> BuildOrder:
-        if self.selected_strategy:
-            module_path = (
-                f"SKILL.{self.race_name}.{self.selected_strategy}.strategy_tools"
+        if not self.selected_strategy:
+            raise RuntimeError("Strategy tools requested before strategy selection.")
+        module_path = f"SKILL.{self.race_name}.{self.selected_strategy}.strategy_tools"
+        tactics = self._instantiate_tactics_from_module(module_path)
+        if tactics is None:
+            raise RuntimeError(
+                f"Enabled strategy tools failed to load: {module_path}"
             )
-            tactics = self._instantiate_tactics_from_module(module_path)
-            if tactics is not None:
-                self._llm_infer_emit(f"    [StrategyTools] loaded from {module_path}")
-                return tactics
-        logger.warning("No strategy tool package found; using EmptyTactics.")
-        return EmptyTactics()
+        self._llm_infer_emit(f"    [StrategyTools] loaded from {module_path}")
+        return tactics
 
     @staticmethod
     def _instantiate_tactics_from_module(module_path: str) -> Optional[BuildOrder]:

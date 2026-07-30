@@ -1,27 +1,10 @@
 {
-  "_comment": "Terran strategies available for fixed --force-strategy runs. Every folder contains one opponent-agnostic Top_agent.md.",
+  "_comment": "Enabled representative Terran strategies. Other folders are retained but temporarily disabled.",
   "registered_strategies": [
-    "banshees",
-    "battle_cruisers",
-    "bio",
-    "bio_mine_macro",
-    "blueflame_locks",
-    "cyclones",
     "marine_rush",
-    "old_rusty_anvil",
-    "one_base_turtle",
-    "raven_liberator_tank",
-    "raven_screams",
-    "rusty",
-    "rusty_bio_mines",
-    "safe_211_mine",
-    "safe_tvt_raven",
-    "stim_rush_relay",
-    "tank_thor_mech",
-    "terran_silver_bio",
-    "three_rax_stim",
+    "bio",
+    "blueflame_locks",
     "two_base_matrix_tanks",
-    "two_base_tanks",
     "yamato_rust_fleet"
   ]
 }

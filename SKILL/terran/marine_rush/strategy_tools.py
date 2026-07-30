@@ -30,6 +30,17 @@ from sharpy.plans.tactics.terran import (
     PlanZoneGatherTerran,
     ScanEnemy,
 )
+from SC2_Agent.prompt_context import terran_automation_profile
+
+
+AUTOMATION_PROFILE = terran_automation_profile(
+    strategy="marine_rush",
+    attack_threshold=3,
+    special_behaviors=(
+        "If force fields block our own main ramp during an attack, the attack "
+        "controller briefly retreats toward the natural instead of feeding units.",
+    ),
+)
 
 
 class DodgeRampAttack(PlanZoneAttack):
@@ -61,7 +72,7 @@ class DodgeRampAttack(PlanZoneAttack):
 class MarineRushStrategyTools(BuildOrder):
     """Marine-rush strategy tools that do not spend minerals, gas, or supply."""
 
-    def __init__(self, attack_value: int = 3):
+    def __init__(self, attack_value: int = AUTOMATION_PROFILE.attack_threshold):
         super().__init__(
             SequentialList([
                 MineOpenBlockedBase(),

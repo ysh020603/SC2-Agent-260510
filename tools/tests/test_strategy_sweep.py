@@ -31,6 +31,31 @@ def test_strategy_sweep_rejects_cross_race_strategy_mistakes():
         )
 
 
+def test_strategy_sweep_rejects_existing_but_disabled_strategy():
+    with pytest.raises(ValueError, match="terran/battle_cruisers"):
+        _jobs(
+            ["battle_cruisers"],
+            ["KairosJunctionLE"],
+            ["terran"],
+            ["protoss"],
+            ["easy"],
+            1,
+        )
+
+
+def test_enabled_sweep_expands_to_five_strategies_per_race():
+    jobs = _jobs(
+        ["enabled"],
+        ["KairosJunctionLE"],
+        ["terran", "protoss", "zerg"],
+        ["terran"],
+        ["easy"],
+        1,
+    )
+    assert len(jobs) == 15
+    assert {job.bot_race for job in jobs} == {"terran", "protoss", "zerg"}
+
+
 def test_strategy_sweep_does_not_inject_linux_sc2_path_on_windows(
     monkeypatch,
 ):

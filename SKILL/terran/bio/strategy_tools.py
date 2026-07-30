@@ -22,12 +22,19 @@ from sharpy.plans.tactics.terran import (
     PlanZoneGatherTerran,
     ScanEnemy,
 )
+from SC2_Agent.prompt_context import terran_automation_profile
+
+
+AUTOMATION_PROFILE = terran_automation_profile(
+    strategy="bio",
+    attack_threshold=26,
+)
 
 
 class BioStrategyTools(BuildOrder):
     """Bio strategy tools that do not spend minerals, gas, or supply."""
 
-    def __init__(self, attack_value: int = 26):
+    def __init__(self, attack_value: int = AUTOMATION_PROFILE.attack_threshold):
         super().__init__(
             SequentialList([
                 MineOpenBlockedBase(),

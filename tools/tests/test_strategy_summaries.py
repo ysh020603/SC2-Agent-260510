@@ -4,6 +4,8 @@ from pathlib import Path
 
 from sc2.ids.unit_typeid import UnitTypeId
 
+from dummies.generic.universal_llm_bot import UniversalLLMBot
+from SC2_Agent.prompt_context import StrategyAutomationProfile
 from SC2_Agent.top_agent import parse_strategy_summary
 from sharpy.plans.build_step import Step
 from sharpy.plans.require import UnitReady
@@ -53,6 +55,67 @@ def test_every_registered_strategy_tools_module_imports():
                 if isinstance(getattr(module, name), type)
             )
             assert has_factory or has_strategy_class
+            profile = getattr(module, "AUTOMATION_PROFILE", None)
+            assert isinstance(profile, StrategyAutomationProfile)
+            assert profile.race == race
+            assert profile.strategy == strategy
+            rendered = profile.render()
+            assert str(profile.attack_threshold) in rendered
+            assert "Defense:" in rendered
+            assert "Scouting:" in rendered
+
+
+def test_only_the_fifteen_representative_strategies_are_enabled():
+    assert _registered_strategies("terran") == [
+        "marine_rush",
+        "bio",
+        "blueflame_locks",
+        "two_base_matrix_tanks",
+        "yamato_rust_fleet",
+    ]
+    assert _registered_strategies("protoss") == [
+        "four_gate",
+        "dark_templar_rush",
+        "robo",
+        "voidray",
+        "macro_stalkers",
+    ]
+    assert _registered_strategies("zerg") == [
+        "twelve_pool",
+        "macro_roach",
+        "roach_hydra",
+        "lurkers",
+        "mutalisk",
+    ]
+
+
+def _walk_plan(value, seen=None):
+    seen = seen or set()
+    if value is None or id(value) in seen:
+        return
+    seen.add(id(value))
+    yield value
+    orders = getattr(value, "orders", None)
+    if isinstance(orders, (list, tuple)):
+        for child in orders:
+            yield from _walk_plan(child, seen)
+    elif orders is not None:
+        yield from _walk_plan(orders, seen)
+    yield from _walk_plan(getattr(value, "action", None), seen)
+
+
+def test_automation_profile_attack_threshold_matches_runtime_plan():
+    for race in ("terran", "protoss", "zerg"):
+        for strategy in _registered_strategies(race):
+            module_name = f"SKILL.{race}.{strategy}.strategy_tools"
+            module = __import__(module_name, fromlist=["AUTOMATION_PROFILE"])
+            profile = module.AUTOMATION_PROFILE
+            plan = UniversalLLMBot._instantiate_tactics_from_module(module_name)
+            attacks = [
+                item for item in _walk_plan(plan) if isinstance(item, PlanZoneAttack)
+            ]
+            assert len(attacks) == 1
+            assert attacks[0].start_attack_power == profile.attack_threshold
 
 
 def test_lurker_strategy_waits_for_real_lurkers_before_attacking():

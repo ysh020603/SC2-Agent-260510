@@ -29,12 +29,24 @@ from sharpy.plans.tactics.terran import (
     PlanZoneGatherTerran,
     ScanEnemy,
 )
+from SC2_Agent.prompt_context import terran_automation_profile
+
+
+AUTOMATION_PROFILE = terran_automation_profile(
+    strategy="two_base_matrix_tanks",
+    attack_threshold=60,
+    attack_gate=(
+        "The attack is additionally gated until either Stimpack is at least "
+        "90% complete with 4 SiegeTanks and 1 Raven existing/include pending, "
+        "or 6 SiegeTanks exist/include pending after 9:00."
+    ),
+)
 
 
 class TwoBaseMatrixTanksStrategyTools(BuildOrder):
     """Two-base matrix tank tools that do not spend minerals, gas, or supply."""
 
-    def __init__(self, attack_value: int = 60):
+    def __init__(self, attack_value: int = AUTOMATION_PROFILE.attack_threshold):
         super().__init__(
             SequentialList([
                 MineOpenBlockedBase(),

@@ -15,6 +15,7 @@
 
 | ID | 日期 | 状态 | 范围 | 摘要 |
 |---|---|---|---|---|
+| SC2-034 | 2026-07-30 | FIXED | 分层 Prompt / 策略上下文 | DeepSeek 缩写升级名并把自动 WarpGate morph 当成宏任务 |
 | SC2-033 | 2026-07-30 | FIXED | Expand/BuildGas 生命周期 | Act 已发 worker command 但返回 False，队列替换会丢失未落地建筑的重试所有者 |
 | SC2-032 | 2026-07-30 | FIXED | Terran 直接建造 | direct-build 把 SCV en-route order 当作 DONE，工人中断后无法重试 |
 | SC2-031 | 2026-07-30 | FIXED | 建筑提交边界 | worker en-route order 被当作 DONE，订单中断后建筑永远不形成 |
@@ -617,6 +618,54 @@
   为空，终局真实存在 2 座 Hatchery。unknown/unmapped/abandoned/NO_POS/error
   均为 0。最终最新代码的 `optengine_t741`、`optengine_p742`、
   `optengine_z745` 三族高频回归也均无 execution flag。
+
+### SC2-034：分层 Prompt 中 canonical 名称与自动托管边界
+
+- 日期：2026-07-30
+- 状态：FIXED
+- 环境：Easy Terran，KairosJunctionLE，15 个代表策略各 360 秒上限；
+  `Kimi-k2.5` batch `promptv2_kimi_20260730`，
+  `DeepSeek-V4-flash_think` batch `promptv2_deepseek_think_20260730`。
+- 现象：两个模型共 247 次真实对局决策都能解析并执行，且无 traceback、
+  decision exception、engine rejected、stuck abandon 或落点失败；但 DeepSeek
+  有 3 次命名偏差：`InfantryWeaponsLevel1`、`CorvidReactor`，以及同一队列
+  4 个 `WarpGate`。这些项被严格 catalog 丢弃，没有通过模糊别名兜底。
+- 根因：
+  1. `two_base_matrix_tanks/Top_agent.md` 使用旧的 `CorvidReactor`，而当前
+     canonical 名是 `RavenCorvidReactor`。
+  2. `four_gate/Top_agent.md` 要求“Convert ... to WarpGates”，与
+     `MorphWarpGates` 自动托管边界冲突。
+  3. 通用输出契约虽提供完整 canonical 列表，但没有要求返回前逐字复核，thinking
+     模型仍会凭游戏记忆缩写升级名。
+- 修复：
+  1. Prompt 分成职责边界、决策生命周期、队列提交语义、种族机制、经济规则、
+     策略目标、自动托管行为、观测字段说明、允许输出和 JSON 合约十部分。
+  2. 每次用户消息明确提供 cycle、trigger、游戏时间、60 秒周期、敌方种族、
+     fresh observation 和仅未提交队列；说明 queue-drained 最短 5 秒提前触发。
+  3. 三族各自增加整体机制、优势、代价和宏观决策含义；说明 en route、active
+     queues、ideal workers、army supply、power、enemy memory 和 completed
+     research 等字段。
+  4. 15 个策略各导出同源 `AUTOMATION_PROFILE`，真实战术构造和 prompt 共同
+     使用其中攻击阈值；其余策略只保留目录并从 Registry/运行入口禁用。
+  5. 修正 `RavenCorvidReactor` 与 four-gate 摘要，明确 WarpGate morph、
+     Chrono、侦察、攻击、防御、微操和位置均由脚本托管；模型返回前必须把每个
+     名称与可见 canonical 列表逐字比较。
+- 自动化测试：`python -m pytest tools\tests -q` 为 75 passed；新增测试覆盖
+  15 策略白名单、禁用策略拒绝、Profile 身份和 Profile 攻击阈值与真实
+  `PlanZoneAttack.start_attack_power` 一致。
+- 无引擎模型复测：修正后运行 `tools/probe_prompt_matrix.py`，Kimi 15/15、
+  DeepSeek thinking 15/15 均为 parsed，unknown=0、unmapped=0、provider
+  error=0。结果位于被 Git 忽略的
+  `game_records/prompt_probes/promptv2_current_*.json`。
+- SC2 复测：batch `promptv2_postfix_20260730`：
+  DeepSeek `two_base_matrix_tanks`、DeepSeek `four_gate` 和 Kimi
+  `twelve_pool` 各 180 秒，三场均 unknown=0、unmapped=0、interaction
+  error=0、traceback=0；twelve-pool 按 power=3、阈值=2 正常触发自动攻击。
+- 跨模型/种族结果：原 30 场短局全部首次生成有效记录；Kimi 的 marine-rush、
+  four-gate、dark-templar、voidray、twelve-pool，以及 DeepSeek 的
+  marine-rush、four-gate、robo、voidray、twelve-pool 均出现真实
+  `Attack started`。高阈值或附加门槛策略在 360 秒内未进攻符合配置，不应通过
+  降低阈值伪造覆盖。
 
 ## 新异常模板
 

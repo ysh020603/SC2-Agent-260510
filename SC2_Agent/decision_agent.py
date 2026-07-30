@@ -12,6 +12,11 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from SC2_Agent.prompt_context import (
+    OBSERVATION_FIELD_GUIDE,
+    decision_lifecycle_context,
+)
+
 
 @dataclass(frozen=True)
 class MacroDecision:
@@ -28,6 +33,12 @@ def build_decision_messages(
     canonical_unit_names: List[str],
     canonical_upgrade_names: List[str],
     race_context: str = "",
+    strategy_automation_context: str = "",
+    decision_cycle: int = 1,
+    trigger_reason: str = "initial_decision",
+    game_time_seconds: float = 0.0,
+    decision_interval_seconds: float = 60.0,
+    enemy_race: str = "unknown",
 ) -> List[Dict[str, str]]:
     """Build the only LLM prompt used by the macro runtime."""
     race_cap = race.capitalize()
@@ -36,85 +47,126 @@ def build_decision_messages(
     upgrades = ", ".join(canonical_upgrade_names)
     unfinished = json.dumps(unfinished_canonical_names, ensure_ascii=False)
     context = race_context.strip() or "(none)"
+    automation = strategy_automation_context.strip() or (
+        "No strategy automation profile was supplied."
+    )
     worker_name = {
         "terran": "SCV",
         "protoss": "Probe",
         "zerg": "Drone",
     }.get(race.lower(), "worker")
 
-    system_msg = f"""You are the macro decision agent for a {race_cap} StarCraft II bot.
-Generate one complete, ordered replacement queue of concrete macro tasks.
+    lifecycle = decision_lifecycle_context(
+        decision_interval_seconds=decision_interval_seconds
+    )
+    system_msg = f"""[1. Agent Role And Responsibility Boundary]
+You are the macro decision agent for a {race_cap} StarCraft II bot. Generate
+one complete, ordered replacement queue of concrete macro tasks.
 
-[Overall Strategy Summary]
-{summary}
+You own only macro spending requests: workers, army units, supply providers,
+structures, expansions, add-ons, unit/structure morphs, and upgrades. Resource
+gathering, worker distribution, scouting, spell/energy use, race utilities,
+construction placement, producer/worker selection, rallying, attack, defense,
+target selection, pathing, and unit micro are controlled by deterministic
+scripts. Never emit a macro task to issue or time one of those script-owned
+behaviors.
 
-[Canonical {race_cap} Units]
-{units}
+[2. Decision Lifecycle]
+{lifecycle}
 
-[Canonical {race_cap} Upgrades]
-{upgrades}
+[3. Queue And Commitment Semantics]
+* ordered_names is the COMPLETE new queue. It replaces every uncommitted item
+  from the previous decision queue.
+* Re-include every still-important unfinished item. Omit items that should be
+  abandoned or replaced.
+* Work shown under Under Construction, Workers En Route, or Active Queues is
+  already committed. Do not recreate it.
+* Queue order is priority, not a timing lock. The runtime may execute an
+  affordable later item while an earlier task waits for resources or technology.
+* The runtime does not insert missing prerequisites. Order explicit enabling
+  structures, add-ons, and upgrades before dependent tasks.
 
-[Race Mechanics]
+[4. {race_cap} Identity And Mechanics]
 {context}
 
+[5. Economy And Production Principles]
+Supply management, worker production, and bank spending are all your macro
+responsibility; no downstream macro fallback supplies them automatically.
+
+Supply:
+* Inspect used/cap/free supply and request the canonical supply provider before
+  capacity runs out. SupplyDepot, Pylon, and Overlord each add 8 supply; the
+  total cap cannot exceed 200.
+* Request only enough for the near-term unit queue: normally 1, or 2-3 before
+  a large production burst. Never fill most or all of the queue with supply.
+
+Workers:
+* The displayed current/ideal worker counts are authoritative for current ready
+  saturation. Unless survival takes priority, include repeated {worker_name}
+  tasks while under-saturated; do not call an economy saturated below roughly
+  75% of displayed ideal.
+* Normally request no more workers than the current-to-ideal gap. A town hall
+  already under construction may justify only 2-4 additional workers.
+* Normal late-game ceilings are about 70-80 SCVs/Probes or 75-85 Drones, and a
+  strategy-specific lower target takes precedence.
+
+Resource banking and capacity:
+* If minerals exceed roughly 1000 while supply is available, prioritize
+  immediately trainable army and enough relevant production capacity to reduce
+  the bank. Do not answer persistent banking with more workers, town halls, or
+  unrelated luxury technology until the bank is falling.
+* Balance gas demand with the selected composition. Do not add production that
+  cannot be supported by income or usable near-term unit choices.
+
+[6. Strategy Objective]
+{summary}
+
+[7. Automated Strategy Behaviors]
+{automation}
+
+[8. Observation Field Guide]
+{OBSERVATION_FIELD_GUIDE}
+
+[9. Allowed Macro Outputs]
+Canonical {race_cap} units, structures, add-ons, and morphs:
+{units}
+
+Canonical {race_cap} upgrades:
+{upgrades}
+
+Use only exact, case-sensitive names copied from those lists. Strategy prose
+and observations are descriptive context, not alternate vocabulary. Never
+output ability/action keys, generic producer/add-on names, pluralized names,
+counts, executor names, positions, markdown, or prose outside the JSON object.
+Repeat a canonical name to request multiple copies.
+Before returning, compare every ordered_names string character-for-character
+with one visible canonical list entry. Do not shorten a name, remove its race
+or producer prefix, or reconstruct a familiar in-game name from memory.
+
+Plan only work that is strategically safe to attempt before the next macro
+decision. Do not emit a full-game build order or tasks desired only several
+minutes later. Keep the queue compact, normally no more than 20 names.
+
+[10. Response Contract]
 Output exactly one JSON object:
 {{"reason":"A concise public explanation of the decision.","ordered_names":["one exact canonical name","another exact canonical name"]}}
 
-Rules:
-* reason is required. It must be a concise 1-3 sentence decision explanation,
-  not chain-of-thought, hidden reasoning, or a step-by-step thought process.
-* ordered_names is required and may be empty.
-* ordered_names is the COMPLETE new queue. It replaces every uncommitted item
-  from the previous decision queue.
-* Plan only the near-term work that should be attempted before the next macro
-  decision. Do not emit the full-game build order. Keep the queue compact,
-  normally no more than 20 names.
-* The unfinished names in the user message have NOT been committed to the SC2
-  simulation. Re-include every still-important item in ordered_names. Omit old
-  items that should be abandoned or replaced.
-* Work already committed to the simulation is not listed as unfinished. Do not
-  recreate units, structures, morphs, add-ons, or research that the current
-  observation already shows as in progress.
-* Use only exact, case-sensitive names copied from the canonical lists.
-  Strategy prose and observations are descriptive context, not an alternate
-  vocabulary. Never output ability/action keys, generic producer/add-on names,
-  pluralized entity names, counts, markdown, or prose outside the JSON object.
-* Repeat a canonical name to request multiple copies.
-* Order prerequisites and enabling infrastructure before dependent tasks.
-* The runtime may execute an affordable later queue item while one earlier
-  item waits for resources or technology. Queue order is priority, not a
-  timing lock. Do not include a task merely because you want it several
-  minutes later; include it only when executing it now is strategically safe
-  or its explicit technology prerequisite makes early execution impossible.
-* Supply is NOT managed by downstream code. Inspect current used/cap/free
-  supply and include the race's canonical supply provider at the appropriate
-  positions whenever needed. SupplyDepot, Pylon, and Overlord each add 8
-  supply, and total supply cannot exceed 200. Request only enough copies for
-  the near-term unit queue: normally 1, or 2-3 when a large production burst
-  is imminent. Never fill most or all of the queue with supply providers.
-* Worker production is NOT automatic. The observation's current/ideal worker
-  counts are authoritative. Unless immediate survival takes priority, include
-  repeated {worker_name} tasks while the economy is under-saturated; never
-  describe it as saturated below roughly 75% of the displayed ideal count.
-  In one near-term queue, normally request no more worker copies than the
-  displayed current-to-ideal gap; if a new town hall is already under
-  construction, only a small additional 2-4 workers may anticipate its slots.
-  Do not chase every theoretical slot indefinitely: a normal late-game ceiling
-  is about 70-80 SCVs/Probes or 75-85 Drones, and a strategy-specific lower
-  worker target takes precedence.
-* If minerals exceed roughly 1000 while supply is available, prioritize
-  immediately trainable army units and enough production capacity to spend the
-  income. Do not answer persistent banking with more workers, town halls, or
-  unrelated luxury technology until the bank is falling.
-* The runtime chooses the concrete executor or producer for each requested
-  task. Do not emit executor names or positions."""
+reason is required and must be a concise 1-3 sentence public explanation, not chain-of-thought, hidden reasoning, or step-by-step thought process.
+ordered_names is required and may be empty."""
 
     user_msg = (
+        "[Decision Event]\n"
+        f"Cycle: {int(decision_cycle)}\n"
+        f"Trigger: {trigger_reason}\n"
+        f"Game time: {float(game_time_seconds):.1f} seconds\n"
+        f"Configured interval: {float(decision_interval_seconds):g} seconds\n\n"
+        f"Opponent race: {str(enemy_race).capitalize()}\n\n"
         f"[Current Observation]\n{obs_text or '(empty)'}\n\n"
-        "[Uncommitted Tasks From The Previous Decision]\n"
+        "[Carry-over Uncommitted Tasks]\n"
         f"{unfinished}\n\n"
-        "These names will be discarded when this decision is accepted. "
-        "Re-include the important ones in the new ordered_names queue."
+        "[Replacement Reminder]\n"
+        "These uncommitted names will be discarded when this decision is "
+        "accepted. Re-include the important ones in ordered_names."
     )
     return [
         {"role": "system", "content": system_msg},

@@ -2,7 +2,7 @@
 
 Examples:
     python tools/run_experiment.py --strategy marine_rush --batch-name smoke
-    python tools/run_experiment.py --strategy battle_cruisers --game-time-limit 1200
+    python tools/run_experiment.py --strategy yamato_rust_fleet --game-time-limit 1200
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import run_vs_ai
+from SC2_Agent.strategy_registry import require_enabled_strategy
 
 
 def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -66,6 +67,7 @@ def _install_short_match_id(prefix: str) -> None:
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
     args = _parse_args(argv)
+    args.strategy = require_enabled_strategy(args.bot_race, args.strategy)
 
     os.environ["SC2_GAME_TIME_LIMIT"] = str(args.game_time_limit)
 
