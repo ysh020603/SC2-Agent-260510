@@ -24,6 +24,7 @@ class PlanCancelBuilding(ActBase):
         self.previous_units_manager = knowledge.get_required_manager(IPreviousUnitsManager)
 
     async def execute(self) -> bool:
+        at_risk = []
         for building in self.ai.structures:  # type: Unit
             # Do not auto-cancel townhalls. In the LLM macro pipeline this caused
             # repeated "expand -> cancel damaged CC -> expand again" loops under
@@ -32,10 +33,30 @@ class PlanCancelBuilding(ActBase):
                 continue
             if 1 > building.build_progress > 0:
                 if self.building_going_down(building):
-                    self.print(
-                        f"Cancelled {building.type_id.name} at {building.position} with {building.health} health"
-                    )
-                    building(AbilityId.CANCEL_BUILDINPROGRESS)
+                    at_risk.append(building)
+
+        if not at_risk:
+            return True
+
+        # Some engine structures report 0 < build_progress < 1 but are not
+        # cancellable construction jobs (notably a growing CreepTumor). Do
+        # not infer command validity from build_progress: use SC2's live
+        # available-ability surface before issuing the cancel.
+        try:
+            abilities_by_building = await self.ai.get_available_abilities(
+                at_risk,
+                ignore_resource_requirements=True,
+            )
+        except Exception:
+            return True
+
+        for building, abilities in zip(at_risk, abilities_by_building):
+            if AbilityId.CANCEL_BUILDINPROGRESS not in abilities:
+                continue
+            self.print(
+                f"Cancelled {building.type_id.name} at {building.position} with {building.health} health"
+            )
+            building(AbilityId.CANCEL_BUILDINPROGRESS)
         return True
 
     def building_going_down(self, building: Unit) -> bool:

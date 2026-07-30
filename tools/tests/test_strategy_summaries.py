@@ -2,7 +2,12 @@ import importlib.util
 import json
 from pathlib import Path
 
+from sc2.ids.unit_typeid import UnitTypeId
+
 from SC2_Agent.top_agent import parse_strategy_summary
+from sharpy.plans.build_step import Step
+from sharpy.plans.require import UnitReady
+from sharpy.plans.tactics import PlanZoneAttack
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,3 +53,17 @@ def test_every_registered_strategy_tools_module_imports():
                 if isinstance(getattr(module, name), type)
             )
             assert has_factory or has_strategy_class
+
+
+def test_lurker_strategy_waits_for_real_lurkers_before_attacking():
+    from SKILL.zerg.lurkers.strategy_tools import create_strategy_tools
+
+    build_order = create_strategy_tools()
+    tactics = build_order.orders[0].orders
+    attack_step = tactics[-2]
+
+    assert isinstance(attack_step, Step)
+    assert isinstance(attack_step.requirement, UnitReady)
+    assert attack_step.requirement.unit_type == UnitTypeId.LURKERMP
+    assert attack_step.requirement.count == 2
+    assert isinstance(attack_step.action, PlanZoneAttack)

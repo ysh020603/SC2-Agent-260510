@@ -20,6 +20,7 @@ from dummies.zerg.worker_rush import WorkerAttack
 def make_zerg_strategy_tools(
     *,
     attack_value: int = 20,
+    attack_requirement=None,
     worker_rush: bool = False,
     spread_creep: bool = True,
 ) -> BuildOrder:
@@ -41,12 +42,10 @@ def make_zerg_strategy_tools(
     )
     if worker_rush:
         tactics.append(WorkerAttack())
-    tactics.extend(
-        [
-            PlanZoneAttack(attack_value),
-            PlanFinishEnemy(),
-        ]
-    )
+    attack = PlanZoneAttack(attack_value)
+    if attack_requirement is not None:
+        attack = Step(attack_requirement, attack)
+    tactics.extend([attack, PlanFinishEnemy()])
     return BuildOrder(SequentialList(tactics))
 
 

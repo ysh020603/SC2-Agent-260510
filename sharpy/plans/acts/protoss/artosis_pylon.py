@@ -11,7 +11,7 @@ class ArtosisPylon(GridBuilding):
     def __init__(self, to_count: int, iterator: Optional[int] = None, priority: bool = False):
         super().__init__(UnitTypeId.PYLON, to_count, iterator, priority, False)
 
-    def position_protoss(self, count) -> Optional[Point2]:
+    async def position_protoss(self, count) -> Optional[Point2]:
         best_position = None
         buildings = self.knowledge.ai.structures
         best_count = 0

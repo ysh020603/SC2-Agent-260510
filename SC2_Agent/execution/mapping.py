@@ -67,6 +67,11 @@ def upgrade_for(entity_name: str) -> Optional[UpgradeId]:
 
 def category_for(action_name: str, *, execution_mode: str = "") -> str:
     """Classify a canonical action name into one of the five categories."""
+    upper = action_name.upper()
+    if execution_mode == "addon" or upper.startswith(
+        ("BUILD_TECHLAB", "BUILD_REACTOR")
+    ):
+        return CAT_ADDON
     if execution_mode in {"train", "warp_in"}:
         return CAT_TRAIN
     if execution_mode in {"morph", "paired_morph"}:
@@ -75,9 +80,6 @@ def category_for(action_name: str, *, execution_mode: str = "") -> str:
         return CAT_RESEARCH
     if execution_mode in {"expand", "gas", "worker_build"}:
         return CAT_BUILD
-    upper = action_name.upper()
-    if upper.startswith("BUILD_TECHLAB") or upper.startswith("BUILD_REACTOR"):
-        return CAT_ADDON
 
     info = cost_for_action(action_name)
     target_kind = (info.get("target_kind") or "")

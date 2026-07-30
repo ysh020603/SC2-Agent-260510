@@ -197,11 +197,11 @@ class GridBuilding(ActBuilding):
             return True  # Building is ordered / done
 
         if self.knowledge.my_race == Race.Protoss:
-            position = self.position_protoss(count)
+            position = await self.position_protoss(count)
         elif self.knowledge.my_race == Race.Terran:
             position = await self.position_terran(count)
         else:
-            position = self.position_zerg(count)
+            position = await self.position_zerg(count)
 
         if position is None:
             if self.make_pylon is not None:
@@ -333,40 +333,152 @@ class GridBuilding(ActBuilding):
             self.roles.clear_task(self.builder_tag)
             self.builder_tag = None
 
-    def position_protoss(self, count) -> Optional[Point2]:
+    async def position_protoss(self, count) -> Optional[Point2]:
         is_pylon = self.unit_type == UnitTypeId.PYLON
         buildings = self.ai.structures
         matrix = self.ai.state.psionic_matrix
-        future_position = None
+        en_route_positions = self._en_route_build_positions()
 
         iterator = self.get_iterator(is_pylon, count)
 
         if is_pylon:
             for point in self.building_solver.buildings2x2[::iterator]:
-                if not buildings.closer_than(1, point):
+                if (
+                    not buildings.closer_than(1, point)
+                    and not any(point.distance_to(target) < 1 for target in en_route_positions)
+                    and not self._position_reserved_this_frame(point)
+                    and await self.ai.can_place_single(self.unit_type, point)
+                ):
                     return point
         else:
-            pylons = self.cache.own(UnitTypeId.PYLON).not_ready
             for point in self.building_solver.buildings3x3[::iterator]:
                 if not self.allow_wall:
                     if point in self.building_solver.wall3x3:
                         continue
-                if not buildings.closer_than(1, point) and matrix.covers(point):
+                if (
+                    not buildings.closer_than(1, point)
+                    and not any(point.distance_to(target) < 1 for target in en_route_positions)
+                    and not self._position_reserved_this_frame(point)
+                    and matrix.covers(point)
+                    and await self.ai.can_place_single(self.unit_type, point)
+                ):
                     return point
 
-                if future_position is None and pylons and point.distance_to_closest(pylons) <= 7:
-                    future_position = point
+        # The static solver intentionally covers only the first three zones.
+        # Long macro games can consume those slots.  Search the live SC2
+        # placement grid around completed bases/Pylons so later production is
+        # placed at actually owned, powered expansions instead of becoming a
+        # permanently stuck action.
+        if is_pylon:
+            anchors = list(self.ai.townhalls.ready) + list(
+                self.cache.own(UnitTypeId.PYLON).ready
+            )
+            for anchor in sorted(anchors, key=lambda unit: unit.tag):
+                position = await self.ai.find_placement(
+                    self.unit_type,
+                    anchor.position,
+                    max_distance=14,
+                    random_alternative=False,
+                    placement_step=1,
+                )
+                if (
+                    position is not None
+                    and not self._position_reserved_this_frame(position)
+                    and not any(
+                        position.distance_to(target) < 1
+                        for target in en_route_positions
+                    )
+                ):
+                    return position
+        else:
+            pylons = sorted(
+                self.cache.own(UnitTypeId.PYLON).ready,
+                key=lambda unit: unit.tag,
+            )
+            for pylon in pylons:
+                position = await self.ai.find_placement(
+                    self.unit_type,
+                    pylon.position,
+                    max_distance=7,
+                    random_alternative=False,
+                    placement_step=1,
+                )
+                if (
+                    position is not None
+                    and matrix.covers(position)
+                    and not self._position_reserved_this_frame(position)
+                    and not any(
+                        position.distance_to(target) < 1
+                        for target in en_route_positions
+                    )
+                ):
+                    return position
 
-        return future_position
+        return None
 
-    def position_zerg(self, count) -> Optional[Point2]:
+    def _en_route_build_positions(self) -> List[Point2]:
+        try:
+            creation_ability_id = self.ai._game_data.units[
+                self.unit_type.value
+            ].creation_ability.id
+        except Exception:
+            return []
+
+        positions: List[Point2] = []
+        for worker in self.ai.workers:
+            for order in worker.orders:
+                if order.ability.id != creation_ability_id:
+                    continue
+                if isinstance(order.target, int):
+                    break
+                try:
+                    positions.append(Point2.from_proto(order.target))
+                except Exception:
+                    pass
+                break
+        return positions
+
+    async def position_zerg(self, count) -> Optional[Point2]:
         buildings = self.ai.structures
         creep = self.ai.state.creep
         future_position = None
 
         for point in self.building_solver.buildings3x3:
-            if not buildings.closer_than(1, point) and self.is_on_creep(creep, point):
+            if (
+                not buildings.closer_than(1, point)
+                and not self._position_reserved_this_frame(point)
+                and self.is_on_creep(creep, point)
+                and await self.ai.can_place_single(self.unit_type, point)
+            ):
                 return point
+
+        # The static solver covers only a bounded set of early zones. Long
+        # Zerg games can consume every listed creep slot even though later
+        # Hatcheries have ample legal space. Ask SC2 for a deterministic live
+        # placement around each ready base after the static candidates are
+        # exhausted.
+        try:
+            anchors = sorted(self.ai.townhalls.ready, key=lambda unit: unit.tag)
+        except Exception:
+            anchors = []
+        for anchor in anchors:
+            try:
+                position = await self.ai.find_placement(
+                    self.unit_type,
+                    anchor.position,
+                    max_distance=14,
+                    random_alternative=False,
+                    placement_step=1,
+                )
+            except Exception:
+                position = None
+            if (
+                position is not None
+                and not self._position_reserved_this_frame(position)
+                and self.is_on_creep(creep, position)
+                and await self.ai.can_place_single(self.unit_type, position)
+            ):
+                return position
 
         return future_position
 
@@ -397,6 +509,8 @@ class GridBuilding(ActBuilding):
         任一失败则累加失败计数，便于后续帧拉黑并尝试列表中的下一个格子。
         """
         if self._is_position_blacklisted(point):
+            return False
+        if self._position_reserved_this_frame(point):
             return False
 
         if buildings.closer_than(1, point):
@@ -800,20 +914,51 @@ class GridBuilding(ActBuilding):
             worker.build(self.unit_type, position, queue=True)
 
         # TODO: Remake the error handling with frame delay
+        self._reserve_position_this_frame(position)
         worker.build(self.unit_type, position)
         self.actual_placements += 1
 
     async def build_zerg(self, worker: Unit, count, position: Point2):
         # try the selected position first
         # TODO: Remake the error handling with frame delay
+        self._reserve_position_this_frame(position)
         worker.build(self.unit_type, position)
         self.actual_placements += 1
 
     async def build_terran(self, worker: Unit, count, position: Point2):
         # try the selected position first
         # TODO: Remake the error handling with frame delay
+        self._reserve_position_this_frame(position)
         worker.build(self.unit_type, position)
         self.actual_placements += 1
+
+    def _placement_half_size(self) -> float:
+        if self.unit_type in {UnitTypeId.PYLON, UnitTypeId.SUPPLYDEPOT}:
+            return 1.0
+        return 1.5
+
+    def _same_frame_position_reservations(self) -> list[tuple[Point2, float]]:
+        """Placement footprints shared by every GridBuilding in this frame."""
+        try:
+            frame = int(self.ai.state.game_loop)
+        except Exception:
+            frame = float(getattr(self.ai, "time", 0.0))
+        if getattr(self.ai, "_sharpy_build_reservation_frame", None) != frame:
+            self.ai._sharpy_build_reservation_frame = frame
+            self.ai._sharpy_build_position_reservations = []
+        return self.ai._sharpy_build_position_reservations
+
+    def _position_reserved_this_frame(self, point: Point2) -> bool:
+        half_size = self._placement_half_size()
+        return any(
+            self._footprints_overlap(point, half_size, reserved, reserved_half_size)
+            for reserved, reserved_half_size in self._same_frame_position_reservations()
+        )
+
+    def _reserve_position_this_frame(self, point: Point2) -> None:
+        reservations = self._same_frame_position_reservations()
+        if not self._position_reserved_this_frame(point):
+            reservations.append((point, self._placement_half_size()))
 
     def is_on_creep(self, creep: PixelMap, point: Point2) -> bool:
         x_original = floor(point.x) - 1

@@ -69,6 +69,45 @@ _VESPENE_GEYSER_TYPES: Set[UnitTypeId] = {
     UnitTypeId.SHAKURASVESPENEGEYSER,
 }
 
+# Tactical modes and morph cocoons are engine implementation types, not
+# production choices the decision model can issue.  Exposing names such as
+# LIBERATORAG or SUPPLYDEPOTLOWERED in the prompt causes the model to copy
+# them into its next queue, where they are correctly rejected as unknown.
+# Preserve genuinely distinct macro entities (for example race-specific
+# Terran add-ons and OverlordTransport), and only fold non-buildable forms.
+_LLM_VISIBLE_UNIT_TYPE: Dict[UnitTypeId, UnitTypeId] = {
+    # Terran modes.
+    UnitTypeId.SIEGETANKSIEGED: UnitTypeId.SIEGETANK,
+    UnitTypeId.VIKINGASSAULT: UnitTypeId.VIKINGFIGHTER,
+    UnitTypeId.THORAP: UnitTypeId.THOR,
+    UnitTypeId.LIBERATORAG: UnitTypeId.LIBERATOR,
+    UnitTypeId.WIDOWMINEBURROWED: UnitTypeId.WIDOWMINE,
+    UnitTypeId.SUPPLYDEPOTLOWERED: UnitTypeId.SUPPLYDEPOT,
+    # Protoss modes.
+    UnitTypeId.WARPPRISMPHASING: UnitTypeId.WARPPRISM,
+    UnitTypeId.OBSERVERSIEGEMODE: UnitTypeId.OBSERVER,
+    # Zerg burrowed/mobile modes and in-progress morph shells.
+    UnitTypeId.DRONEBURROWED: UnitTypeId.DRONE,
+    UnitTypeId.ZERGLINGBURROWED: UnitTypeId.ZERGLING,
+    UnitTypeId.BANELINGBURROWED: UnitTypeId.BANELING,
+    UnitTypeId.BANELINGCOCOON: UnitTypeId.BANELING,
+    UnitTypeId.ROACHBURROWED: UnitTypeId.ROACH,
+    UnitTypeId.HYDRALISKBURROWED: UnitTypeId.HYDRALISK,
+    UnitTypeId.ULTRALISKBURROWED: UnitTypeId.ULTRALISK,
+    UnitTypeId.OVERLORDCOCOON: UnitTypeId.OVERLORDTRANSPORT,
+    UnitTypeId.RAVAGERCOCOON: UnitTypeId.RAVAGER,
+    UnitTypeId.LURKERMPBURROWED: UnitTypeId.LURKERMP,
+    UnitTypeId.QUEENBURROWED: UnitTypeId.QUEEN,
+    UnitTypeId.INFESTORBURROWED: UnitTypeId.INFESTOR,
+    UnitTypeId.SPINECRAWLERUPROOTED: UnitTypeId.SPINECRAWLER,
+    UnitTypeId.SPORECRAWLERUPROOTED: UnitTypeId.SPORECRAWLER,
+}
+
+
+def llm_visible_unit_name(unit_type: UnitTypeId) -> str:
+    """Return the buildable/canonical-facing name for a live engine type."""
+    return _LLM_VISIBLE_UNIT_TYPE.get(unit_type, unit_type).name
+
 
 class LLMObservationRecorder(ManagerBase):
     """Capture, format and persist LLM-friendly game observations.
@@ -412,21 +451,24 @@ class LLMObservationRecorder(ManagerBase):
             for unit in units:
                 if unit.is_structure:
                     if unit.is_ready:
-                        completed[unit_type.name] = completed.get(unit_type.name, 0) + 1
+                        name = llm_visible_unit_name(unit_type)
+                        completed[name] = completed.get(name, 0) + 1
                     else:
                         # 0 < build_progress < 1: the foundation has been laid.
-                        under_construction[unit_type.name] = (
-                            under_construction.get(unit_type.name, 0) + 1
+                        name = llm_visible_unit_name(unit_type)
+                        under_construction[name] = (
+                            under_construction.get(name, 0) + 1
                         )
                         partial_positions.setdefault(unit_type, []).append(unit.position)
                 else:
                     if unit.is_ready:
-                        completed[unit_type.name] = completed.get(unit_type.name, 0) + 1
+                        name = llm_visible_unit_name(unit_type)
+                        completed[name] = completed.get(name, 0) + 1
                     else:
                         # Non-structure with build_progress < 1: a Zerg unit
                         # currently morphing inside an egg / cocoon. Surface
                         # this as part of the active production queue.
-                        key = f"Training {unit_type.name}"
+                        key = f"Training {llm_visible_unit_name(unit_type)}"
                         active_queues[key] = active_queues.get(key, 0) + 1
 
         # Workers en route: a worker counts as "en route" only if its BUILD_X
@@ -488,8 +530,9 @@ class LLMObservationRecorder(ManagerBase):
                 if any(self._positions_match(target_pos, p) for p in candidates):
                     continue
 
-                workers_en_route[struct_type.name] = (
-                    workers_en_route.get(struct_type.name, 0) + 1
+                struct_name = llm_visible_unit_name(struct_type)
+                workers_en_route[struct_name] = (
+                    workers_en_route.get(struct_name, 0) + 1
                 )
 
         # Active queues from completed production / research buildings. Each
@@ -505,7 +548,7 @@ class LLMObservationRecorder(ManagerBase):
 
                     produced_unit = self._train_ability_to_unit.get(ability_id)
                     if produced_unit is not None:
-                        key = f"Training {produced_unit.name}"
+                        key = f"Training {llm_visible_unit_name(produced_unit)}"
                         active_queues[key] = active_queues.get(key, 0) + 1
                         continue
 

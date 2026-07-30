@@ -65,11 +65,11 @@ class DirectBuildExecutor:
         self._purge_reservations(pa, unit_type, now)
         existing, en_route, fresh = self._owned_progress_counts(pa, unit_type)
         self._refresh_issued_count(pa, existing, en_route, include_fresh=True, fresh=fresh)
-        if existing + en_route >= int(pa._direct_build_target_count or 0):
+        if existing >= int(pa._direct_build_target_count or 0):
             self._finish(pa, unit_type, existing, en_route)
             return True
         if existing + en_route + fresh >= int(pa._direct_build_target_count or 0):
-            self._mark_running(pa, now, "building: waiting for engine confirmation")
+            self._mark_running(pa, now, "building: worker en route, awaiting foundation")
             return True
         return False
 
@@ -86,7 +86,7 @@ class DirectBuildExecutor:
         self._refresh_issued_count(pa, existing, en_route, include_fresh=True)
 
         target = int(pa._direct_build_target_count or 0)
-        if existing + en_route >= target:
+        if existing >= target:
             self._finish(pa, unit_type, existing, en_route)
             return False
 
@@ -95,7 +95,7 @@ class DirectBuildExecutor:
             pa.wait_start_time = None
             if pa.running_start_time is None:
                 pa.running_start_time = now
-            pa.note = "building: waiting for engine confirmation"
+            pa.note = "building: worker en route, awaiting foundation"
             return False
 
         global_existing, global_en_route = self._progress_counts(unit_type)
@@ -117,6 +117,11 @@ class DirectBuildExecutor:
             return False
 
         helper.set_worker(worker)
+        # Participate in GridBuilding's cross-instance footprint reservation
+        # as well as this executor's PA-local confirmation bookkeeping. This
+        # prevents a different building type issued later in the same engine
+        # frame from selecting an overlapping placement.
+        helper._reserve_position_this_frame(position)
         worker.build(unit_type, position)
 
         pa._direct_build_worker_tag = worker.tag
@@ -166,7 +171,7 @@ class DirectBuildExecutor:
         existing, en_route, fresh = self._owned_progress_counts(pa, unit_type)
         target = int(pa._direct_build_target_count or 0)
         progress = existing + en_route + fresh
-        if progress <= 0 or existing + en_route >= target:
+        if progress <= 0 or existing >= target:
             return False
 
         pa.wait_start_time = now
@@ -311,7 +316,7 @@ class DirectBuildExecutor:
     def _finish(self, pa: PlannedAction, unit_type: UnitTypeId, existing: int, en_route: int) -> None:
         pa.state = DONE
         pa.issued_count = int(pa.quantity)
-        pa.note = "done (direct build in flight)"
+        pa.note = "done (direct build foundation confirmed)"
         pa.running_start_time = None
         pa.wait_start_time = None
         pa._direct_build_reserved_positions = []

@@ -27,6 +27,7 @@ class BuildAddon(ActBase):
         self.to_count = to_count
 
         self.tried_to_build_dict: Dict[int, float] = {}
+        self.issued_this_frame = False
 
         super().__init__()
 
@@ -34,6 +35,7 @@ class BuildAddon(ActBase):
         await super().start(knowledge)
 
     async def execute(self) -> bool:
+        self.issued_this_frame = False
         count = self.get_quick_count(self.unit_type)
         if count >= self.to_count:
             return True  # Step is done
@@ -51,7 +53,11 @@ class BuildAddon(ActBase):
 
         builder: Unit
         for builder in self.cache.own(self.unit_from_type).ready.idle:
-            if builder.add_on_tag == 0 and not builder.is_flying:
+            if (
+                builder.add_on_tag == 0
+                and not builder.is_flying
+                and builder.tag not in self.ai.unit_tags_received_action
+            ):
 
                 # if self.tried_to_build_dict.get(builder.tag, 0) + 0.5 > ai.time:
                 # continue # Prevent crashes by only trying to build twice per seconds
@@ -67,6 +73,7 @@ class BuildAddon(ActBase):
                     self.tried_to_build_dict[builder.tag] = self.ai.time
                     self.print(f"{self.unit_type} to {center}")
                     builder.build(self.unit_type)
+                    self.issued_this_frame = True
                     return False
                 else:
                     self.print("no space")

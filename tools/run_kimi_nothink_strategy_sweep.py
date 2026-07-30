@@ -24,6 +24,7 @@ DEFAULT_STRATEGIES = [
     "battle_cruisers",
 ]
 DEFAULT_MAPS = ["KairosJunctionLE", "AutomatonLE", "AbyssalReefLE"]
+DEFAULT_BOT_RACES = ["terran"]
 DEFAULT_ENEMY_RACES = ["protoss", "terran", "zerg"]
 DEFAULT_DIFFICULTIES = ["medium", "mediumhard", "hard", "harder", "veryhard"]
 
@@ -31,6 +32,7 @@ DEFAULT_DIFFICULTIES = ["medium", "mediumhard", "hard", "harder", "veryhard"]
 @dataclass(frozen=True)
 class MatchJob:
     index: int
+    bot_race: str
     strategy: str
     map_name: str
     enemy_race: str
@@ -42,7 +44,7 @@ class MatchJob:
         strategy = self.strategy.replace("_", "")[:10]
         map_part = self.map_name.replace("LE", "")[:6]
         return (
-            f"{strategy}_{map_part}_{self.enemy_race[:1]}"
+            f"{self.bot_race[:1]}_{strategy}_{map_part}_{self.enemy_race[:1]}"
             f"{self.enemy_difficulty[:2]}_r{self.repeat}"
         )
 
@@ -54,25 +56,40 @@ def _csv(value: str) -> List[str]:
 def _jobs(
     strategies: Sequence[str],
     maps: Sequence[str],
-    races: Sequence[str],
+    bot_races: Sequence[str],
+    enemy_races: Sequence[str],
     difficulties: Sequence[str],
     repeats: int,
 ) -> List[MatchJob]:
     result: List[MatchJob] = []
-    for map_name in maps:
-        for race in races:
-            for difficulty in difficulties:
-                for repeat in range(1, repeats + 1):
-                    for strategy in strategies:
-                        result.append(
-                            MatchJob(
-                                index=len(result),
-                                strategy=strategy,
-                                map_name=map_name,
-                                enemy_race=race,
-                                enemy_difficulty=difficulty,
-                                repeat=repeat,
-                            )
+    missing = [
+        f"{bot_race}/{strategy}"
+        for bot_race in bot_races
+        for strategy in strategies
+        if not (ROOT / "SKILL" / bot_race / strategy).is_dir()
+    ]
+    if missing:
+        raise ValueError(
+            "Strategies do not exist for the selected bot race(s): "
+            + ", ".join(missing)
+        )
+
+    for bot_race in bot_races:
+        for map_name in maps:
+            for enemy_race in enemy_races:
+                for difficulty in difficulties:
+                    for repeat in range(1, repeats + 1):
+                        for strategy in strategies:
+                            result.append(
+                                MatchJob(
+                                    index=len(result),
+                                    bot_race=bot_race,
+                                    strategy=strategy,
+                                    map_name=map_name,
+                                    enemy_race=enemy_race,
+                                    enemy_difficulty=difficulty,
+                                    repeat=repeat,
+                                )
                         )
     return result
 
@@ -105,6 +122,18 @@ def _completed(batch_name: str, run_index: int) -> bool:
     )
 
 
+def _child_environment() -> dict[str, str]:
+    env = os.environ.copy()
+    # Linux evaluation hosts use this conventional install path.  Windows
+    # must let python-sc2 discover the registry/default installation; injecting
+    # a POSIX path there makes every child fail before SC2 starts.
+    if os.name != "nt":
+        env.setdefault("SC2PATH", "/data2/SC2/StarCraftII/")
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
 def _run_one(
     job: MatchJob,
     *,
@@ -123,6 +152,8 @@ def _run_one(
         str(ROOT / "tools" / "run_experiment.py"),
         "--strategy",
         job.strategy,
+        "--bot-race",
+        job.bot_race,
         "--batch-name",
         batch_name,
         "--match-prefix",
@@ -144,10 +175,7 @@ def _run_one(
         "--run-index",
         str(job.index),
     ]
-    env = os.environ.copy()
-    env.setdefault("SC2PATH", "/data2/SC2/StarCraftII/")
-    env["PYTHONUTF8"] = "1"
-    env["PYTHONIOENCODING"] = "utf-8"
+    env = _child_environment()
     log_path = log_dir / f"job_{job.index:04d}_{job.match_prefix}.log"
     exit_code = 1
     for attempt in range(1, max(1, max_attempts) + 1):
@@ -184,6 +212,7 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--enemy-build", default="random")
     parser.add_argument("--strategies", default=",".join(DEFAULT_STRATEGIES))
     parser.add_argument("--maps", default=",".join(DEFAULT_MAPS))
+    parser.add_argument("--bot-races", default=",".join(DEFAULT_BOT_RACES))
     parser.add_argument("--enemy-races", default=",".join(DEFAULT_ENEMY_RACES))
     parser.add_argument("--difficulties", default=",".join(DEFAULT_DIFFICULTIES))
     parser.add_argument("--start-index", type=int, default=0)
@@ -196,6 +225,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     jobs = _jobs(
         _csv(args.strategies),
         _csv(args.maps),
+        _csv(args.bot_races),
         _csv(args.enemy_races),
         _csv(args.difficulties),
         args.repeats,

@@ -13,7 +13,17 @@ class PlanFinishEnemy(ActBase):
 
     async def execute(self):
         target = await self.find_attack_position(self.ai)
-        for unit in self.ai.units.idle:  # type: Unit
+        # PlanZoneGather runs immediately before this tactic in the shared
+        # strategy tool chains.  It may have issued a move command to units
+        # that are still in the role manager's Idle role, so BotAI's
+        # ``units.idle`` view is too narrow here and can leave an entire army
+        # gathering forever when the last enemy structure is out of vision.
+        #
+        # PlanFinishEnemy is reached only after PlanZoneAttack reports that it
+        # has no known target.  At that point it is correct for the final
+        # search order to supersede the gather order for role-idle combat
+        # units.
+        for unit in self.roles.idle:  # type: Unit
             if self.unit_values.should_attack(unit):
                 unit.attack(target)
                 self.roles.set_task(UnitTask.Attacking, unit)

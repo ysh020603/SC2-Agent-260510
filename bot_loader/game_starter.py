@@ -19,6 +19,19 @@ from sharpy.tools import LoggingUtility
 
 new_line = "\n"
 
+
+def artifact_file_name(
+    record_dir: Optional[str],
+    match_id: Optional[str],
+    fallback: str,
+) -> str:
+    """Choose a bounded artifact stem while preserving match uniqueness."""
+
+    if record_dir:
+        return "match"
+    return match_id or fallback
+
+
 # Used for random map selection
 known_melee_maps = (
     "AbyssalReefLE",
@@ -203,13 +216,22 @@ Builds:
         if not os.path.isdir(folder):
             os.makedirs(folder, exist_ok=True)
 
-        if args.match_id:
-            file_name = args.match_id
-        else:
+        if not args.record_dir and not args.match_id:
             time = datetime.now().strftime("%Y-%m-%d %H_%M_%S")
             randomizer = random.randint(0, 999999)
             # Randomizer is to make it less likely that games started at the same time have same name
-            file_name = f"{player2}_{map_name}_{time}_{randomizer}"
+            fallback_file_name = f"{player2}_{map_name}_{time}_{randomizer}"
+        else:
+            fallback_file_name = "match"
+        # The enclosing record directory already carries the unique match id.
+        # Do not repeat it in every artifact filename: on Windows the doubled
+        # path can exceed MAX_PATH even when each component is individually
+        # valid.
+        file_name = artifact_file_name(
+            args.record_dir,
+            args.match_id,
+            fallback_file_name,
+        )
         path = os.path.join(folder, f"{file_name}.log")
 
         if self.config.getboolean("general", "log_file"):

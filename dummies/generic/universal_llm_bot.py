@@ -29,7 +29,7 @@ from API_Tools.llm_caller import call_openai_detailed
 from SC2_Agent.data_tools import (
     ActionCandidate,
     action_candidates_for_entity,
-    is_known_race_entity,
+    canonical_race_entity_name,
     normalize_race,
     race_prompt_context,
     race_unit_names,
@@ -265,10 +265,11 @@ class UniversalLLMBot(KnowledgeBot):
             valid_names: List[str] = []
             dropped_unknown: List[str] = []
             for name in parsed.ordered_names:
-                if is_known_race_entity(self.race_name, name):
-                    valid_names.append(name)
-                else:
+                canonical_name = canonical_race_entity_name(self.race_name, name)
+                if canonical_name is None:
                     dropped_unknown.append(name)
+                else:
+                    valid_names.append(canonical_name)
 
             mapped: List[Tuple[str, ActionCandidate, Tuple[ActionCandidate, ...]]] = []
             dropped_unmapped: List[str] = []

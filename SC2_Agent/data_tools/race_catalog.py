@@ -55,6 +55,9 @@ RACE_MECHANICS: dict[str, RaceMechanics] = {
             "SCVs remain occupied while constructing Terran structures.",
             "SupplyDepot is the normal supply provider.",
             "Barracks, Factory, and Starport add-ons require clear space on the building's right.",
+            "Use BarracksTechLab/BarracksReactor, FactoryTechLab/FactoryReactor, "
+            "or StarportTechLab/StarportReactor; never use bare TechLab or Reactor.",
+            "The canonical upgrade name for the in-game Combat Shield is ShieldWall.",
         ),
     ),
     "protoss": RaceMechanics(
@@ -67,6 +70,7 @@ RACE_MECHANICS: dict[str, RaceMechanics] = {
             "Most Protoss structures require power from a completed Pylon.",
             "Gateway units may be trained from a Gateway or warped in from a ready WarpGate.",
             "The runtime chooses a powered warp-in position; do not emit positions.",
+            "Preserve the exact spelling and capitalization of every canonical name.",
         ),
     ),
     "zerg": RaceMechanics(
@@ -80,8 +84,24 @@ RACE_MECHANICS: dict[str, RaceMechanics] = {
             "A Drone is consumed when it morphs into a Zerg structure.",
             "One Zergling queue entry is one Larva production command and produces two Zerglings.",
             "Most Zerg structures require creep; Hatchery and Extractor are exceptions.",
+            "Use the singular canonical name Extractor and repeat it for multiple gas structures.",
         ),
     ),
+}
+
+
+_RACE_ENTITY_ALIASES: dict[str, dict[str, str]] = {
+    "terran": {
+        "combatshield": "ShieldWall",
+        "combatshields": "ShieldWall",
+        "refineries": "Refinery",
+    },
+    "protoss": {
+        "assimilators": "Assimilator",
+    },
+    "zerg": {
+        "extractors": "Extractor",
+    },
 }
 
 
@@ -229,6 +249,8 @@ def _execution_mode(
     ability_name: str,
     target_kind: str,
 ) -> str:
+    if ability_name.startswith(("BUILD_TECHLAB_", "BUILD_REACTOR_")):
+        return "addon"
     if entity_name in {"CommandCenter", "Nexus", "Hatchery"}:
         return "expand"
     if entity_name in {"Refinery", "Assimilator", "Extractor"}:
@@ -255,6 +277,7 @@ def _candidate_rank(candidate: ActionCandidate) -> tuple[int, str]:
         "expand": 0,
         "gas": 0,
         "worker_build": 0,
+        "addon": 0,
         "train": 1,
         "research": 2,
         "morph": 3,
@@ -348,13 +371,48 @@ def race_upgrade_names(race: str) -> list[str]:
     return list(_catalog(normalize_race(race))[1])
 
 
+def _entity_alias_key(name: str) -> str:
+    return "".join(character for character in str(name or "").lower() if character.isalnum())
+
+
+def canonical_race_entity_name(race: str, name: str) -> str | None:
+    """Resolve a model name to one unambiguous race-catalog entity.
+
+    Exact canonical spelling wins.  Explicit SC2 vocabulary aliases are
+    reviewed above.  A capitalization-only variation is accepted only when it
+    identifies exactly one Unit/Upgrade catalog entry; known Unit/Upgrade name
+    collisions therefore remain rejected instead of guessing.
+    """
+
+    race = normalize_race(race)
+    units, upgrades, _candidates = _catalog(race)
+    if name in units or name in upgrades:
+        return name
+
+    alias = _RACE_ENTITY_ALIASES.get(race, {}).get(_entity_alias_key(name))
+    if alias is not None and (alias in units or alias in upgrades):
+        return alias
+
+    folded = str(name or "").casefold()
+    matches = [
+        canonical
+        for group in (units, upgrades)
+        for canonical in group
+        if canonical.casefold() == folded
+    ]
+    return matches[0] if len(matches) == 1 else None
+
+
 def is_known_race_entity(race: str, name: str) -> bool:
-    units, upgrades, _candidates = _catalog(normalize_race(race))
-    return name in units or name in upgrades
+    return canonical_race_entity_name(race, name) is not None
 
 
 def action_candidates_for_entity(race: str, name: str) -> list[ActionCandidate]:
-    return list(_catalog(normalize_race(race))[2].get(name, ()))
+    race = normalize_race(race)
+    canonical_name = canonical_race_entity_name(race, name)
+    if canonical_name is None:
+        return []
+    return list(_catalog(race)[2].get(canonical_name, ()))
 
 
 def race_prompt_context(race: str) -> str:
@@ -373,6 +431,7 @@ __all__ = [
     "ActionCandidate",
     "RaceMechanics",
     "action_candidates_for_entity",
+    "canonical_race_entity_name",
     "is_known_race_entity",
     "normalize_race",
     "race_mechanics",

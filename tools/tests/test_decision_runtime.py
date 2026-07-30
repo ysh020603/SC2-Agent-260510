@@ -1,5 +1,6 @@
 import asyncio
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from dummies.generic.universal_llm_bot import UniversalLLMBot
 from sc2.action import combine_actions
@@ -7,6 +8,8 @@ from sc2.constants import COMBINEABLE_ABILITIES
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit_command import UnitCommand
+from sharpy.plans.acts import BuildGas
+from sharpy.plans.acts.terran import BuildAddon
 from SC2_Agent.data_tools import action_candidates_for_entity
 from SC2_Agent.execution.command import DONE, PENDING, RUNNING, WAITING, PlannedAction
 from SC2_Agent.execution.producer_selector import candidate_producers, choose_producer
@@ -116,6 +119,57 @@ def test_new_decision_atomically_replaces_uncommitted_queue():
     assert scheduler.waiter is None
 
 
+def test_new_decision_retains_inflight_build_until_foundation():
+    scheduler = ExecutionScheduler()
+    scheduler.ai = SimpleNamespace(time=120.0)
+    inflight = PlannedAction(
+        action_name="TERRANBUILD_SUPPLYDEPOT",
+        category="build",
+        canonical_name="SupplyDepot",
+        queue_id=1,
+        queue_position=1,
+        quantity=1,
+        issued_count=1,
+        state=RUNNING,
+    )
+    inflight._direct_build_target_count = 1
+    scheduler.actions = [inflight]
+    scheduler._build_action_satisfied = lambda _action: False
+
+    replaced = scheduler.replace_uncommitted_queue(
+        [("Marine", "BARRACKSTRAIN_MARINE")],
+        queue_id=2,
+    )
+
+    assert replaced == []
+    assert scheduler.actions[0] is inflight
+    assert inflight.state == RUNNING
+    assert "retained until foundation" in inflight.note
+    assert scheduler.actions[1].canonical_name == "Marine"
+
+
+def test_new_decision_releases_build_lifecycle_after_foundation():
+    scheduler = ExecutionScheduler()
+    scheduler.ai = SimpleNamespace(time=120.0)
+    satisfied = PlannedAction(
+        action_name="TERRANBUILD_SUPPLYDEPOT",
+        category="build",
+        canonical_name="SupplyDepot",
+        queue_id=1,
+        queue_position=1,
+        quantity=1,
+        issued_count=1,
+        state=RUNNING,
+    )
+    satisfied._direct_build_target_count = 1
+    scheduler.actions = [satisfied]
+    scheduler._build_action_satisfied = lambda _action: True
+
+    scheduler.replace_uncommitted_queue([], queue_id=2)
+
+    assert scheduler.actions == []
+
+
 def test_waiter_returns_to_its_original_model_position():
     scheduler = ExecutionScheduler()
     first = PlannedAction(
@@ -212,6 +266,55 @@ def test_gas_build_waits_for_a_free_geyser_instead_of_being_abandoned():
     assert action not in scheduler.actions
 
 
+def test_busy_research_structure_waits_instead_of_becoming_stuck_running(
+    monkeypatch,
+):
+    action = PlannedAction(
+        action_name="FORGERESEARCH_PROTOSSGROUNDARMORLEVEL2",
+        category="research",
+        canonical_name="ProtossGroundArmorsLevel2",
+        target_result="ProtossGroundArmorsLevel2",
+        ability=AbilityId.FORGERESEARCH_PROTOSSGROUNDARMORLEVEL2,
+    )
+    scheduler = ExecutionScheduler()
+    scheduler.ai = SimpleNamespace()
+
+    async def no_eligible_producer(_ai, _ability):
+        return []
+
+    monkeypatch.setattr(
+        "SC2_Agent.execution.scheduler.producer_selector.candidate_producers",
+        no_eligible_producer,
+    )
+
+    issued = asyncio.run(scheduler._issue_build_or_research(action, now=30.0))
+
+    assert not issued
+    assert action.state == WAITING
+    assert action.running_start_time is None
+    assert action.note == "waiting: research ability unavailable"
+
+
+def test_waiting_research_is_retained_while_its_producer_is_busy():
+    action = PlannedAction(
+        action_name="RESEARCH_ZERGFLYERARMORLEVEL2",
+        category="research",
+        canonical_name="ZergFlyerArmorsLevel2",
+        state=WAITING,
+        wait_start_time=0.0,
+    )
+    scheduler = ExecutionScheduler(wait_abandon_sec=60.0)
+    scheduler.waiter = action
+    scheduler._emit_status = lambda *_args: None
+
+    scheduler._abandon_waiter_if_timed_out(action, now=61.0)
+
+    assert scheduler.waiter is action
+    assert action.state == WAITING
+    assert action.wait_start_time == 61.0
+    assert action.note == "waiting: research producer retained"
+
+
 def test_technology_structure_target_count_is_capped(monkeypatch):
     scheduler = ExecutionScheduler()
     monkeypatch.setattr(scheduler, "_equivalent_existing_count", lambda _unit_type: 1)
@@ -283,6 +386,80 @@ def test_producer_candidates_exclude_units_already_commanded_this_frame():
     assert result == [(available, "idle")]
 
 
+def test_addon_builder_excludes_structure_already_commanded_this_frame(
+    monkeypatch,
+):
+    class _Builders(list):
+        @property
+        def ready(self):
+            return self
+
+        @property
+        def idle(self):
+            return self
+
+        @property
+        def amount(self):
+            return len(self)
+
+    issued = []
+    already_used = SimpleNamespace(
+        add_on_tag=0,
+        add_on_position=SimpleNamespace(),
+        is_flying=False,
+        tag=1,
+        build=lambda _unit_type: issued.append(1),
+    )
+    available = SimpleNamespace(
+        add_on_tag=0,
+        add_on_position=SimpleNamespace(),
+        is_flying=False,
+        tag=2,
+        build=lambda _unit_type: issued.append(2),
+    )
+    act = BuildAddon(
+        UnitTypeId.BARRACKSTECHLAB,
+        UnitTypeId.BARRACKS,
+        1,
+    )
+    act.cache = SimpleNamespace(
+        own=lambda unit_type: (
+            _Builders([already_used, available])
+            if unit_type == UnitTypeId.BARRACKS
+            else _Builders()
+        )
+    )
+    act.ai = SimpleNamespace(
+        time=10.0,
+        unit_tags_received_action={1},
+        _game_data=SimpleNamespace(
+            units={
+                UnitTypeId.BARRACKSTECHLAB.value: SimpleNamespace(
+                    creation_ability=object()
+                )
+            },
+            calculate_ability_cost=lambda _ability: SimpleNamespace(
+                minerals=50,
+                vespene=25,
+            ),
+        ),
+    )
+    act.knowledge = SimpleNamespace(
+        can_afford=lambda _unit_type: True,
+        reserve=lambda _minerals, _vespene: None,
+    )
+    act.print = lambda *_args, **_kwargs: None
+
+    async def can_build(_builder, _center):
+        return True
+
+    monkeypatch.setattr(act, "_can_build_addon_here", can_build)
+    asyncio.run(act.execute())
+
+    assert issued == [2]
+    assert act.issued_this_frame
+
+
 def test_scheduler_keeps_all_reviewed_gateway_action_candidates():
     candidates = action_candidates_for_entity("protoss", "Stalker")
     scheduler = ExecutionScheduler()
@@ -296,6 +473,235 @@ def test_scheduler_keeps_all_reviewed_gateway_action_candidates():
     assert set(action._candidate_specs) == {
         row.ability_name for row in candidates
     }
+
+
+def test_repeated_gas_actions_get_distinct_absolute_targets():
+    scheduler = ExecutionScheduler()
+    scheduler.get_count = lambda _unit_type: 1
+    actions = [
+        PlannedAction(
+            action_name="ZERGBUILD_EXTRACTOR",
+            category="build",
+            canonical_name="Extractor",
+            target_result="Extractor",
+            queue_id=3,
+            queue_position=position,
+        )
+        for position in (1, 2, 3)
+    ]
+    scheduler.actions = actions
+
+    for action in actions:
+        action._act_target_count = scheduler._compute_build_to_count(action)
+
+    assert [action._act_target_count for action in actions] == [2, 3, 4]
+
+
+def test_worker_order_does_not_complete_build_before_foundation():
+    scheduler = ExecutionScheduler()
+    scheduler._equivalent_existing_count = lambda _unit_type: 0
+    scheduler._existing_plus_en_route = lambda _unit_type: 1
+    action = PlannedAction(
+        action_name="BUILD_LURKERDEN",
+        category="build",
+        canonical_name="LurkerDenMP",
+        target_result="LurkerDenMP",
+        state=RUNNING,
+    )
+    action._act_target_count = 1
+
+    assert not scheduler._build_action_satisfied(action)
+    assert scheduler._build_progress_count(UnitTypeId.LURKERDENMP) == 1
+
+
+def test_expand_worker_order_commits_lifecycle_without_marking_done():
+    class _ExpandAct:
+        issued_this_frame = False
+
+        async def execute(self):
+            self.issued_this_frame = True
+            return False
+
+    scheduler = ExecutionScheduler()
+    scheduler._equivalent_existing_count = lambda _unit_type: 1
+    scheduler._build_progress_count = lambda _unit_type: 1
+    action = PlannedAction(
+        action_name="TERRANBUILD_COMMANDCENTER",
+        category="build",
+        canonical_name="CommandCenter",
+        target_result="CommandCenter",
+        quantity=1,
+        state=RUNNING,
+    )
+    action._act = _ExpandAct()
+    action._act_started = True
+    action._act_target_count = 2
+
+    issued = asyncio.run(scheduler._issue_build_or_research(action, now=100.0))
+
+    assert issued
+    assert action.state == RUNNING
+    assert action.issued_count == 1
+    assert "awaiting foundation" in action.note
+
+
+def test_en_route_build_is_kept_running_until_foundation_exists():
+    scheduler = ExecutionScheduler(running_abandon_sec=25)
+    scheduler._equivalent_existing_count = lambda _unit_type: 0
+    scheduler._existing_plus_en_route = lambda _unit_type: 1
+    action = PlannedAction(
+        action_name="BUILD_LURKERDEN",
+        category="build",
+        canonical_name="LurkerDenMP",
+        target_result="LurkerDenMP",
+        state=RUNNING,
+        running_start_time=1.0,
+    )
+    action._act_target_count = 1
+    scheduler.actions = [action]
+
+    scheduler._abandon_stuck_running(now=30.0)
+
+    assert action.state == RUNNING
+    assert action.running_start_time == 30.0
+    assert "awaiting foundation" in action.note
+
+
+def test_structure_cap_does_not_treat_worker_order_as_foundation():
+    class _Act:
+        actual_placements = 0
+
+        async def execute(self):
+            return False
+
+    scheduler = ExecutionScheduler()
+    scheduler._equivalent_existing_count = lambda _unit_type: 0
+    scheduler._existing_plus_en_route = lambda _unit_type: 1
+    action = PlannedAction(
+        action_name="BUILD_LURKERDEN",
+        category="build",
+        canonical_name="LurkerDenMP",
+        target_result="LurkerDenMP",
+        state=RUNNING,
+    )
+    action._act_target_count = 1
+    action._act_started = True
+    action._act = _Act()
+
+    issued = asyncio.run(scheduler._issue_build_or_research(action, now=10.0))
+
+    assert issued
+    assert action.state == RUNNING
+
+
+def test_build_gas_reservations_bridge_engine_observation_delay():
+    ai = SimpleNamespace(
+        state=SimpleNamespace(game_loop=101),
+        time=5.0,
+    )
+    first = BuildGas(1)
+    second = BuildGas(2)
+    first.ai = ai
+    second.ai = ai
+
+    first._reserve_geyser(7001)
+    assert second._reserved_geyser_tags() == {7001}
+
+    ai.state.game_loop = 102
+    ai.time = 6.0
+    assert first._reserved_geyser_tags() == {7001}
+    ai.time = 7.1
+    assert first._reserved_geyser_tags() == set()
+
+
+def test_research_uses_engine_eligible_producer_and_awaits_confirmation(monkeypatch):
+    scheduler = ExecutionScheduler()
+    producer = MagicMock()
+    producer.tag = 77
+    producer.return_value = True
+    scheduler.ai = SimpleNamespace()
+    action = PlannedAction(
+        action_name="RESEARCH_COMBATSHIELD",
+        category="research",
+        canonical_name="ShieldWall",
+        ability=AbilityId.RESEARCH_COMBATSHIELD,
+        target_result="ShieldWall",
+    )
+
+    async def eligible(_ai, ability):
+        assert ability == AbilityId.RESEARCH_COMBATSHIELD
+        return [(producer, "idle")]
+
+    monkeypatch.setattr(
+        "SC2_Agent.execution.scheduler.producer_selector.candidate_producers",
+        eligible,
+    )
+
+    issued = asyncio.run(scheduler._issue_research_direct(action, now=10.0))
+
+    assert issued
+    producer.assert_called_once_with(
+        AbilityId.RESEARCH_COMBATSHIELD,
+        subtract_cost=True,
+    )
+    assert action.state == RUNNING
+    assert action.running_start_time == 10.0
+
+
+def test_unconfirmed_research_returns_to_waiting_instead_of_abandoning():
+    scheduler = ExecutionScheduler()
+    action = PlannedAction(
+        action_name="RESEARCH_COMBATSHIELD",
+        category="research",
+        canonical_name="ShieldWall",
+        ability=AbilityId.RESEARCH_COMBATSHIELD,
+        target_result="ShieldWall",
+        state=RUNNING,
+        running_start_time=10.0,
+    )
+
+    issued = asyncio.run(scheduler._issue_research_direct(action, now=12.1))
+
+    assert not issued
+    assert action.state == WAITING
+    assert action.running_start_time is None
+    assert "not confirmed" in action.note
+
+
+def test_supply_depot_is_retained_when_direct_build_order_disappears():
+    scheduler = ExecutionScheduler()
+    scheduler.ai = SimpleNamespace()
+    action = PlannedAction(
+        action_name="TERRANBUILD_SUPPLYDEPOT",
+        category="build",
+        canonical_name="SupplyDepot",
+        target_result="SupplyDepot",
+    )
+    scheduler._build_action_satisfied = lambda _action: False
+
+    assert scheduler._is_sticky_build_action(action)
+
+
+def test_satisfied_direct_build_is_done_not_abandoned_during_timeout():
+    scheduler = ExecutionScheduler(running_abandon_sec=25.0)
+    scheduler._emit_status = lambda *_args: None
+    action = PlannedAction(
+        action_name="TERRANBUILD_SUPPLYDEPOT",
+        category="build",
+        canonical_name="SupplyDepot",
+        target_result="SupplyDepot",
+        quantity=1,
+        state=RUNNING,
+        running_start_time=1.0,
+    )
+    scheduler.actions = [action]
+    scheduler._build_action_satisfied = lambda _action: True
+
+    scheduler._abandon_stuck_running(now=30.0)
+
+    assert action.state == DONE
+    assert action.issued_count == 1
+    assert "target satisfied" in action.note
 
 
 def test_gateway_action_switches_to_warp_in_when_only_warpgate_is_ready(monkeypatch):

@@ -1,5 +1,6 @@
 from SC2_Agent.data_tools import (
     action_candidates_for_entity,
+    canonical_race_entity_name,
     canonical_entity_name,
     is_known_race_entity,
     load_database,
@@ -11,6 +12,7 @@ from SC2_Agent.execution import mapping
 from SC2_Agent.data_tools.obs_entities import collect_entities
 from sc2.ids.upgrade_id import UpgradeId
 from sharpy.plans.acts import BuildGas
+from sharpy.plans.acts.terran import BuildAddon
 from types import SimpleNamespace
 
 
@@ -53,6 +55,25 @@ def test_race_specific_execution_semantics_are_preserved():
     }
     assert {"train", "warp_in"} <= stalker_modes
 
+    for name in (
+        "BarracksTechLab",
+        "BarracksReactor",
+        "FactoryTechLab",
+        "FactoryReactor",
+        "StarportTechLab",
+        "StarportReactor",
+    ):
+        addon = action_candidates_for_entity("terran", name)[0]
+        assert addon.execution_mode == "addon"
+        assert (
+            mapping.category_for(
+                addon.ability_name,
+                execution_mode=addon.execution_mode,
+            )
+            == mapping.CAT_ADDON
+        )
+        assert isinstance(mapping.make_addon_act(addon.ability_name, 1), BuildAddon)
+
 
 def test_case_collision_does_not_hide_overlord_transport_unit():
     data = load_database()
@@ -66,6 +87,19 @@ def test_case_collision_does_not_hide_overlord_transport_unit():
         state=SimpleNamespace(upgrades={UpgradeId.OVERLORDTRANSPORT}),
     )
     assert "overlordtransport" in collect_entities(ai)["completed"]
+
+
+def test_runtime_canonicalization_accepts_only_reviewed_unambiguous_variants():
+    assert (
+        canonical_race_entity_name("protoss", "PROTOSSGROUNDARMORSLEVEL1")
+        == "ProtossGroundArmorsLevel1"
+    )
+    assert canonical_race_entity_name("terran", "CombatShield") == "ShieldWall"
+    assert canonical_race_entity_name("zerg", "Extractors") == "Extractor"
+    assert canonical_race_entity_name("protoss", "Assimilators") == "Assimilator"
+    assert canonical_race_entity_name("terran", "Refineries") == "Refinery"
+    # A bare add-on does not identify which production structure owns it.
+    assert canonical_race_entity_name("terran", "TechLab") is None
 
 
 def test_prompt_context_names_the_correct_supply_provider():

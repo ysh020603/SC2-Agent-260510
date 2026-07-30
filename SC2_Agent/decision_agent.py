@@ -36,6 +36,11 @@ def build_decision_messages(
     upgrades = ", ".join(canonical_upgrade_names)
     unfinished = json.dumps(unfinished_canonical_names, ensure_ascii=False)
     context = race_context.strip() or "(none)"
+    worker_name = {
+        "terran": "SCV",
+        "protoss": "Probe",
+        "zerg": "Drone",
+    }.get(race.lower(), "worker")
 
     system_msg = f"""You are the macro decision agent for a {race_cap} StarCraft II bot.
 Generate one complete, ordered replacement queue of concrete macro tasks.
@@ -70,15 +75,39 @@ Rules:
 * Work already committed to the simulation is not listed as unfinished. Do not
   recreate units, structures, morphs, add-ons, or research that the current
   observation already shows as in progress.
-* Use only exact names from the canonical lists. Never output ability/action
-  keys, producer tags, counts, markdown, or prose outside the JSON object.
+* Use only exact, case-sensitive names copied from the canonical lists.
+  Strategy prose and observations are descriptive context, not an alternate
+  vocabulary. Never output ability/action keys, generic producer/add-on names,
+  pluralized entity names, counts, markdown, or prose outside the JSON object.
 * Repeat a canonical name to request multiple copies.
 * Order prerequisites and enabling infrastructure before dependent tasks.
+* The runtime may execute an affordable later queue item while one earlier
+  item waits for resources or technology. Queue order is priority, not a
+  timing lock. Do not include a task merely because you want it several
+  minutes later; include it only when executing it now is strategically safe
+  or its explicit technology prerequisite makes early execution impossible.
 * Supply is NOT managed by downstream code. Inspect current used/cap/free
   supply and include the race's canonical supply provider at the appropriate
-  positions whenever needed.
-* The runtime chooses workers and production structures. Do not choose a
-  concrete executor or producer."""
+  positions whenever needed. SupplyDepot, Pylon, and Overlord each add 8
+  supply, and total supply cannot exceed 200. Request only enough copies for
+  the near-term unit queue: normally 1, or 2-3 when a large production burst
+  is imminent. Never fill most or all of the queue with supply providers.
+* Worker production is NOT automatic. The observation's current/ideal worker
+  counts are authoritative. Unless immediate survival takes priority, include
+  repeated {worker_name} tasks while the economy is under-saturated; never
+  describe it as saturated below roughly 75% of the displayed ideal count.
+  In one near-term queue, normally request no more worker copies than the
+  displayed current-to-ideal gap; if a new town hall is already under
+  construction, only a small additional 2-4 workers may anticipate its slots.
+  Do not chase every theoretical slot indefinitely: a normal late-game ceiling
+  is about 70-80 SCVs/Probes or 75-85 Drones, and a strategy-specific lower
+  worker target takes precedence.
+* If minerals exceed roughly 1000 while supply is available, prioritize
+  immediately trainable army units and enough production capacity to spend the
+  income. Do not answer persistent banking with more workers, town halls, or
+  unrelated luxury technology until the bank is falling.
+* The runtime chooses the concrete executor or producer for each requested
+  task. Do not emit executor names or positions."""
 
     user_msg = (
         f"[Current Observation]\n{obs_text or '(empty)'}\n\n"

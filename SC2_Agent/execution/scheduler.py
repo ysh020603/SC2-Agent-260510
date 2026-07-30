@@ -18,8 +18,9 @@ ordered list of :class:`PlannedAction` plus a separate single waiter slot:
   ``PENDING`` when the slot is taken); missing prerequisites are not inserted
   automatically.
 * **deterministic execution**: producer selection is entirely code-driven;
-  ``build/research/addon`` delegate to a lazily-created sharpy Act or to
-  :class:`DirectBuildExecutor` for hand-managed Terran structures.
+  research uses the engine's available-ability surface, while builds/add-ons
+  delegate to a lazily-created Sharpy Act or to :class:`DirectBuildExecutor`
+  for hand-managed Terran structures.
 """
 
 from __future__ import annotations
@@ -117,6 +118,7 @@ STRUCTURE_COUNT_CAPS = {
 
 TERRAN_STICKY_BUILD_ACTIONS = {
     "TERRANBUILD_COMMANDCENTER",
+    "TERRANBUILD_SUPPLYDEPOT",
 }
 TERRAN_MORPH_SOURCE_TARGETS = {
     "UPGRADETOORBITAL_ORBITALCOMMAND": (
@@ -194,7 +196,19 @@ class ExecutionScheduler(ActBase):
         """
         old_names = self.uncommitted_canonical_names()
         old_actions = self.all_planned_actions()
+        retained_builds = [
+            old for old in old_actions if self._retain_inflight_build_lifecycle(old)
+        ]
         for old in old_actions:
+            if old in retained_builds:
+                # The engine has accepted a worker build order, but that is
+                # not yet a durable commit. Keep its reservations and worker
+                # handle so a vanished order can be retried after this model
+                # decision replaces the still-cancellable queue.
+                old.state = RUNNING
+                old.wait_start_time = None
+                old.note = "building: committed order retained until foundation"
+                continue
             if old._act is not None and getattr(old._act, "clear_worker", None):
                 try:
                     old._act.clear_worker()
@@ -204,7 +218,7 @@ class ExecutionScheduler(ActBase):
 
         now = float(getattr(self.ai, "time", 0.0)) if getattr(self, "ai", None) else 0.0
         self.waiter = None
-        self.actions = []
+        self.actions = retained_builds
         for position, task in enumerate(tasks, start=1):
             if len(task) == 2 and isinstance(task[1], str):
                 canonical_name, action_name = task
@@ -245,6 +259,24 @@ class ExecutionScheduler(ActBase):
         )
         return old_names
 
+    def _retain_inflight_build_lifecycle(self, pa: PlannedAction) -> bool:
+        """Keep accepted build orders alive across model queue replacement.
+
+        Train/research orders are durable once accepted by their producer.
+        Worker construction orders are not: the worker can die, lose the
+        order, or have its placement rejected before a foundation appears.
+        """
+        if (
+            pa.is_terminal()
+            or pa.category != mapping.CAT_BUILD
+            or int(pa.issued_count) <= 0
+        ):
+            return False
+        target_count = pa._direct_build_target_count or pa._act_target_count
+        if target_count is None:
+            return False
+        return not self._build_action_satisfied(pa)
+
     def is_drained(self) -> bool:
         """True when both the action list and waiter slot are fully terminal."""
         if getattr(self, "ai", None) is not None:
@@ -279,7 +311,19 @@ class ExecutionScheduler(ActBase):
         target_count = pa._direct_build_target_count or pa._act_target_count
         if target_count is None:
             return False
-        return self._build_progress_count(unit_type) >= int(target_count)
+        # A worker order is intent, not an engine-confirmed building. It may
+        # disappear because the worker dies, is displaced, or the placement
+        # is rejected. Only a real foundation in the live unit cache closes a
+        # build PA; en-route orders merely keep the PA RUNNING below.
+        if self._can_use_direct_build(pa):
+            # Direct-build targets are PA-local (normally quantity=1), not
+            # absolute global counts. A seventh Barracks must not be declared
+            # satisfied merely because six older Barracks already exist.
+            existing, _en_route, _fresh = (
+                self._get_direct_build_executor()._owned_progress_counts(pa, unit_type)
+            )
+            return existing >= int(target_count)
+        return self._equivalent_existing_count(unit_type) >= int(target_count)
 
     def _mark_done_if_already_satisfied(self, pa: PlannedAction, now: float) -> bool:
         """Close stale PAs whose target result is already present.
@@ -416,6 +460,20 @@ class ExecutionScheduler(ActBase):
         if waiter.wait_start_time is None:
             return
         if (now - waiter.wait_start_time) > self.wait_abandon_sec:
+            if waiter.category == mapping.CAT_RESEARCH:
+                # A completed research structure may legitimately remain busy
+                # longer than the generic waiter timeout.  The exact upgrade
+                # is still valid and will be retried as soon as that producer
+                # becomes idle; a later model decision can explicitly remove
+                # it from the replacement queue.
+                waiter.wait_start_time = now
+                waiter.note = "waiting: research producer retained"
+                self._emit_status(
+                    "Retained WAITING research action %s after %.0fs",
+                    waiter.action_name,
+                    self.wait_abandon_sec,
+                )
+                return
             if self._is_sticky_build_action(waiter):
                 waiter.wait_start_time = now
                 waiter.note = "waiting: strategic build retained"
@@ -462,6 +520,39 @@ class ExecutionScheduler(ActBase):
             if pa.running_start_time is None:
                 continue
             if (now - pa.running_start_time) > self.running_abandon_sec:
+                # Direct-build completion is normally checked later in the
+                # async issue pass. Timeout housekeeping runs first, so a
+                # sibling PA may already have completed the requested target
+                # count while this PA still says RUNNING. Close it as DONE
+                # here instead of bypassing sticky retry and abandoning it.
+                if self._can_use_direct_build(pa) and self._build_action_satisfied(pa):
+                    pa.state = DONE
+                    pa.issued_count = max(int(pa.issued_count), int(pa.quantity))
+                    pa.note = "done (direct build target satisfied)"
+                    pa.running_start_time = None
+                    pa.wait_start_time = None
+                    self._clear_direct_build_worker(pa)
+                    self._emit_status(
+                        "PA %s DONE: direct build target satisfied before timeout",
+                        pa.action_name,
+                    )
+                    continue
+                if (
+                    pa.category == mapping.CAT_BUILD
+                    and pa._act_target_count is not None
+                ):
+                    unit_type = mapping.unit_type_for(pa.target_result or "")
+                    if (
+                        unit_type is not None
+                        and self._build_progress_count(unit_type)
+                        >= int(pa._act_target_count)
+                    ):
+                        # The worker still carries a matching build order.
+                        # Keep waiting for a real foundation, but never call
+                        # that transient order DONE.
+                        pa.running_start_time = now
+                        pa.note = "building: worker en route, awaiting foundation"
+                        continue
                 if self._is_sticky_build_action(pa):
                     # sticky build: 转回 WAITING 等下次资源/落点机会，需要走
                     # claim_wait_slot 才能进独立 waiter 槽（preempt 当前槽内
@@ -824,6 +915,9 @@ class ExecutionScheduler(ActBase):
 
     # --- build / research via sharpy Acts -----------------------------
     async def _issue_build_or_research(self, pa: PlannedAction, now: float) -> bool:
+        if pa.category == mapping.CAT_RESEARCH:
+            return await self._issue_research_direct(pa, now)
+
         if self._can_use_direct_build(pa):
             return await self._get_direct_build_executor().issue_one(pa, now)
 
@@ -863,7 +957,10 @@ class ExecutionScheduler(ActBase):
         if pa.category == mapping.CAT_BUILD:
             unit_type = mapping.unit_type_for(pa.target_result or "")
             cap = STRUCTURE_COUNT_CAPS.get(unit_type)
-            if cap is not None and self._build_progress_count(unit_type) >= cap:
+            if (
+                cap is not None
+                and self._equivalent_existing_count(unit_type) >= cap
+            ):
                 pa.state = DONE
                 pa.issued_count = pa.quantity
                 pa.note = f"done (structure cap {cap} satisfied)"
@@ -914,8 +1011,35 @@ class ExecutionScheduler(ActBase):
         cur_placements = int(getattr(pa._act, "actual_placements", 0) or 0)
         if cur_placements > prev_placements:
             pa._last_placement_progress = cur_placements
+            pa.issued_count = max(
+                int(pa.issued_count),
+                min(int(pa.quantity), cur_placements),
+            )
             pa.running_start_time = now
             pa.wait_start_time = now
+
+        if pa.category == mapping.CAT_BUILD and pa._act_target_count is not None:
+            unit_type = mapping.unit_type_for(pa.target_result or "")
+            if unit_type is not None:
+                existing = self._equivalent_existing_count(unit_type)
+                progress = self._build_progress_count(unit_type)
+                command_issued = bool(
+                    getattr(pa._act, "issued_this_frame", False)
+                )
+                if (
+                    existing < pa._act_target_count
+                    and (pa._act_target_count <= progress or command_issued)
+                ):
+                    # Expand and BuildGas deliberately return False after
+                    # issuing their worker command and do not expose
+                    # GridBuilding.actual_placements. Their explicit issue
+                    # signal bridges Zerg's Drone-morph boundary, where a
+                    # worker order may never be visible in ai.workers. This is
+                    # enough to retain the PA, but never to mark it DONE.
+                    pa.issued_count = max(int(pa.issued_count), int(pa.quantity))
+                    pa.running_start_time = now
+                    pa.wait_start_time = None
+                    pa.note = "building: worker en route, awaiting foundation"
 
         if done:
             # ?????GridBuilding / ??????????????? True?
@@ -927,6 +1051,11 @@ class ExecutionScheduler(ActBase):
                     existing = self._equivalent_existing_count(unit_type)
                     if existing < pa._act_target_count:
                         pa.state = RUNNING
+                        # The Act reports that its worker command was
+                        # accepted, but only a future live foundation may
+                        # close the PA. Mark the command committed so queue
+                        # replacement retains its retry owner.
+                        pa.issued_count = max(int(pa.issued_count), int(pa.quantity))
                         pa.wait_start_time = None
                         if pa.running_start_time is None:
                             pa.running_start_time = now
@@ -945,11 +1074,22 @@ class ExecutionScheduler(ActBase):
                     pa.action_name, pa.quantity, pa._act.actual_placements,
                 )
         else:
+            if pa.category in (mapping.CAT_RESEARCH, mapping.CAT_ADDON) and not bool(
+                getattr(pa._act, "issued_this_frame", False)
+            ):
+                note = (
+                    "waiting: research structure busy"
+                    if pa.category == mapping.CAT_RESEARCH
+                    else "waiting: add-on producer busy or slot blocked"
+                )
+                self._enter_wait(pa, now, note)
+                return False
             pa.state = RUNNING
             pa.wait_start_time = None
             if pa.running_start_time is None:
                 pa.running_start_time = now
-            pa.note = "building/researching"
+            if pa.note != "building: worker en route, awaiting foundation":
+                pa.note = "building/researching"
         return True
 
     def _create_sharpy_act(self, pa: PlannedAction):
@@ -988,6 +1128,23 @@ class ExecutionScheduler(ActBase):
         except Exception:
             current = 0
         target = int(current) + int(pa.quantity)
+        # Each repeated build name is an additive request. Multiple PAs can
+        # create their Sharpy Acts in the same game frame, before the first
+        # worker order is observable via get_count()/already_pending. Give
+        # later copies a strictly increasing absolute target so one gas
+        # structure (or other Sharpy-managed build) cannot satisfy every
+        # sibling PA.
+        earlier_targets = [
+            int(other._act_target_count)
+            for other in self.actions
+            if other is not pa
+            and other.queue_id == pa.queue_id
+            and other.queue_position < pa.queue_position
+            and other.target_result == pa.target_result
+            and other._act_target_count is not None
+        ]
+        if earlier_targets:
+            target = max(target, max(earlier_targets) + int(pa.quantity))
         if unit_type is not None:
             cap = STRUCTURE_COUNT_CAPS.get(unit_type)
             if cap is not None:
@@ -1117,6 +1274,67 @@ class ExecutionScheduler(ActBase):
         else:
             pa.state = RUNNING
             pa.note = f"issued {pa.issued_count}/{pa.quantity}"
+        return True
+
+    async def _issue_research_direct(self, pa: PlannedAction, now: float) -> bool:
+        """Issue research only through an engine-confirmed eligible producer.
+
+        A Sharpy ``Tech`` act historically treated calling ``Unit(ability)`` as
+        proof that research had started.  SC2 can decline that command (for
+        example when the exact upgrade ability is unavailable on a busy or
+        incompatible add-on), leaving the PA in a false RUNNING state.  Query
+        the live available-ability surface first and then require the normal
+        upgrade/order checks to confirm the command on a later frame.
+        """
+        if pa.ability is None:
+            pa.state = ABANDONED
+            pa.note = "abandoned: research has no ability id"
+            return False
+
+        if pa.state == RUNNING and pa.running_start_time is not None:
+            # Allow SC2 one short observation window to publish the order.
+            # _mark_done_if_already_satisfied() runs before this method.
+            if now - pa.running_start_time < 2.0:
+                pa.note = "research command awaiting engine confirmation"
+                return False
+            pa.running_start_time = None
+            self._enter_wait(pa, now, "waiting: research command not confirmed")
+            return False
+
+        candidates = await producer_selector.candidate_producers(self.ai, pa.ability)
+        if not candidates:
+            self._enter_wait(pa, now, "waiting: research ability unavailable")
+            return False
+
+        chosen = producer_selector.choose_producer(candidates)
+        if chosen is None:
+            self._enter_wait(pa, now, "waiting: no eligible research producer")
+            return False
+
+        try:
+            accepted = chosen(pa.ability, subtract_cost=True)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.debug(
+                "research issue failed for %s on tag %s: %s",
+                pa.action_name,
+                getattr(chosen, "tag", "?"),
+                exc,
+            )
+            self._enter_wait(pa, now, "waiting: research issue failed")
+            return False
+        if accepted is False:
+            self._enter_wait(pa, now, "waiting: engine rejected research")
+            return False
+
+        pa.state = RUNNING
+        pa.running_start_time = now
+        pa.wait_start_time = None
+        pa.note = "research command awaiting engine confirmation"
+        self._emit_status(
+            "Research %s issued on producer tag %s; awaiting engine confirmation",
+            pa.action_name,
+            getattr(chosen, "tag", "?"),
+        )
         return True
 
     async def _select_runtime_action_with_producer(self, pa: PlannedAction) -> None:

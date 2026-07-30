@@ -117,9 +117,10 @@ python tools\run_experiment.py `
   --batch-name smoke_three_races
 ```
 
-不要并行启动多个本地 SC2 客户端。当前
-`tools/run_kimi_nothink_strategy_sweep.py` 没有传递 `--bot-race`，在完成该工具
-的三种族改造前，不得使用它测试 Protoss 或 Zerg。
+不要并行启动多个本地 SC2 客户端。批量工具
+`tools/run_kimi_nothink_strategy_sweep.py` 已支持 `--bot-races` 并会把每个 job 的
+`--bot-race` 传给运行器；使用前仍应先检查 dry-run/job 列表中的种族、策略和地图，
+避免把同名策略路由到错误种族。
 
 ## 5. 三种族代表策略测试集
 
@@ -132,9 +133,9 @@ python tools\run_experiment.py `
 | 策略 | 代表性与差异 | 测试重点 |
 |---|---|---|
 | `marine_rush` | 单基地、低科技、纯步兵早期压制 | 快速补给、Barracks 连续生产、低兵力攻击阈值和增援是否及时 |
-| `bio` | 多基地 Marine/Marauder/Medivac 生化运营 | Reactor/TechLab、Stim/CombatShield、Medivac 和中后期扩张是否形成闭环 |
+| `bio` | 多基地 Marine/Marauder/Medivac 生化运营 | BarracksReactor/BarracksTechLab、Stimpack/ShieldWall、Medivac 和中后期扩张是否形成闭环 |
 | `blueflame_locks` | Hellion/Cyclone/Thor 机动机械化 | Factory 附件、BlueFlame、CycloneLockOnDamage、双 Armory 升级和气矿需求 |
-| `two_base_matrix_tanks` | Tank/Marine/Raven/Liberator 两基地阵地战 | SiegeTank、Starport TechLab、Raven/Liberator、CorvidReactor 和攻防接管 |
+| `two_base_matrix_tanks` | Tank/Marine/Raven/Liberator 两基地阵地战 | SiegeTank、StarportTechLab、Raven/Liberator、CorvidReactor 和攻防接管 |
 | `yamato_rust_fleet` | Battlecruiser/Viking 为核心的重型空军后期 | FusionCore、Yamato、舰船升级、多 Starport、四基地经济和高人口进攻 |
 
 这五项依次覆盖早期步兵、常规生化、机动机械、阵地混编和后期空军。若修改
@@ -231,9 +232,15 @@ python tools\run_experiment.py `
 - `dropped_unknown_names` 总数为 0；
 - `dropped_unmapped_names` 总数为 0；
 - 执行错误总数为 0；
+- observation 的 completed/queue 不得暴露不可生产的引擎形态，例如
+  `LIBERATORAG`、`SUPPLYDEPOTLOWERED`、`LURKERMPBURROWED`；
 - 每个模型动作都保留 canonical name、实际 action 和 execution mode；
 - Kimi 的 `reasoning_content` 为空；
 - 已提交工作不会重新出现在可取消队列里。
+- worker 的建造 order 只能证明命令在途，不能作为建筑动作 `DONE` 的依据；
+  后续 observation 必须出现真实 foundation/under-construction structure。
+- 同一决策周期内的多个气矿、普通建筑和扩张动作必须使用互不冲突的 geyser、
+  footprint 与 expansion 坐标；不能用一座实体同时满足多个 PA。
 
 日志扫描：
 
@@ -250,10 +257,13 @@ rg -n -i `
 - `PlanZoneDefense`：只有基地或防区出现威胁时才应接管单位；未触发不等于失败。
 - Protoss：观察 Chrono、WarpGate 转换和实际单位数量增长。
 - Zerg：观察 Inject、CreepTumor、Overlord 侦察获得的视野以及 Larva 转化。
-- `PlanFinishEnemy`：只有已知基地清空后才接管空闲战斗单位。
+- `PlanFinishEnemy`：只有已知基地清空后才接管角色层空闲战斗单位；这些单位即使
+  刚收到 `PlanZoneGather` 的集结移动订单，也必须能被最终搜索命令接管。
 
-“issued” 只表示 Python 接受了命令。必须结合后续 observation、最终单位统计或
-Replay，确认单位、建筑、升级和战斗结果真的出现在 SC2 中。
+“issued” 或 Sharpy 的 `Started` 只表示 Python 尝试了命令，不是引擎提交证据。
+研究至少还要看到后续 SC2 order/upgrade 使 scheduler 输出
+`DONE: target already satisfied`；单位、建筑和战斗则必须结合后续 observation、
+最终统计或 Replay，确认结果真的出现在 SC2 中。
 
 ## 8. 策略质量检查
 
@@ -263,7 +273,12 @@ Replay，确认单位、建筑、升级和战斗结果真的出现在 SC2 中。
 - 是否无视 `Top_agent.md` 的主力兵种；
 - 是否在供应将满时忘记补 Depot、Pylon 或 Overlord；
 - 是否长时间缺少工人、Queen、基地或气矿；
+- 是否误以为框架会自动生产工人；用 observation 的 `current/ideal workers`
+  判断现有基地饱和度，单轮工人数量通常不超过 current-to-ideal 缺口，同时避免
+  后期追逐所有理论槽位而生产 100+ 工人；
 - 是否矿气持续大量积压；
+- 矿产超过约 1000 时是否仍只加工人、基地或无关科技，而没有增加可立即生产的
+  主力单位及足够的生产能力；
 - 是否生产建筑数量超过经济承载能力；
 - 是否在克制关系发生变化时有合理转型；
 - 攻击阈值是否过早送兵或过晚囤兵。
@@ -292,6 +307,8 @@ Replay，确认单位、建筑、升级和战斗结果真的出现在 SC2 中。
 | 命令已发但单位没出现 | producer 选择、人口成本、Larva/WarpGate 特殊路径 |
 | 升级被标记卡死 | `already_pending_upgrade` 与实际 UpgradeId |
 | 气矿请求超时 | 是否有完成基地和空闲 geyser，gas action 是否保持等待 |
+| 建造动作 DONE 但建筑未出现 | 是否误把 worker en-route order 当成 foundation；订单消失后 PA 是否能重试 |
+| 同轮多个建筑只有一个形成 | 跨 Act 的 geyser/footprint/expansion 预留是否共享并在确认窗口后释放 |
 | 重复科技建筑 | 策略摘要约束与 scheduler structure cap |
 | 折跃日志很多但单位不增长 | 同帧折跃限制、放置点和 WarpGate 冷却 |
 | 资源大量积压 | 策略队列长度、Larva/生产建筑、工人和基地比例 |

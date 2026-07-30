@@ -63,6 +63,7 @@ class Tech(ActBase):
         # This is used to determine if the upgrade actually exists in the current version of the game
         self.enabled = True
         self.from_buildings: Set[UnitTypeId] = set()
+        self.issued_this_frame = False
 
         super().__init__()
 
@@ -87,6 +88,7 @@ class Tech(ActBase):
             self.from_buildings = {self._from_building}
 
     async def execute(self) -> bool:
+        self.issued_this_frame = False
         if not self.enabled:
             return True
 
@@ -103,6 +105,7 @@ class Tech(ActBase):
                 if len(builder.orders) == 0 and builder.tag not in self.ai.unit_tags_received_action:
                     self.print(f"Started {self.upgrade_type.name}")
                     builder(creationAbilityID, subtract_cost=True)
+                    self.issued_this_frame = True
                     return False
 
         if builders.ready.idle.exists:

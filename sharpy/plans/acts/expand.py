@@ -47,6 +47,9 @@ class Expand(ActBase):
         self.builder_tag: Optional[int] = None
         self.priority = priority
         self.consider_worker_production = consider_worker_production
+        self._reserved_position = None
+        self._reserved_at: Optional[float] = None
+        self.issued_this_frame = False
 
         super().__init__()
 
@@ -70,6 +73,9 @@ class Expand(ActBase):
         self.roles = knowledge.get_required_manager(UnitRoleManager)
 
     async def execute(self) -> bool:
+        self.issued_this_frame = False
+        if self._own_reservation_pending():
+            return False
         expand_here: Optional["Zone"] = None
         zone_currently_expanding: Optional["Zone"] = None
         expand_now = False
@@ -80,6 +86,8 @@ class Expand(ActBase):
             zones = sorted(zones, key=lambda z: z.zone_index == self.priority_base_index, reverse=True)
 
         for zone in zones:  # type: "Zone"
+            if self._expansion_position_reserved(zone.center_location):
+                continue
             expanding = self.expanding_in(zone)
             if expand_here is None and zone.should_expand_here:
                 if not expanding:
@@ -185,8 +193,49 @@ class Expand(ActBase):
 
         if worker is not None:
             self.print(f"Expanding to {expand_here.center_location}")
+            self._reserve_expansion_position(expand_here.center_location)
             worker.build(self.townhall_type, expand_here.center_location)
+            self.issued_this_frame = True
             return True
+        return False
+
+    @staticmethod
+    def _reservation_key(position) -> tuple[float, float]:
+        return (round(float(position.x), 2), round(float(position.y), 2))
+
+    def _live_expansion_reservations(self) -> dict:
+        now = float(getattr(self.ai, "time", 0.0))
+        reservations = getattr(self.ai, "_sharpy_expansion_reservations", None)
+        if reservations is None:
+            reservations = {}
+            self.ai._sharpy_expansion_reservations = reservations
+        for key, issue_time in list(reservations.items()):
+            if now - float(issue_time) > 2.0:
+                reservations.pop(key, None)
+        return reservations
+
+    def _expansion_position_reserved(self, position) -> bool:
+        return self._reservation_key(position) in self._live_expansion_reservations()
+
+    def _reserve_expansion_position(self, position) -> None:
+        now = float(getattr(self.ai, "time", 0.0))
+        key = self._reservation_key(position)
+        self._live_expansion_reservations()[key] = now
+        self._reserved_position = position
+        self._reserved_at = now
+
+    def _own_reservation_pending(self) -> bool:
+        if self._reserved_position is None or self._reserved_at is None:
+            return False
+        now = float(getattr(self.ai, "time", 0.0))
+        if now - float(self._reserved_at) <= 2.0:
+            return True
+        key = self._reservation_key(self._reserved_position)
+        reservations = self._live_expansion_reservations()
+        if reservations.get(key) == self._reserved_at:
+            reservations.pop(key, None)
+        self._reserved_position = None
+        self._reserved_at = None
         return False
 
     async def debug_actions(self):

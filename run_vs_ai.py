@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import sys
 from datetime import datetime
@@ -52,25 +53,39 @@ def build_match_id(
     decision_interval: float,
     run_index: Optional[int],
 ) -> str:
-    # Keep the default safely below Windows' traditional MAX_PATH once the
-    # batch folder and log/replay suffixes are appended.
-    bot = _safe_match_part(my_bot_name)[:16]
-    matchup = f"{_safe_match_part(bot_race)[:3]}V{_safe_match_part(enemy_race)[:3]}"
-    difficulty = _safe_match_part(enemy_difficulty)[:12]
-    build = _safe_match_part(enemy_build)[:8]
-    map_part = _safe_match_part(map_name)[:24]
-    model_part = _safe_match_part(decision_model or "no_model")[:24]
-    parts = (
-        timestamp,
-        bot,
-        matchup,
-        difficulty,
-        build,
-        map_part,
-        model_part,
-        f"{float(decision_interval):g}s",
+    # The directory remains human-readable while a digest keeps every omitted
+    # parameter part of the identity.  A bounded id is essential on Windows:
+    # the record directory and artifact filename used to repeat the same long
+    # id and could exceed MAX_PATH before SC2 started.
+    identity = "|".join(
+        str(value)
+        for value in (
+            timestamp,
+            my_bot_name,
+            bot_race,
+            enemy_race,
+            enemy_difficulty,
+            enemy_build,
+            map_name,
+            decision_model,
+            float(decision_interval),
+            run_index,
+        )
     )
-    value = "_".join(_safe_match_part(part) for part in parts)
+    digest = hashlib.sha1(identity.encode("utf-8")).hexdigest()[:10]
+    matchup = (
+        f"{_safe_match_part(bot_race)[:1].lower()}"
+        f"v{_safe_match_part(enemy_race)[:1].lower()}"
+    )
+    value = "_".join(
+        (
+            _safe_match_part(timestamp)[:15],
+            matchup,
+            _safe_match_part(map_name)[:12],
+            _safe_match_part(enemy_difficulty)[:6],
+            digest,
+        )
+    )
     return f"{value}_run{run_index}" if run_index is not None else value
 
 
