@@ -149,9 +149,9 @@ Terran 附件交换或 producer 选择，必须至少复跑 `bio`、`blueflame_l
 | `dark_templar_rush` | TwilightCouncil/DarkShrine 隐形突袭 | 完整科技前置、DarkTemplar 生产、侦测对局下的常规兵转型 |
 | `robo` | Observer/Immortal 为核心的地面机械化 | RoboticsFacility、Observer 探测、Immortal、可选 RoboticsBay 和前排配比 |
 | `voidray` | 两基地 Stargate 主力空军 | Stargate/FleetBeacon 唯一性、VoidRaySpeed、空军升级和地面掩护 |
-| `protoss_silver` | Zealot/Stalker/Immortal 的稳健双基地运营 | Probe 饱和、Nexus 扩张、Pylon、混合生产和基础攻防升级 |
+| `macro_stalkers` | 双基地 Blink Stalker 机动运营 | Probe 饱和、WarpGateResearch、BlinkTech、Observer 探测和多线换血 |
 
-这五项分别覆盖正面时机、隐形科技、Robotics、Stargate 和标准宏观运营。
+这五项分别覆盖正面时机、隐形科技、Robotics、Stargate 和 Blink 宏观运营。
 修改 Protoss 动作映射后，应特别比较 `four_gate` 与其他四项：只有前者大量使用
 WarpGate，同一个单位从 Gateway 与 WarpGate 生产时都必须选择当前可用 producer。
 
