@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into expand, getting gas early for a Reaper scout and quickly transitioning into Factory tech for Siege Tanks while dropping a Starport to unlock air options. Production scales through a 3-1-3 setup with multiple Starports on reactors to flood Liberators and Vikings, supported by a Raven for detection and map control, while mixing in Marine production and picking up +1 attack and vehicle weapons to keep both bio and mech hitting hard. The endgame aims for a massive 5+ base economy powering a sky-heavy mech composition with Liberators, Vikings, Tanks, and Hellions, using the armory to unlock upgrades and overwhelming sustained production to grind out opponents through superior air control and siege positioning.

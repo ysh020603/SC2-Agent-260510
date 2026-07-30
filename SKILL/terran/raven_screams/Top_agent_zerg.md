@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a rax-first into quick natural CC, grabbing early gas and rolling into a Factory and Starport with a tech lab on each to unlock tank and banshee tech while shoringing up with a bunker. Production scales through a 3-rax core with mixed tech labs and reactors, powering a bio-mech-air hybrid that leans on cloak banshees for harass while layering in tanks, libs, and eventually marauders as upgrades like combat shield, banshee speed, and raven corvid reactor come online. The endgame aims for a 4-base economy flooding a maxed-out mixed army of marine-marauder-tank supported by mass banshee-lib-viking air and raven utility, overwhelming with sustained production and upgrade-backed multi-prong pressure rather than a single all-in timing.

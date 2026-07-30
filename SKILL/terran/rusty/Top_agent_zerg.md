@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into quick expand, getting the CC up and running early while adding a Refinery for gas and transitioning into Factory-Tech Lab for Siege Tank production to anchor the mech core. Production scales hard with 3 rax, a Starport, and Reactors across the board to flood Marines and Medivacs, grabbing Combat Shields as the key bio upgrade while the Tank count builds out a bio-mech deathball that plays slow and methodical. The endgame pushes toward a 4-base economy with mass Marine-Tank-Medivac, using the air bridge to drop and siege across the map, overwhelming with sustained production and a maxed-out timing rather than any flashy tech switch.

@@ -1,0 +1,14 @@
+{
+  "_comment": "Protoss strategies available for fixed --force-strategy runs. Every folder contains one opponent-agnostic Top_agent.md.",
+  "registered_strategies": [
+    "adept_allin",
+    "dark_templar_rush",
+    "disruptor",
+    "four_gate",
+    "macro_stalkers",
+    "one_base_tempests",
+    "protoss_silver",
+    "robo",
+    "voidray"
+  ]
+}

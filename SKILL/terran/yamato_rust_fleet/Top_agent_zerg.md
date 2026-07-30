@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into expand, grabbing early gas and setting up a Factory before pivoting hard into Fusion Core and Starport tech to unlock the Battlecruiser transition. Production scales through multiple rax and a Starport with a reactor switch, mixing marine-tank bio with early BCs while picking up Combat Shields, ship weapons, and Yamato Cannon to power the mid-game. The endgame aims for a maxed-out Battlecruiser fleet supported by Vikings and a marine bio core, bankrolling the gas-heavy air armada off 4+ bases with Planetary Fortress defense and sustained Starport production to overwhelm with beefy capital ships.

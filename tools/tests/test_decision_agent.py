@@ -12,6 +12,7 @@ def test_prompt_defines_replacement_and_unmanaged_supply_contract():
         unfinished_canonical_names=["Barracks", "Marine", "Marine"],
         canonical_unit_names=["SupplyDepot", "Barracks", "Marine"],
         canonical_upgrade_names=["Stimpack"],
+        race_context="Supply provider: SupplyDepot",
     )
     system = messages[0]["content"]
     user = messages[1]["content"]
@@ -22,6 +23,7 @@ def test_prompt_defines_replacement_and_unmanaged_supply_contract():
     assert "normally no more than 20 names" in system
     assert "not chain-of-thought" in system
     assert "Bio pressure into a mech transition." in system
+    assert "Supply provider: SupplyDepot" in system
     assert '["Barracks", "Marine", "Marine"]' in user
     assert "will be discarded" in user
     assert "PENDING" not in user

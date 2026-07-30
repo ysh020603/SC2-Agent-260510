@@ -1,3 +1,0 @@
-# Summary
-
-This build opens with a rax-first into quick OC, getting a reaper out for early scout pressure while dropping a reactor and slamming down 3 rax total to set up the core bio infrastructure. The expansion goes down off the marine flood, with stim kicking in immediately and combat shields following right after as the rax get their tech labs and reactors online to mass marines hard. By the time the economy saturates across 2 bases, you're running a pure bio ball with both bio upgrades rolling, aiming to hit a maxed-out timing or snowball into endless marine reinforcements off the production backbone.

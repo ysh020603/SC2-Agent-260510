@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into quick expansion, grabbing early gas for a tech lab and reaper scout before transitioning into a Factory and Starport to unlock the full 1-1-1 suite while keeping worker production rolling. Production scales up to 5 rax with a mix of tech labs and reactors alongside a reactor Starport, powering a stim-combat shield-concussive shell bio core supported by medivacs and widow mines while +1 attack and armor roll at the ebay. The endgame plan is to max out on a marine-marauder-medivac ball across 3 bases with OCs fueling mule-driven macro, aiming to overwhelm with a sustained production flood rather than a sharp timing.

@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard CC-first into rax, grabbing early gas and double-orbital before transitioning into Factory tech with a tech lab and initial Cyclone production. By the mid-game it scales hard into a 5+ Factory mech setup with mixed tech labs and reactors, flooding Cyclones and Hellions while picking up Blue Flame, Lock-on Damage, and vehicle upgrades from the Armory for a mobile harassment-heavy playstyle. The endgame aims for a maxed-out mech ball of 15+ Cyclones with Hellion support, powered by a 3-base economy and sustained production, looking to overwhelm with mobility and lock-on pressure rather than tech-switching into air or heavy siege units.

@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into expand, getting gas early for flexibility and dropping a Reaper for initial scout pressure before quickly transitioning into a heavy 5-rax marine flood with mixed tech labs and reactors. The midgame is all about cranking out marines non-stop while layering stim, combat shields, and concussive shells to power up the bio ball, staying ahead of supply with constant depots and eventually adding a factory and starport to open up tech options. The late game aims to leverage a saturated 2-base economy into overwhelming marine production, with the starport and factory providing a bridge toward medivac support or heavier mech transitions if the bio flood doesn't break the opponent outright.

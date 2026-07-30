@@ -14,6 +14,8 @@ async def candidate_producers(ai: Any, ability: AbilityId) -> List[Tuple[Any, st
             continue
         if getattr(unit, "is_constructing_scv", False):
             continue
+        if getattr(unit, "tag", None) in getattr(ai, "unit_tags_received_action", set()):
+            continue
         candidates.append(unit)
     if not candidates:
         return []

@@ -1,3 +1,0 @@
-# Summary
-
-The opening plays out as a standard rax-first into quick natural expansion, getting gas online early to flow into a Factory and then a Starport while keeping marine production rolling and dropping a bunker for safety. Production scales up through 5 rax with a mix of tech labs and reactors, supported by 2 ports and a Fusion Core to unlock BC tech, while Combat Shield kicks in and the army leans on marine/tank with a steady BC build cycle for pressure. The endgame floods marines off a 4-base economy while churning out BCs from 2 ports and tanks from the factory, aiming for a maxed-out deathball that overwhelms with sustained sky-terran production and bio reinforcement.

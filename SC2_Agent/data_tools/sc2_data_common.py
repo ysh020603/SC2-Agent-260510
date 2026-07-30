@@ -20,8 +20,10 @@ QUEUE_TARGET_KINDS = {
     "BuildOnUnit",
     "BuildInstant",
     "Train",
+    "TrainPlace",
     "Research",
     "Morph",
+    "MorphPlace",
 }
 
 ADDON_EXECUTOR_TO_HOST = {
@@ -178,12 +180,16 @@ def expand_entity_implications(
 
 def canonical_entity_name(data: dict[str, Any], entity_name: str) -> str:
     units, upgrades = build_entity_indexes(data)
-    entity_names = {
-        entity["name"].lower(): entity["name"]
+    # Exact matching must win: the SC2 data contains both the Unit
+    # ``OverlordTransport`` and the Upgrade ``overlordtransport``.
+    if entity_name in units or entity_name in upgrades:
+        return entity_name
+    matches = {
+        entity["name"]
         for entity in [*units.values(), *upgrades.values()]
-        if entity.get("name")
+        if entity.get("name") and entity["name"].lower() == entity_name.lower()
     }
-    return entity_names.get(entity_name.lower(), entity_name)
+    return next(iter(matches)) if len(matches) == 1 else entity_name
 
 
 def canonical_ability_name(data: dict[str, Any], action_name: str) -> str:

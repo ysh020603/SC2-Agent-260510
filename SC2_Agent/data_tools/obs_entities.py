@@ -33,12 +33,16 @@ def _reverse_index() -> dict[str, str]:
     """``normalised name -> canonical DB name`` for every Unit and Upgrade."""
     data = load_database()
     units, upgrades = build_entity_indexes(data)
-    index: dict[str, str] = {}
+    candidates: dict[str, set[str]] = {}
     for entity in [*units.values(), *upgrades.values()]:
         name = entity.get("name")
         if name:
-            index[_norm(name)] = name
-    return index
+            candidates.setdefault(_norm(name), set()).add(name)
+    return {
+        normalized: next(iter(names))
+        for normalized, names in candidates.items()
+        if len(names) == 1
+    }
 
 
 def db_name_for_enum(enum_name: str) -> str | None:
@@ -48,7 +52,11 @@ def db_name_for_enum(enum_name: str) -> str | None:
 
 def _type_db_name(unit: Any) -> str | None:
     try:
-        return db_name_for_enum(unit.type_id.name)
+        enum_name = unit.type_id.name
+        # Preserve the canonical Unit in the one known Unit/Upgrade collision.
+        if enum_name == "OVERLORDTRANSPORT":
+            return "OverlordTransport"
+        return db_name_for_enum(enum_name)
     except Exception:
         return None
 
@@ -99,7 +107,14 @@ def collect_entities(ai: Any) -> dict[str, list[str]]:
     upgrades = getattr(state, "upgrades", None) if state is not None else None
     if upgrades:
         for up in upgrades:
-            name = db_name_for_enum(getattr(up, "name", str(up)))
+            enum_name = getattr(up, "name", str(up))
+            # The upgrade and transport unit intentionally differ only by
+            # canonical case in the graph database.
+            name = (
+                "overlordtransport"
+                if enum_name == "OVERLORDTRANSPORT"
+                else db_name_for_enum(enum_name)
+            )
             if name:
                 completed.add(name)
 

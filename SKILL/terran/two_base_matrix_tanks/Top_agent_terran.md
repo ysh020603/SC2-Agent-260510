@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into quick expand, getting gas online early and transitioning through a Factory before adding a Starport to set up the core tech triangle. Production scales into a 2-base setup with a Factory tech lab pumping tanks, a Starport tech lab spinning out libs, medivacs, and ravens, and a rax with stim and combat shields churning marines for a bio-mech hybrid that plays defensively with siege anchors and air zone control. The endgame aims to max out on a tank-marine-lib core with raven support, leveraging a saturated 2-base economy to hit a power spike with upgraded bio and enough air-mechanics to lock down space and force favorable trades.

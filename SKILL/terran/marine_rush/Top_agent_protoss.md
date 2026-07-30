@@ -1,3 +1,0 @@
-# Summary
-
-This build opens with a rax-first into orbital timing, skipping the natural expansion entirely to pour every mineral into a massive 5-rax Marine flood off a single base economy. There is no mid-game scaling or tech pivot—no stim, no upgrades, no factory or starport—just pure bio macro with depots thrown down to keep supply ahead of the relentless Marine queue. The endgame plan is to max out on Marines as fast as possible and hit a critical mass timing before any opponent can tech up, gambling everything on overwhelming the enemy with raw numbers rather than transitioning into a sustainable multi-base economy or late-game composition.

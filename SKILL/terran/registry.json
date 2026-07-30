@@ -1,5 +1,5 @@
 {
-  "_comment": "Terran strategy folders available for fixed --force-strategy runs. Keep this list in sync with SKILL/terran/<strategy>/ directories.",
+  "_comment": "Terran strategies available for fixed --force-strategy runs. Every folder contains one opponent-agnostic Top_agent.md.",
   "registered_strategies": [
     "banshees",
     "battle_cruisers",

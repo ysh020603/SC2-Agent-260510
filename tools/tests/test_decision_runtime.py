@@ -1,8 +1,15 @@
+import asyncio
 from types import SimpleNamespace
 
 from dummies.generic.universal_llm_bot import UniversalLLMBot
-from SC2_Agent.execution.command import DONE, PENDING, RUNNING, PlannedAction
-from SC2_Agent.execution.producer_selector import choose_producer
+from sc2.action import combine_actions
+from sc2.constants import COMBINEABLE_ABILITIES
+from sc2.ids.ability_id import AbilityId
+from sc2.ids.unit_typeid import UnitTypeId
+from sc2.unit_command import UnitCommand
+from SC2_Agent.data_tools import action_candidates_for_entity
+from SC2_Agent.execution.command import DONE, PENDING, RUNNING, WAITING, PlannedAction
+from SC2_Agent.execution.producer_selector import candidate_producers, choose_producer
 from SC2_Agent.execution.scheduler import ExecutionScheduler
 
 
@@ -158,6 +165,83 @@ def test_research_order_is_an_engine_commit_boundary():
     assert action.issued_count == 1
 
 
+def test_pending_upgrade_id_is_an_engine_commit_boundary(monkeypatch):
+    upgrade = object()
+    action = PlannedAction(
+        action_name="CYBERNETICSCORERESEARCH_PROTOSSAIRWEAPONSLEVEL1",
+        category="research",
+        canonical_name="ProtossAirWeaponsLevel1",
+        target_result="ProtossAirWeaponsLevel1",
+        queue_id=6,
+        queue_position=1,
+    )
+    scheduler = ExecutionScheduler()
+    scheduler.ai = SimpleNamespace(
+        time=100.0,
+        state=SimpleNamespace(upgrades=set()),
+        structures=[],
+        already_pending_upgrade=lambda candidate: 0.25 if candidate is upgrade else 0,
+    )
+    scheduler.actions = [action]
+    monkeypatch.setattr(
+        "SC2_Agent.execution.scheduler.mapping.upgrade_for",
+        lambda _name: upgrade,
+    )
+
+    assert scheduler.uncommitted_canonical_names() == []
+    assert action.state == DONE
+    assert action.issued_count == 1
+
+
+def test_gas_build_waits_for_a_free_geyser_instead_of_being_abandoned():
+    action = PlannedAction(
+        action_name="PROTOSSBUILD_ASSIMILATOR",
+        category="build",
+        canonical_name="Assimilator",
+        target_result="Assimilator",
+        state=RUNNING,
+        running_start_time=0.0,
+    )
+    scheduler = ExecutionScheduler(running_abandon_sec=25.0)
+    scheduler.actions = [action]
+
+    scheduler._abandon_stuck_running(now=30.0)
+
+    assert action.state == WAITING
+    assert scheduler.waiter is action
+    assert action not in scheduler.actions
+
+
+def test_technology_structure_target_count_is_capped(monkeypatch):
+    scheduler = ExecutionScheduler()
+    monkeypatch.setattr(scheduler, "_equivalent_existing_count", lambda _unit_type: 1)
+
+    evolution_chambers = PlannedAction(
+        action_name="ZERGBUILD_EVOLUTIONCHAMBER",
+        category="build",
+        canonical_name="EvolutionChamber",
+        target_result="EvolutionChamber",
+        quantity=4,
+    )
+    assert scheduler._compute_build_to_count(evolution_chambers) == 2
+
+    cybernetics_cores = PlannedAction(
+        action_name="PROTOSSBUILD_CYBERNETICSCORE",
+        category="build",
+        canonical_name="CyberneticsCore",
+        target_result="CyberneticsCore",
+        quantity=3,
+    )
+    monkeypatch.setattr(
+        "SC2_Agent.execution.scheduler.mapping.unit_type_for",
+        lambda name: {
+            "EvolutionChamber": UnitTypeId.EVOLUTIONCHAMBER,
+            "CyberneticsCore": UnitTypeId.CYBERNETICSCORE,
+        }.get(name),
+    )
+    assert scheduler._compute_build_to_count(cybernetics_cores) == 1
+
+
 def test_producer_selection_is_deterministic_and_prefers_idle():
     busy = SimpleNamespace(is_idle=False, orders=[1], tag=1)
     idle_high_tag = SimpleNamespace(is_idle=True, orders=[], tag=9)
@@ -166,3 +250,97 @@ def test_producer_selection_is_deterministic_and_prefers_idle():
         [(busy, "busy"), (idle_high_tag, "idle"), (idle_low_tag, "idle")]
     )
     assert selected is idle_low_tag
+
+
+def test_producer_candidates_exclude_units_already_commanded_this_frame():
+    already_used = SimpleNamespace(
+        build_progress=1.0,
+        is_constructing_scv=False,
+        is_idle=True,
+        orders=[],
+        tag=1,
+    )
+    available = SimpleNamespace(
+        build_progress=1.0,
+        is_constructing_scv=False,
+        is_idle=True,
+        orders=[],
+        tag=2,
+    )
+
+    async def get_available_abilities(units, ignore_resource_requirements):
+        assert ignore_resource_requirements
+        assert units == [available]
+        return [[AbilityId.GATEWAYTRAIN_STALKER]]
+
+    ai = SimpleNamespace(
+        units=[],
+        structures=[already_used, available],
+        unit_tags_received_action={1},
+        get_available_abilities=get_available_abilities,
+    )
+    result = asyncio.run(candidate_producers(ai, AbilityId.GATEWAYTRAIN_STALKER))
+    assert result == [(available, "idle")]
+
+
+def test_scheduler_keeps_all_reviewed_gateway_action_candidates():
+    candidates = action_candidates_for_entity("protoss", "Stalker")
+    scheduler = ExecutionScheduler()
+    scheduler.replace_uncommitted_queue(
+        [("Stalker", candidates[0], tuple(candidates[1:]))],
+        queue_id=9,
+    )
+    action = scheduler.actions[0]
+    assert action.canonical_name == "Stalker"
+    assert action.execution_mode == "train"
+    assert set(action._candidate_specs) == {
+        row.ability_name for row in candidates
+    }
+
+
+def test_gateway_action_switches_to_warp_in_when_only_warpgate_is_ready(monkeypatch):
+    candidates = action_candidates_for_entity("protoss", "Stalker")
+    scheduler = ExecutionScheduler()
+    scheduler.ai = SimpleNamespace()
+    scheduler.replace_uncommitted_queue(
+        [("Stalker", candidates[0], tuple(candidates[1:]))],
+        queue_id=10,
+    )
+    action = scheduler.actions[0]
+
+    async def candidates_for_ability(_ai, ability):
+        if ability == AbilityId.WARPGATETRAIN_STALKER:
+            return [(SimpleNamespace(tag=7), "idle")]
+        if ability == AbilityId.GATEWAYTRAIN_STALKER:
+            return [(SimpleNamespace(tag=8), "idle")]
+        return []
+
+    monkeypatch.setattr(
+        "SC2_Agent.execution.scheduler.is_available_now",
+        lambda _ai, _action: True,
+    )
+    monkeypatch.setattr(
+        "SC2_Agent.execution.scheduler.producer_selector.candidate_producers",
+        candidates_for_ability,
+    )
+    asyncio.run(scheduler._select_runtime_action_with_producer(action))
+
+    assert action.action_name == "WARPGATETRAIN_STALKER"
+    assert action.execution_mode == "warp_in"
+
+
+def test_archon_commands_are_combined_into_one_two_templar_engine_action():
+    assert AbilityId.MORPH_ARCHON in COMBINEABLE_ABILITIES
+    fake_unit_type = type("Unit", (), {})
+    first = fake_unit_type()
+    first.tag = 101
+    second = fake_unit_type()
+    second.tag = 202
+    commands = [
+        UnitCommand(AbilityId.MORPH_ARCHON, first),
+        UnitCommand(AbilityId.MORPH_ARCHON, second),
+    ]
+    actions = list(combine_actions(commands))
+
+    assert len(actions) == 1
+    assert set(actions[0].unit_command.unit_tags) == {101, 202}

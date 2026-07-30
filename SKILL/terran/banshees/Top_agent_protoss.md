@@ -1,3 +1,0 @@
-# Summary
-
-Rusty Screams opens with a standard depot-into-rax opener, grabbing an early orbital and a fast natural CC to set up a two-base economy before dropping a Factory and Starport for a bio-mech hybrid tech path with a defensive bunker and early Banshee harassment. The build scales into 3 rax, 2 ports, and a single Factory with mixed add-ons, pumping Marines and Tanks while layering in Banshees for map pressure, eventually picking up combat shield to push the bio backbone forward. The endgame aims for a maxed-out three-base army with a heavy Marine-Tank-Banshee core, leaning on sustained production and upgrade-backed attrition rather than a sharp timing or a big tech switch.

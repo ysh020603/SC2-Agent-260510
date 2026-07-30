@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into gas and factory tech lab, getting a Reaper out for early scout pressure while dropping the natural CC and bunkering up defensively. The mid-game scales hard into a 4-factory mech backbone with armory and vehicle weapons, pumping siege tanks and thors while starports with reactors crank vikings for air control and medivac support. The late-game floods the map with a maxed-out armored deathball of 7+ tanks, 3+ thors, and 8 vikings, supported by a 5+ base economy and continuous production across a sprawling factory-port grid to overwhelm through sheer heavy mech attrition.

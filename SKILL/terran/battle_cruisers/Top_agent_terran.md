@@ -1,3 +1,0 @@
-# Summary
-
-Flying Rust opens with a standard rax-first into quick CC expansion, getting gas early and flowing into Factory -> Starport with a Fusion Core to unlock BCs while dropping a bunker for frontline safety. The mid-game scales into a multi-rax setup with tech labs and reactors, grabbing combat shields and pumping a bio-mechanized core of marines and siege tanks while the starport cranks out battlecruisers for a heavy air-ground mix. The late-game pushes toward a maxed-out 3-base economy flooding marines with tank support and a steady stream of BCs, aiming to overwhelm with sustained production of a beefy bio-mech-air deathball rather than a sharp timing.

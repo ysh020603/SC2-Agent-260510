@@ -1,6 +1,7 @@
 # SC2-Agent Knowledge
 
-This branch runs one summary-guided macro decision agent for Terran.
+This branch runs one summary-guided macro decision agent for Terran, Protoss,
+and Zerg.
 
 ```text
 strategy summary + current observation + previous uncommitted canonical names
@@ -71,14 +72,15 @@ model's queue.
 
 ## Strategy files
 
-Strategies live under:
+Strategies for every supported race live under:
 
 ```text
-SKILL/terran/<strategy>/Top_agent_<enemy_race>.md
+SKILL/<our_race>/<strategy>/Top_agent.md
 ```
 
-Each file contains only `# Summary`. There are no per-step instructions. The
-summary is injected into every macro decision.
+Each strategy directory contains exactly one opponent-agnostic Markdown file
+with only `# Summary`. There are no per-step instructions. The summary is
+injected into every macro decision.
 
 ## Run
 
@@ -120,4 +122,6 @@ Each match writes its normal interaction JSON and a companion
 - provider reasoning separately, if a provider returned any.
 
 See [system architecture](docs/system-architecture.md), [test workflow](docs/test-run-workflow.md),
-and [environment setup](docs/environment-setup.md).
+[model-facing test and repair guide](test/TESTING_GUIDE.md),
+[anomaly log](test/ANOMALY_LOG.md), and
+[environment setup](docs/environment-setup.md).

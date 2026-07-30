@@ -1,0 +1,15 @@
+{
+  "_comment": "Zerg strategies available for fixed --force-strategy runs. Every folder contains one opponent-agnostic Top_agent.md.",
+  "registered_strategies": [
+    "lings",
+    "lurkers",
+    "macro_roach",
+    "macro_zerg",
+    "mutalisk",
+    "roach_burrow",
+    "roach_hydra",
+    "twelve_pool",
+    "worker_rush",
+    "zerg_silver"
+  ]
+}

@@ -27,10 +27,13 @@ from sharpy.plans.acts import ActBase
 
 from API_Tools.llm_caller import call_openai_detailed
 from SC2_Agent.data_tools import (
-    actions_for_entities,
-    is_known_terran_entity,
-    terran_unit_names,
-    terran_upgrade_names,
+    ActionCandidate,
+    action_candidates_for_entity,
+    is_known_race_entity,
+    normalize_race,
+    race_prompt_context,
+    race_unit_names,
+    race_upgrade_names,
 )
 from SC2_Agent.decision_agent import (
     MacroDecision,
@@ -66,7 +69,7 @@ class UniversalLLMBot(KnowledgeBot):
         force_strategy: Optional[str] = None,
     ):
         super().__init__("Universal LLM Bot")
-        self.race_name = race_name.strip().lower()
+        self.race_name = normalize_race(race_name)
         self.record_dir = record_dir.strip()
         self.decision_model_key = decision_model_key.strip()
         self.decision_interval_seconds = max(1.0, float(decision_interval_seconds))
@@ -171,7 +174,7 @@ class UniversalLLMBot(KnowledgeBot):
     def _apply_forced_strategy(self, name: str) -> None:
         target_dir = os.path.join(self._skill_race_dir, name)
         enemy_race = self._strategy_enemy_race_name()
-        filename = f"Top_agent_{enemy_race}.md"
+        filename = "Top_agent.md"
         path = os.path.join(target_dir, filename)
         if not os.path.isfile(path):
             raise FileNotFoundError(f"Strategy summary file not found: {path}")
@@ -242,8 +245,9 @@ class UniversalLLMBot(KnowledgeBot):
                 strategy_summary=self.strategy_summary,
                 obs_text=obs_text,
                 unfinished_canonical_names=old_names,
-                canonical_unit_names=terran_unit_names(),
-                canonical_upgrade_names=terran_upgrade_names(),
+                canonical_unit_names=race_unit_names(self.race_name),
+                canonical_upgrade_names=race_upgrade_names(self.race_name),
+                race_context=race_prompt_context(self.race_name),
             )
             api_result = call_openai_detailed(
                 messages=messages,
@@ -261,17 +265,17 @@ class UniversalLLMBot(KnowledgeBot):
             valid_names: List[str] = []
             dropped_unknown: List[str] = []
             for name in parsed.ordered_names:
-                if is_known_terran_entity(name):
+                if is_known_race_entity(self.race_name, name):
                     valid_names.append(name)
                 else:
                     dropped_unknown.append(name)
 
-            mapped: List[Tuple[str, str]] = []
+            mapped: List[Tuple[str, ActionCandidate, Tuple[ActionCandidate, ...]]] = []
             dropped_unmapped: List[str] = []
             for name in valid_names:
-                action_name = self._primary_action_for_entity(name)
-                if action_name:
-                    mapped.append((name, action_name))
+                candidates = self._action_candidates_for_entity(name)
+                if candidates:
+                    mapped.append((name, candidates[0], tuple(candidates[1:])))
                 else:
                     dropped_unmapped.append(name)
 
@@ -295,7 +299,7 @@ class UniversalLLMBot(KnowledgeBot):
                 mapped,
                 queue_id=queue_id,
             )
-            new_names = [name for name, _action in mapped]
+            new_names = [name for name, _action, _alternatives in mapped]
             carried, discarded, introduced = self._queue_transition(
                 replaced_names,
                 new_names,
@@ -310,8 +314,15 @@ class UniversalLLMBot(KnowledgeBot):
                 "dropped_unknown_names": dropped_unknown,
                 "dropped_unmapped_names": dropped_unmapped,
                 "mapped_actions": [
-                    {"canonical_name": name, "action": action}
-                    for name, action in mapped
+                    {
+                        "canonical_name": name,
+                        "action": action.ability_name,
+                        "execution_mode": action.execution_mode,
+                        "alternative_actions": [
+                            alternative.ability_name for alternative in alternatives
+                        ],
+                    }
+                    for name, action, alternatives in mapped
                 ],
             }
             record["queue_transition"] = {
@@ -382,28 +393,12 @@ class UniversalLLMBot(KnowledgeBot):
                 introduced.append(name)
         return carried, discarded, introduced
 
-    def _primary_action_for_entity(self, entity_name: str) -> Optional[str]:
+    def _action_candidates_for_entity(self, entity_name: str) -> List[ActionCandidate]:
         try:
-            result = actions_for_entities([entity_name], executor_race="Terran")
+            return action_candidates_for_entity(self.race_name, entity_name)
         except Exception as exc:
-            logger.debug("actions_for_entities failed for %s: %s", entity_name, exc)
-            return None
-        entries = result.get(entity_name) or []
-        if not entries:
-            return None
-
-        def rank(entry: Dict[str, Any]) -> Tuple[int, str]:
-            order = {
-                "Build": 0,
-                "BuildOnUnit": 0,
-                "BuildInstant": 0,
-                "Train": 1,
-                "Research": 2,
-                "Morph": 3,
-            }
-            return order.get(entry.get("target_kind") or "", 9), entry.get("ability_name") or ""
-
-        return sorted(entries, key=rank)[0].get("ability_name")
+            logger.debug("action candidate lookup failed for %s: %s", entity_name, exc)
+            return []
 
     def _capture_observation_bundle(self) -> Tuple[str, Optional[Dict[str, Any]]]:
         recorder = getattr(self, "llm_observation_recorder", None)
@@ -539,6 +534,15 @@ class UniversalLLMBot(KnowledgeBot):
         except Exception as exc:
             logger.warning("Error importing tactics module %s: %s", module_path, exc)
             return None
+        factory = getattr(module, "create_strategy_tools", None)
+        if callable(factory):
+            try:
+                result = factory()
+                if isinstance(result, BuildOrder):
+                    return result
+            except Exception as exc:
+                logger.warning("Failed to call strategy tools factory in %s: %s", module_path, exc)
+                return None
         for name in dir(module):
             value = getattr(module, name)
             if not isinstance(value, type):

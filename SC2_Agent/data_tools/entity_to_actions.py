@@ -37,14 +37,23 @@ def actions_for_entities(
     data = load_database(data_path)
     ability_index = build_ability_index(data)
     executor_index = build_executor_index(data, race=executor_race)
-    canonical_names = {
-        entity["name"].lower(): entity["name"]
+    exact_names = {
+        entity["name"]
         for group in ("Unit", "Upgrade")
         for entity in data.get(group, [])
         if entity.get("name")
     }
+    folded_names: dict[str, set[str]] = {}
+    for canonical_name in exact_names:
+        folded_names.setdefault(canonical_name.lower(), set()).add(canonical_name)
     requested_to_canonical = {
-        name: canonical_names.get(name.lower(), name)
+        name: (
+            name
+            if name in exact_names
+            else next(iter(folded_names.get(name.lower(), set())))
+            if len(folded_names.get(name.lower(), set())) == 1
+            else name
+        )
         for name in names
     }
     wanted = set(requested_to_canonical.values())

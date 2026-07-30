@@ -1,3 +1,0 @@
-# Summary
-
-This build goes rax-first with no gas mining, skipping the natural CC entirely to slam down 3 rax on a single base and start pumping Marines immediately while staying ahead of supply with constant depots. There is no mid-game scaling beyond adding more rax and depots—no tech lab, no stim, no combat shields, no factory or starport—just pure mineral dump into Marine production with the Orbital energy used only for worker saturation. The endgame plan is to hit a critical mass of Marines and end the game before any splash damage or tech units come online, relying on overwhelming production tempo from 4+ rax to flood the opponent in a single all-in wave.

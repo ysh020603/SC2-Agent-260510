@@ -1,3 +1,0 @@
-# Summary
-
-This build opens with a tight mineral economy, dropping 3 rax off a single base with no expansion, no gas, and no tech—just pure marine production out of the gate. The mid game is all about keeping the rax hot and flooding marines non-stop, with constant depot management to avoid supply blocks, though there's no stim, no combat shields, no medivacs, and no engineering bay upgrades to back the bio ball. The late game plan is to keep dumping every mineral into marines and hope the sheer mass of bodies overwhelms before the opponent's tech or splash catches up, with no transition, no additional bases, and no path beyond endless marine reinforcement until the build hits a hard ceiling.

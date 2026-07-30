@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard depot-first into rax and natural CC, quickly grabbing gas before dropping a factory to kickstart the mech transition while keeping both orbitals churning out workers. Production scales hard into a 4-factory setup with tech labs and reactors, flooding hellions with blue flame and mixing in cyclones with Lock On upgrade, thors, and starport support from vikings and ravens while an ebay preps +1. The endgame aims for a maxed-out mech deathball with heavy hellion/cyclone/thor core backed by air support, running on a 4-base economy with planetary defenses and sustained factory production to overwhelm through attrition and map control.

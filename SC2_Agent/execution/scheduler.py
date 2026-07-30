@@ -33,6 +33,7 @@ from sc2.position import Point2
 from sharpy.plans.acts import ActBase
 
 from SC2_Agent.data_tools import (
+    ActionCandidate,
     chain_in_progress,
     is_available_now,
 )
@@ -76,6 +77,44 @@ TERRAN_BUILDING_EQUIVALENTS = {
     ),
 }
 
+RACE_BUILDING_EQUIVALENTS = {
+    **TERRAN_BUILDING_EQUIVALENTS,
+    UnitTypeId.HATCHERY: (
+        UnitTypeId.LAIR,
+        UnitTypeId.HIVE,
+    ),
+    UnitTypeId.LAIR: (
+        UnitTypeId.HIVE,
+    ),
+    UnitTypeId.SPIRE: (
+        UnitTypeId.GREATERSPIRE,
+    ),
+    UnitTypeId.GATEWAY: (
+        UnitTypeId.WARPGATE,
+    ),
+}
+
+STRUCTURE_COUNT_CAPS = {
+    UnitTypeId.CYBERNETICSCORE: 1,
+    UnitTypeId.TWILIGHTCOUNCIL: 1,
+    UnitTypeId.TEMPLARARCHIVE: 1,
+    UnitTypeId.DARKSHRINE: 1,
+    UnitTypeId.ROBOTICSBAY: 1,
+    UnitTypeId.FLEETBEACON: 1,
+    UnitTypeId.FORGE: 2,
+    UnitTypeId.SPAWNINGPOOL: 1,
+    UnitTypeId.BANELINGNEST: 1,
+    UnitTypeId.ROACHWARREN: 1,
+    UnitTypeId.HYDRALISKDEN: 1,
+    UnitTypeId.LURKERDENMP: 1,
+    UnitTypeId.INFESTATIONPIT: 1,
+    UnitTypeId.ULTRALISKCAVERN: 1,
+    UnitTypeId.SPIRE: 1,
+    UnitTypeId.GREATERSPIRE: 1,
+    UnitTypeId.NYDUSNETWORK: 1,
+    UnitTypeId.EVOLUTIONCHAMBER: 2,
+}
+
 TERRAN_STICKY_BUILD_ACTIONS = {
     "TERRANBUILD_COMMANDCENTER",
 }
@@ -107,6 +146,7 @@ class ExecutionScheduler(ActBase):
         #: 任何正常情形，触发即代表确实卡死。
         self.running_abandon_sec = running_abandon_sec
         self._direct_build_executor: Optional[DirectBuildExecutor] = None
+        self._warp_issued_this_frame = False
 
     # ------------------------------------------------------------------
     # plan management
@@ -141,13 +181,13 @@ class ExecutionScheduler(ActBase):
 
     def replace_uncommitted_queue(
         self,
-        tasks: List[Tuple[str, str]],
+        tasks: List[tuple],
         *,
         queue_id: int,
     ) -> List[str]:
         """Atomically discard local uncommitted work and install a new queue.
 
-        ``tasks`` contains ``(canonical_name, action_name)`` pairs. Commands
+        ``tasks`` contains reviewed canonical entities and action candidates.
         already issued to the SC2 simulation remain untouched; only scheduler
         objects, reservations, and worker handles for not-yet-issued work are
         released.
@@ -165,14 +205,37 @@ class ExecutionScheduler(ActBase):
         now = float(getattr(self.ai, "time", 0.0)) if getattr(self, "ai", None) else 0.0
         self.waiter = None
         self.actions = []
-        for position, (canonical_name, action_name) in enumerate(tasks, start=1):
+        for position, task in enumerate(tasks, start=1):
+            if len(task) == 2 and isinstance(task[1], str):
+                canonical_name, action_name = task
+                primary = ActionCandidate(
+                    ability_name=action_name,
+                    target_kind="",
+                    target_result=canonical_name,
+                    executors=(),
+                    execution_mode="",
+                )
+                alternatives: tuple[ActionCandidate, ...] = ()
+            else:
+                canonical_name, primary, alternatives = task
+                action_name = primary.ability_name
             action = PlannedAction.from_action_name(
                 action_name,
                 1,
                 canonical_name=canonical_name,
                 queue_id=queue_id,
                 queue_position=position,
+                target_result=primary.target_result,
+                execution_mode=primary.execution_mode,
+                alternative_action_names=tuple(
+                    candidate.ability_name for candidate in alternatives
+                ),
+                output_count=primary.output_count,
             )
+            action._candidate_specs = {
+                candidate.ability_name: candidate
+                for candidate in (primary, *alternatives)
+            }
             action.enqueue_time = now
             self.actions.append(action)
         logger.info(
@@ -202,7 +265,10 @@ class ExecutionScheduler(ActBase):
     def _is_sticky_build_action(self, pa: PlannedAction) -> bool:
         return (
             pa.category == mapping.CAT_BUILD
-            and pa.action_name.upper() in TERRAN_STICKY_BUILD_ACTIONS
+            and (
+                pa.action_name.upper() in TERRAN_STICKY_BUILD_ACTIONS
+                or pa.target_result in {"Refinery", "Assimilator", "Extractor"}
+            )
             and not self._build_action_satisfied(pa)
         )
 
@@ -285,6 +351,16 @@ class ExecutionScheduler(ActBase):
         upgrade = mapping.upgrade_for(pa.target_result or "")
         try:
             if upgrade is not None and upgrade in self.ai.state.upgrades:
+                return True
+        except Exception:
+            pass
+        # The queued action name and the SC2 order ability are not guaranteed
+        # to be identical.  Multi-level upgrades in particular may use a
+        # generic order ability while the reviewed action contains its level.
+        # BotAI already resolves that relationship from UpgradeId, so use it
+        # as the authoritative "research has started" check.
+        try:
+            if upgrade is not None and self.ai.already_pending_upgrade(upgrade) > 0:
                 return True
         except Exception:
             pass
@@ -504,6 +580,7 @@ class ExecutionScheduler(ActBase):
     # main per-frame loop
     # ------------------------------------------------------------------
     async def execute(self) -> bool:
+        self._warp_issued_this_frame = False
         if not self.actions and self.waiter is None:
             return True  # non-blocking: let background tactics run
 
@@ -537,6 +614,7 @@ class ExecutionScheduler(ActBase):
         pa = self.waiter
         if pa is None or pa.is_terminal():
             return
+        self._select_runtime_action(pa)
 
         # tech / prerequisite gate
         try:
@@ -603,6 +681,7 @@ class ExecutionScheduler(ActBase):
                 continue
             if id(pa) in issued_this_frame:
                 continue
+            self._select_runtime_action(pa)
             # 1) prerequisite / tech gate
             try:
                 available = is_available_now(self.ai, pa.action_name)
@@ -679,6 +758,32 @@ class ExecutionScheduler(ActBase):
         except Exception:
             return False
 
+    def _select_runtime_action(self, pa: PlannedAction) -> None:
+        """Select the first currently executable candidate for this entity.
+
+        This primarily switches Gateway training to WarpGate warp-in after
+        gateways have morphed.  It also keeps action selection deterministic.
+        """
+        if pa._act_started or not pa._candidate_specs:
+            return
+        candidates = list(pa._candidate_specs.values())
+        selected = None
+        for candidate in candidates:
+            try:
+                if is_available_now(self.ai, candidate.ability_name):
+                    selected = candidate
+                    break
+            except Exception:
+                continue
+        if selected is None or selected.ability_name == pa.action_name:
+            return
+        pa.select_action(
+            selected.ability_name,
+            target_result=selected.target_result,
+            execution_mode=selected.execution_mode,
+        )
+        pa.output_count = selected.output_count
+
     async def _try_issue(self, pa: PlannedAction, now: float) -> bool:
         """Issue one step of ``pa``. Returns True if resources were committed."""
         # 挂件（TechLab/Reactor）也走 sharpy Act 路径：BuildAddon 会先检查右侧空位，
@@ -751,6 +856,30 @@ class ExecutionScheduler(ActBase):
         # 被连续下达、放出多座建筑（继而挤压、触发挂件 LIFT 飞行）。这里用无延迟的
         # 直接扫描（worker 携带的建造指令）来判定目标是否已满足，满足即收尾，不再让
         # act 重复下单。
+        # Model decisions are additive, but duplicate technology structures
+        # are either useless or useful only up to a small race-specific cap.
+        # Count in-flight worker orders so consecutive PAs cannot overbuild
+        # before the first structure appears in the normal unit cache.
+        if pa.category == mapping.CAT_BUILD:
+            unit_type = mapping.unit_type_for(pa.target_result or "")
+            cap = STRUCTURE_COUNT_CAPS.get(unit_type)
+            if cap is not None and self._build_progress_count(unit_type) >= cap:
+                pa.state = DONE
+                pa.issued_count = pa.quantity
+                pa.note = f"done (structure cap {cap} satisfied)"
+                pa.running_start_time = None
+                if getattr(pa._act, "clear_worker", None):
+                    try:
+                        pa._act.clear_worker()
+                    except Exception:
+                        pass
+                self._emit_status(
+                    "PA %s DONE: structure cap %d already satisfied",
+                    pa.action_name,
+                    cap,
+                )
+                return True
+
         if pa.category == mapping.CAT_BUILD and pa._act_target_count is not None:
             unit_type = mapping.unit_type_for(pa.target_result or "")
             if unit_type is not None and self._existing_plus_en_route(unit_type) >= pa._act_target_count:
@@ -847,16 +976,23 @@ class ExecutionScheduler(ActBase):
     def _compute_build_to_count(self, pa: PlannedAction) -> int:
         upper = pa.action_name.upper()
         try:
-            if upper == "TERRANBUILD_COMMANDCENTER" or pa.target_result == "CommandCenter":
-                current = self._equivalent_existing_count(UnitTypeId.COMMANDCENTER)
-            elif "REFINERY" in upper:
-                current = self.get_count(UnitTypeId.REFINERY)
+            if pa.target_result in {"CommandCenter", "Nexus", "Hatchery"}:
+                unit_type = mapping.unit_type_for(pa.target_result)
+                current = self._equivalent_existing_count(unit_type) if unit_type else 0
+            elif pa.target_result in {"Refinery", "Assimilator", "Extractor"}:
+                unit_type = mapping.unit_type_for(pa.target_result)
+                current = self.get_count(unit_type) if unit_type else 0
             else:
                 unit_type = mapping.unit_type_for(pa.target_result or "")
                 current = self._equivalent_existing_count(unit_type) if unit_type else 0
         except Exception:
             current = 0
-        return int(current) + int(pa.quantity)
+        target = int(current) + int(pa.quantity)
+        if unit_type is not None:
+            cap = STRUCTURE_COUNT_CAPS.get(unit_type)
+            if cap is not None:
+                target = min(target, cap)
+        return target
 
     def _existing_plus_en_route(self, unit_type: UnitTypeId) -> int:
         """无延迟统计某结构「已有/在建 + 已有 SCV 正赶去建造」的总数。
@@ -924,7 +1060,7 @@ class ExecutionScheduler(ActBase):
 
     def _equivalent_existing_count(self, unit_type: UnitTypeId) -> int:
         existing = self.get_count(unit_type, include_pending=False, include_not_ready=True)
-        for equivalent_type in TERRAN_BUILDING_EQUIVALENTS.get(unit_type, ()):
+        for equivalent_type in RACE_BUILDING_EQUIVALENTS.get(unit_type, ()):
             existing += self.cache.own(equivalent_type).amount
         flying_type = TERRAN_PRODUCTION_FLYING_EQUIVALENTS.get(unit_type)
         if flying_type is not None:
@@ -937,6 +1073,12 @@ class ExecutionScheduler(ActBase):
             pa.state = ABANDONED
             pa.note = "abandoned: no ability id"
             return False
+
+        await self._select_runtime_action_with_producer(pa)
+        if pa.execution_mode == "warp_in":
+            return await self._issue_warp_in(pa, now)
+        if pa.execution_mode == "paired_morph":
+            return await self._issue_paired_morph(pa, now)
 
         if pa.category == mapping.CAT_MORPH:
             if self._cap_morph_quantity_to_possible_sources(pa):
@@ -957,10 +1099,14 @@ class ExecutionScheduler(ActBase):
             return False
 
         try:
-            chosen(pa.ability)
+            queue_command = bool(pa.category == mapping.CAT_TRAIN and getattr(chosen, "orders", None))
+            accepted = chosen(pa.ability, queue=queue_command)
         except Exception as exc:  # pragma: no cover
             logger.debug("issue failed for %s on tag %s: %s", pa.action_name, chosen.tag, exc)
             self._enter_wait(pa, now, "waiting: issue failed")
+            return False
+        if accepted is False:
+            self._enter_wait(pa, now, "waiting: engine rejected command")
             return False
 
         pa.issued_count += 1
@@ -971,6 +1117,136 @@ class ExecutionScheduler(ActBase):
         else:
             pa.state = RUNNING
             pa.note = f"issued {pa.issued_count}/{pa.quantity}"
+        return True
+
+    async def _select_runtime_action_with_producer(self, pa: PlannedAction) -> None:
+        """Prefer a reviewed candidate that has a producer available now.
+
+        A Protoss queue entry can remain valid while all Gateways morph into
+        WarpGates (and can later switch back if a new Gateway is ready).  Tech
+        prerequisite checks alone cannot distinguish those runtime states, so
+        probe the engine's available-ability surface before issuing the action.
+        """
+        if pa._act_started or len(pa._candidate_specs) < 2:
+            return
+        current = pa._candidate_specs.get(pa.action_name)
+        ordered = sorted(
+            pa._candidate_specs.values(),
+            key=lambda candidate: (
+                0 if candidate.execution_mode == "warp_in" else 1,
+                0 if candidate is current else 1,
+                candidate.ability_name,
+            ),
+        )
+        for candidate in ordered:
+            try:
+                if not is_available_now(self.ai, candidate.ability_name):
+                    continue
+                ability = mapping.ability_for(candidate.ability_name)
+                if ability is None:
+                    continue
+                producers = await producer_selector.candidate_producers(self.ai, ability)
+            except Exception:
+                continue
+            if not producers:
+                continue
+            if candidate.ability_name != pa.action_name:
+                pa.select_action(
+                    candidate.ability_name,
+                    target_result=candidate.target_result,
+                    execution_mode=candidate.execution_mode,
+                )
+                pa.output_count = candidate.output_count
+            return
+
+    async def _issue_warp_in(self, pa: PlannedAction, now: float) -> bool:
+        if pa.ability is None:
+            return False
+        # Placement queries do not see commands that are merely queued in the
+        # current python-sc2 frame. Issuing several warp-ins in one frame can
+        # therefore return the same point for all of them and SC2 accepts only
+        # one. Re-query on the following frame after the first footprint exists.
+        if self._warp_issued_this_frame:
+            self._enter_wait(pa, now, "waiting: refresh warp-in placement")
+            return False
+        candidates = await producer_selector.candidate_producers(self.ai, pa.ability)
+        chosen = producer_selector.choose_producer(candidates)
+        if chosen is None:
+            self._enter_wait(pa, now, "waiting: no ready WarpGate")
+            return False
+
+        pylons = self.ai.structures(UnitTypeId.PYLON).ready
+        if not pylons:
+            self._enter_wait(pa, now, "waiting: no powered warp-in anchor")
+            return False
+        target = None
+        for pylon in sorted(pylons, key=lambda unit: int(unit.tag)):
+            near = pylon.position.towards(self.ai.game_info.map_center, 3)
+            try:
+                target = await self.ai.find_placement(
+                    pa.ability,
+                    near,
+                    placement_step=1,
+                )
+            except Exception:
+                target = None
+            if target is not None:
+                break
+        if target is None:
+            self._enter_wait(pa, now, "waiting: no valid powered warp-in position")
+            return False
+        try:
+            accepted = chosen(pa.ability, target)
+        except Exception as exc:
+            logger.debug("warp-in failed for %s: %s", pa.action_name, exc)
+            accepted = False
+        if accepted is False:
+            self._enter_wait(pa, now, "waiting: warp-in command rejected")
+            return False
+        pa.issued_count += 1
+        pa.state = DONE
+        pa.note = "done (warp-in issued)"
+        pa.wait_start_time = None
+        self._warp_issued_this_frame = True
+        self._emit_status(
+            "PA %s DONE: warp-in issued at %s",
+            pa.action_name,
+            target,
+        )
+        return True
+
+    async def _issue_paired_morph(self, pa: PlannedAction, now: float) -> bool:
+        if pa.ability is None:
+            return False
+        candidates = await producer_selector.candidate_producers(self.ai, pa.ability)
+        units = [
+            row[0]
+            for row in sorted(candidates, key=lambda row: int(getattr(row[0], "tag", 0)))
+        ]
+        if len(units) < 2:
+            self._enter_wait(pa, now, "waiting: paired morph needs two Templars")
+            return False
+        pair = units[:2]
+        accepted = True
+        try:
+            for unit in pair:
+                if unit(pa.ability) is False:
+                    accepted = False
+        except Exception as exc:
+            logger.debug("paired morph failed for %s: %s", pa.action_name, exc)
+            accepted = False
+        if not accepted:
+            self._enter_wait(pa, now, "waiting: paired morph command rejected")
+            return False
+        pa.issued_count += 1
+        pa.state = DONE
+        pa.note = "done (paired morph issued)"
+        pa.wait_start_time = None
+        self._emit_status(
+            "PA %s DONE: paired morph issued with tags %s",
+            pa.action_name,
+            [int(unit.tag) for unit in pair],
+        )
         return True
 
     def _cap_morph_quantity_to_possible_sources(self, pa: PlannedAction) -> bool:
@@ -1033,6 +1309,13 @@ class ExecutionScheduler(ActBase):
 
     def _live_supply_cost(self, pa: PlannedAction) -> float:
         """Supply cost of issuing ``pa`` right now (DB cost fallback)."""
+        unit_type = mapping.unit_type_for(pa.target_result or "")
+        if unit_type is not None:
+            try:
+                supply = float(self.ai.calculate_supply_cost(unit_type))
+                return max(0.0, supply)
+            except Exception:
+                pass
         if pa.ability is not None:
             try:
                 cost = self.ai.calculate_cost(pa.ability)

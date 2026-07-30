@@ -3,7 +3,7 @@
 ## 1. Scope
 
 The runtime has one LLM responsibility: periodically produce a complete,
-ordered macro queue in canonical Terran names. Naming and ordering are one
+ordered macro queue in canonical names for Terran, Protoss, or Zerg. Naming and ordering are one
 operation. Concrete execution is code-owned.
 
 There is no:
@@ -24,7 +24,7 @@ scripts remain in the repository. The new architecture applies to
 ## 2. End-to-end flow
 
 ```text
-Top_agent_<enemy>.md: # Summary
+Top_agent.md: # Summary
                  +
 current structured/text observation
                  +
@@ -75,7 +75,7 @@ Every prompt contains:
 
 - the entire strategy `# Summary`;
 - the current observation;
-- Terran canonical unit and upgrade names;
+- canonical unit and upgrade names for the selected playable race;
 - previous queue names that are not committed yet.
 
 The unfinished section contains only an ordered JSON array of canonical names.
@@ -143,15 +143,30 @@ The scheduler keeps the established skip/overtake model:
 - supply-providing tasks are not globally moved ahead of the model order;
 - prerequisites are checked against runtime state and are not silently added.
 
-Normal Terran structures use `DirectBuildExecutor` where supported. Other
-build, research, add-on, and morph actions use Sharpy Acts. Train actions use
+Normal Terran structures use `DirectBuildExecutor` where supported. Race-aware
+build, gas, expansion, research, add-on, and morph actions use Sharpy Acts.
+Train and morph actions use
 `producer_selector.py`, which deterministically prefers idle producers, then
 shorter order queues, then stable unit tag order. No LLM is called to choose a
-producer or SCV.
+producer or worker. Gateway training can switch to powered WarpGate placement,
+Archon morphing combines two Templars, and Zerg production uses the live
+Larva/Drone action surface.
 
-There is no automatic Supply Depot insertion. `supply_left` is still used by
-the resource gate so impossible train commands wait, but the model must place
-`SupplyDepot` in its own queue.
+Research is considered committed as soon as `BotAI.already_pending_upgrade`
+reports progress, even when the reviewed action name and the engine's generic
+research ability name differ. Gas-building requests remain waiting when no
+completed base has a free geyser instead of being discarded by the generic
+running-action timeout.
+
+The scheduler also enforces conservative caps for non-production technology
+structures. Unique Protoss and Zerg technology structures stop at one, while
+Forge and EvolutionChamber stop at two. Production structures such as Gateway,
+Stargate, RoboticsFacility, and Hatchery remain uncapped and are scaled by the
+selected strategy.
+
+There is no automatic supply-provider insertion. `supply_left` is still used
+by the resource gate so impossible train commands wait, but the model must
+place `SupplyDepot`, `Pylon`, or `Overlord` in its own queue.
 
 ## 7. Strategy knowledge
 
@@ -159,7 +174,7 @@ the resource gate so impossible train commands wait, but the model must place
 file is:
 
 ```text
-SKILL/terran/<strategy>/Top_agent_<enemy_race>.md
+SKILL/<our_race>/<strategy>/Top_agent.md
 ```
 
 The same complete summary is provided at every decision. Strategy-specific

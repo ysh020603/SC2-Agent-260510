@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into reaper-hellion map presence, grabbing an early natural CC and following up with a factory into starport for Raven and siege tank tech. Production scales hard with a 5-rax core backed by 2 starports and a tech-labbed factory, pumping a marine-tank-viking-medivac backbone while layering stim, combat shields, and +1/+1 bio upgrades alongside vehicle weapons for the mech splash. The economy balloons to support 4+ bases with 4 e-bays and an armory, aiming for a maxed-out marine-tank-viking deathball with liberator transition that can siege forward or defend all-ins with Raven support and overwhelming reinforcements.

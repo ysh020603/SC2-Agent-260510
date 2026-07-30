@@ -1,3 +1,0 @@
-# Summary
-
-The opening is a standard rax-first into quick CC expand, grabbing early gas and a Factory to pivot into mech while floating both CCs to orbitals for MULE economy and scan utility. The mid-game spikes hard with 3 rax reactors and a pair of Factories pumping non-stop, layering combat shields onto a marine-tank core that plays a defensive, siege-heavy style with constant bio reinforcement flooding the field. The late-game pushes toward a 3-base economy supporting a maxed bio-mech deathball, aiming to drown opponents under endless marine waves backed by a critical mass of sieged tanks, with no real tech switch—just pure sustained production and overwhelming frontline pressure.

@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a depot-first into rax and gas, quickly double-expanding with a CC at the natural and main orbital while setting up a factory into starport tech path with tech labs on both for tank and banshee production. The mid-game scales into a 4-rax setup mixing tech labs and reactors, pumping marine-tank-banshee with combat shield research for a bio-mech hybrid that applies sustained pressure through multi-prong harassment and siege control. By the late game the economy supports 3 OCs worth of saturation, aiming for a maxed-out timing push with a heavy gas investment in banshees and tanks backed by a relentless marine flood to overwhelm through layered air-ground aggression.

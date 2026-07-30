@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into expand, grabbing early gas and a reaper for scout value before pivoting into a Factory with a tech lab to start the tank production that anchors the mech identity. The mid-game ramps hard into a 4 Factory setup with an Armory kicking off vehicle weapons, pumping siege tanks to lock down space while the economy scales across multiple bases behind a wall of depots. The late-game direction goes full sky-mech-ground-hybrid, flooding the map with a dozen-plus Factories, multiple Starports, and a transition into mass Thor production backed by Viking support, aiming to max out on a terrifying armored ball that just rolls over anything in its path.

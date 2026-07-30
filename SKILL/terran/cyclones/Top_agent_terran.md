@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a CC-first into rax and early Factory, dropping a quick expansion and banking gas for a mech pivot while skimming map presence with a lone Marine and Cyclone. Production scales through a 4-Factory mech core with Reactors and Tech Labs, flooding Hellions and Cyclones to form a mobile mid-game ball backed by Blue Flame, Cyclone lock-on damage, and dual Armory upgrades for vehicle weapon and armor. The endgame aims to snowball that mech production into an overwhelming, maxed-out Hellion-Cyclone swarm supported by a 4-base economy, leaning on sustained factory output and upgrade advantage to break the opponent through map control and attrition rather than a sharp tech switch.

@@ -1,3 +1,0 @@
-# Summary
-
-The opening goes depot into a fast CC followed by rax, picking up gas and dropping a Factory to kick off a mech tech path while both CCs flip to orbitals for that sweet mule energy. The mid game scales hard into 4 Factories running a mobile mix of Cyclones and Hellions, grabbing an ebay for upgrades and 2 Armories to push vehicle weapons and armor while the mech ball floods the map with runbys and lock-on pressure. The endgame aims for a maxed-out mech deathball backed by a 4-base economy, using the Armory upgrades and sheer factory count to trade efficiently and eventually overwhelm with sustained production rather than a hard tech switch.

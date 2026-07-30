@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into quick expansion, grabbing early gas and a Reaper for scout while transitioning into a Factory tech path that sets up the mech core with Tanks and eventually a Starport. Production scales through a 1-1-1 foundation that blossoms into multi-port air production, leaning heavy on Liberators and Vikings for map control while Marines provide the bio backbone and depots keep supply from choking as the army swells. The endgame pushes toward a 5-base economy flooding out a maxed mixed force of Tanks, Liberators, Vikings and Marines, using the Raven for utility and vision while the sprawling air-ground deathball aims to overwhelm through sheer production volume and siege pressure.

@@ -65,15 +65,23 @@ def upgrade_for(entity_name: str) -> Optional[UpgradeId]:
     return _upgrade_norm_index().get(_norm(entity_name))
 
 
-def category_for(action_name: str) -> str:
+def category_for(action_name: str, *, execution_mode: str = "") -> str:
     """Classify a canonical action name into one of the five categories."""
+    if execution_mode in {"train", "warp_in"}:
+        return CAT_TRAIN
+    if execution_mode in {"morph", "paired_morph"}:
+        return CAT_MORPH
+    if execution_mode == "research":
+        return CAT_RESEARCH
+    if execution_mode in {"expand", "gas", "worker_build"}:
+        return CAT_BUILD
     upper = action_name.upper()
     if upper.startswith("BUILD_TECHLAB") or upper.startswith("BUILD_REACTOR"):
         return CAT_ADDON
 
     info = cost_for_action(action_name)
     target_kind = (info.get("target_kind") or "")
-    if target_kind == "Train":
+    if target_kind in ("Train", "TrainPlace"):
         return CAT_TRAIN
     if target_kind in ("Morph", "MorphPlace"):
         return CAT_MORPH
@@ -101,15 +109,17 @@ def make_build_act(action_name: str, target_result: Optional[str], to_count: int
     from sharpy.plans.acts import BuildGas, Expand, GridBuilding
 
     upper = action_name.upper()
-    if "REFINERY" in upper or "REFINERY" in (target_result or "").upper():
+    if (target_result or "") in {"Refinery", "Assimilator", "Extractor"} or any(
+        gas_name in upper for gas_name in ("REFINERY", "ASSIMILATOR", "EXTRACTOR")
+    ):
         return BuildGas(to_count)
-    if upper == "TERRANBUILD_COMMANDCENTER" or (target_result or "") == "CommandCenter":
+    if (target_result or "") in {"CommandCenter", "Nexus", "Hatchery"}:
         return Expand(to_count, priority=True, consider_worker_production=False)
 
     unit_type = unit_type_for(target_result or "")
     if unit_type is None:
         return None
-    return GridBuilding(unit_type, to_count)
+    return GridBuilding(unit_type, to_count, auto_pylon=False)
 
 
 def make_research_act(target_result: Optional[str]):

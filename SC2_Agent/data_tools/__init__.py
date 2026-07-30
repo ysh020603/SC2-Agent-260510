@@ -23,6 +23,17 @@ from .prereq_runtime import (
     is_available_now,
     missing_chain,
 )
+from .race_catalog import (
+    ActionCandidate,
+    RaceMechanics,
+    action_candidates_for_entity,
+    is_known_race_entity,
+    normalize_race,
+    race_mechanics,
+    race_prompt_context,
+    race_unit_names,
+    race_upgrade_names,
+)
 from .sc2_data_common import (
     canonical_ability_name,
     canonical_entity_name,
@@ -51,4 +62,13 @@ __all__ = [
     "is_known_terran_entity",
     "terran_unit_names",
     "terran_upgrade_names",
+    "ActionCandidate",
+    "RaceMechanics",
+    "action_candidates_for_entity",
+    "is_known_race_entity",
+    "normalize_race",
+    "race_mechanics",
+    "race_prompt_context",
+    "race_unit_names",
+    "race_upgrade_names",
 ]

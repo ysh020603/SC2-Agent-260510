@@ -125,6 +125,7 @@ class GridBuilding(ActBuilding):
         priority: bool = False,
         allow_wall: bool = True,
         consider_worker_production: bool = True,
+        auto_pylon: bool = True,
     ):
         super().__init__(unit_type, to_count)
         self.allow_wall = allow_wall
@@ -136,6 +137,7 @@ class GridBuilding(ActBuilding):
         self.actual_placements: int = 0
         self.iterator: Optional[int] = iterator
         self.consider_worker_production = consider_worker_production
+        self.auto_pylon = bool(auto_pylon)
         self.building_solver: IBuildingSolver = None
         self.make_pylon = None
         self.last_iteration_moved = -10
@@ -150,7 +152,11 @@ class GridBuilding(ActBuilding):
         self.income_calculator = self.knowledge.get_required_manager(IIncomeCalculator)
         # 只有神族需要水晶塔供能；人族/虫族建筑找不到落点时不应去造 Pylon，
         # 否则会陷入「反复尝试造 Pylon」的空转（人族根本无法建造）。
-        if self.knowledge.my_race == Race.Protoss and self.unit_type != UnitTypeId.PYLON:
+        if (
+            self.auto_pylon
+            and self.knowledge.my_race == Race.Protoss
+            and self.unit_type != UnitTypeId.PYLON
+        ):
             self.make_pylon: Optional[GridBuilding] = GridBuilding(UnitTypeId.PYLON, 0, 2)
             await self.make_pylon.start(knowledge)
 

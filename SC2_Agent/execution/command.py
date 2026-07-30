@@ -39,6 +39,9 @@ class PlannedAction:
     cost_gas: int = 0
     cost_supply: float = 0.0
     cost_time_frames: float = 0.0
+    execution_mode: str = ""
+    alternative_action_names: tuple[str, ...] = ()
+    output_count: int = 1
 
     issued_count: int = 0
     state: str = PENDING
@@ -66,6 +69,7 @@ class PlannedAction:
     # 这样 `_abandon_stuck_running` 不会在「多 quantity build 正在按节奏推进」时
     # 误杀仍在正常推进的 PA。
     _last_placement_progress: int = field(default=0, repr=False)
+    _candidate_specs: dict[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
     def from_action_name(
@@ -76,10 +80,14 @@ class PlannedAction:
         canonical_name: str = "",
         queue_id: int = 0,
         queue_position: int = 0,
+        target_result: Optional[str] = None,
+        execution_mode: str = "",
+        alternative_action_names: tuple[str, ...] = (),
+        output_count: int = 1,
     ) -> "PlannedAction":
         info = cost_for_action(action_name)
         cost = info.get("cost") or {}
-        category = mapping.category_for(action_name)
+        category = mapping.category_for(action_name, execution_mode=execution_mode)
         return cls(
             action_name=action_name,
             category=category,
@@ -88,12 +96,38 @@ class PlannedAction:
             queue_position=int(queue_position),
             quantity=max(1, int(quantity)),
             ability=mapping.ability_for(action_name),
-            target_result=info.get("target_result"),
+            target_result=target_result or info.get("target_result"),
             cost_minerals=int(cost.get("minerals", 0) or 0),
             cost_gas=int(cost.get("gas", 0) or 0),
             cost_supply=float(cost.get("supply", 0) or 0),
             cost_time_frames=float(cost.get("time", 0) or 0),
+            execution_mode=execution_mode,
+            alternative_action_names=tuple(alternative_action_names),
+            output_count=max(1, int(output_count)),
         )
+
+    def select_action(
+        self,
+        action_name: str,
+        *,
+        target_result: Optional[str] = None,
+        execution_mode: str = "",
+    ) -> None:
+        """Switch to another reviewed action candidate without changing queue identity."""
+        info = cost_for_action(action_name)
+        cost = info.get("cost") or {}
+        self.action_name = action_name
+        self.execution_mode = execution_mode or self.execution_mode
+        self.category = mapping.category_for(
+            action_name,
+            execution_mode=self.execution_mode,
+        )
+        self.ability = mapping.ability_for(action_name)
+        self.target_result = target_result or info.get("target_result") or self.canonical_name
+        self.cost_minerals = int(cost.get("minerals", 0) or 0)
+        self.cost_gas = int(cost.get("gas", 0) or 0)
+        self.cost_supply = float(cost.get("supply", 0) or 0)
+        self.cost_time_frames = float(cost.get("time", 0) or 0)
 
     # --- helpers ---
     def is_terminal(self) -> bool:
@@ -114,6 +148,9 @@ class PlannedAction:
             "queue_id": self.queue_id,
             "queue_position": self.queue_position,
             "category": self.category,
+            "execution_mode": self.execution_mode,
+            "alternative_actions": list(self.alternative_action_names),
+            "output_count": self.output_count,
             "quantity": self.quantity,
             "issued": self.issued_count,
             "state": self.state,

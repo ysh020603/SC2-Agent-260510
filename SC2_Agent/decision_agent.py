@@ -27,6 +27,7 @@ def build_decision_messages(
     unfinished_canonical_names: List[str],
     canonical_unit_names: List[str],
     canonical_upgrade_names: List[str],
+    race_context: str = "",
 ) -> List[Dict[str, str]]:
     """Build the only LLM prompt used by the macro runtime."""
     race_cap = race.capitalize()
@@ -34,6 +35,7 @@ def build_decision_messages(
     units = ", ".join(canonical_unit_names)
     upgrades = ", ".join(canonical_upgrade_names)
     unfinished = json.dumps(unfinished_canonical_names, ensure_ascii=False)
+    context = race_context.strip() or "(none)"
 
     system_msg = f"""You are the macro decision agent for a {race_cap} StarCraft II bot.
 Generate one complete, ordered replacement queue of concrete macro tasks.
@@ -47,8 +49,11 @@ Generate one complete, ordered replacement queue of concrete macro tasks.
 [Canonical {race_cap} Upgrades]
 {upgrades}
 
+[Race Mechanics]
+{context}
+
 Output exactly one JSON object:
-{{"reason":"A concise public explanation of the decision.","ordered_names":["SupplyDepot","Barracks","Marine"]}}
+{{"reason":"A concise public explanation of the decision.","ordered_names":["one exact canonical name","another exact canonical name"]}}
 
 Rules:
 * reason is required. It must be a concise 1-3 sentence decision explanation,
@@ -70,7 +75,8 @@ Rules:
 * Repeat a canonical name to request multiple copies.
 * Order prerequisites and enabling infrastructure before dependent tasks.
 * Supply is NOT managed by downstream code. Inspect current used/cap/free
-  supply and include SupplyDepot at the appropriate positions whenever needed.
+  supply and include the race's canonical supply provider at the appropriate
+  positions whenever needed.
 * The runtime chooses workers and production structures. Do not choose a
   concrete executor or producer."""
 

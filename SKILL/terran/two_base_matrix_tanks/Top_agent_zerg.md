@@ -1,3 +1,0 @@
-# Summary
-
-The build opens with a standard rax-first into quick CC-first expansion, dropping 2 refineries and a factory to set up a gas-heavy tech transition while keeping marine production rolling for early defense. By mid-game the player scales into 2 rax, 2 factories, and a starport loaded with tech labs, pushing out a bio-mech hybrid of marines, tanks, widow mines, liberators, and ravens while grabbing stim, combat shield, and Corvid Reactor to enable a harass-heavy, area-denial playstyle. The late-game aims for a maxed-out 2-base timing with overwhelming sustained production of siege tanks, liberators, and raven support, using the bio backbone to screen while the mech core controls space and the raven provides matrix and anti-caster utility.

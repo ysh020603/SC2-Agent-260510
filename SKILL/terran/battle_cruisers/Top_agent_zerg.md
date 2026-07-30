@@ -1,3 +1,0 @@
-# Summary
-
-The opening goes depot into rax, getting gas early and dropping a CC before adding a factory and starport to set up a fusion core, with a bunker thrown down for safety while marines hold the fort. Production scales through multiple rax with tech lab and reactor splits, pumping marines and siege tanks while the starport cranks out battlecruisers, picking up combat shields to keep the bio backbone from folding. The endgame pushes toward a maxed-out bio-mech deathball anchored by a swelling BC fleet, with the economy stretched across multiple bases to sustain relentless marine, tank, and battlecruiser production until the opponent drowns under sustained pressure.

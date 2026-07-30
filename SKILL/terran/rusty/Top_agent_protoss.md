@@ -1,3 +1,0 @@
-# Summary
-
-The opening is a standard rax-first into quick CC, grabbing an early natural orbital and getting gas online for a factory-tech-lab transition into tanks while keeping marine production rolling for light defense. Production scales hard with 3 rax, 2 factory, and 1 starport pumping a bio-mech core of marines, tanks, and medivacs with combat shield upgrading and reactors flooding marine output for mineral dump while gas feeds the heavy mech. The endgame aims for a maxed-out bio-mech deathball with viking support across 3+ bases, leaning on sustained tank production and medivac reinforcement to grind out fights through overwhelming macro and siege control.
