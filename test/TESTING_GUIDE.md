@@ -121,7 +121,70 @@ python tools\run_experiment.py `
 `tools/run_kimi_nothink_strategy_sweep.py` 没有传递 `--bot-race`，在完成该工具
 的三种族改造前，不得使用它测试 Protoss 或 Zerg。
 
-## 5. 20 分钟上限完整对局矩阵
+## 5. 三种族代表策略测试集
+
+进行全局回归时，不要只跑每个种族最容易获胜的一种策略。下面每个种族选择
+5 个玩法不同、技术路线明确且能够覆盖关键引擎机制的代表策略。它们共同组成
+标准的 15 策略测试集。
+
+### 5.1 Terran
+
+| 策略 | 代表性与差异 | 测试重点 |
+|---|---|---|
+| `marine_rush` | 单基地、低科技、纯步兵早期压制 | 快速补给、Barracks 连续生产、低兵力攻击阈值和增援是否及时 |
+| `bio` | 多基地 Marine/Marauder/Medivac 生化运营 | Reactor/TechLab、Stim/CombatShield、Medivac 和中后期扩张是否形成闭环 |
+| `blueflame_locks` | Hellion/Cyclone/Thor 机动机械化 | Factory 附件、BlueFlame、CycloneLockOnDamage、双 Armory 升级和气矿需求 |
+| `two_base_matrix_tanks` | Tank/Marine/Raven/Liberator 两基地阵地战 | SiegeTank、Starport TechLab、Raven/Liberator、CorvidReactor 和攻防接管 |
+| `yamato_rust_fleet` | Battlecruiser/Viking 为核心的重型空军后期 | FusionCore、Yamato、舰船升级、多 Starport、四基地经济和高人口进攻 |
+
+这五项依次覆盖早期步兵、常规生化、机动机械、阵地混编和后期空军。若修改
+Terran 附件交换或 producer 选择，必须至少复跑 `bio`、`blueflame_locks` 和
+`two_base_matrix_tanks`，不能只用不依赖复杂附件的 `marine_rush` 判定通过。
+
+### 5.2 Protoss
+
+| 策略 | 代表性与差异 | 测试重点 |
+|---|---|---|
+| `four_gate` | 四门 WarpGate 正面时机压制 | WarpGateResearch、Gateway 变形、同周期折跃、Pylon 供能和 Blink |
+| `dark_templar_rush` | TwilightCouncil/DarkShrine 隐形突袭 | 完整科技前置、DarkTemplar 生产、侦测对局下的常规兵转型 |
+| `robo` | Observer/Immortal 为核心的地面机械化 | RoboticsFacility、Observer 探测、Immortal、可选 RoboticsBay 和前排配比 |
+| `voidray` | 两基地 Stargate 主力空军 | Stargate/FleetBeacon 唯一性、VoidRaySpeed、空军升级和地面掩护 |
+| `protoss_silver` | Zealot/Stalker/Immortal 的稳健双基地运营 | Probe 饱和、Nexus 扩张、Pylon、混合生产和基础攻防升级 |
+
+这五项分别覆盖正面时机、隐形科技、Robotics、Stargate 和标准宏观运营。
+修改 Protoss 动作映射后，应特别比较 `four_gate` 与其他四项：只有前者大量使用
+WarpGate，同一个单位从 Gateway 与 WarpGate 生产时都必须选择当前可用 producer。
+
+### 5.3 Zerg
+
+| 策略 | 代表性与差异 | 测试重点 |
+|---|---|---|
+| `twelve_pool` | 低 Drone 数的最早 Zergling 全压 | SpawningPool 前置、Overlord 补给、Larva 消耗、Zergling 双产出和持续增援 |
+| `macro_roach` | Roach/Ravager 三基地耐久运营 | Drone 饱和、RoachWarren/Lair、GlialReconstitution、Ravager 变形和重整 |
+| `roach_hydra` | Roach 前排加 Hydralisk 远程/防空 | HydraliskDen 前置、两种 Hydra 升级、兵种比例、EvolutionChamber 上限 |
+| `lurkers` | Lair 后 Hydralisk 转 Lurker 的高阶地面科技 | LurkerDenMP、Hydralisk morph、LurkerRange、气矿供给和阵地进攻 |
+| `mutalisk` | Spire 空军骚扰与地面消费并行 | Spire 唯一性、Mutalisk 批量生产、Flyer 升级归属和矿气分配 |
+
+这五项依次覆盖早期 Larva 爆兵、常规 Roach 运营、混合防空、高阶单位变形和
+空军骚扰。修改 Zerg 生产逻辑时，至少同时复跑 `twelve_pool` 和一个两人口单位
+策略；Zergling 一枚 Larva 产两只，而 Roach、Hydralisk、Lurker 和 Mutalisk
+不能沿用这个数量换算。
+
+### 5.4 测试层级与选择规则
+
+- 日常小修改：从受影响种族选 1 个最直接策略，再从另一个种族选 1 个回归。
+- 动作映射、调度器或通用提示词修改：15 个策略全部跑 360 秒短局。
+- 种族特有 producer、升级或变形修改：该种族 5 个策略全部跑短局，并选择
+  其中至少 2 个跑 1200 秒上限完整对局。
+- 发版或声明“三种族可用”前：15 个策略均有最新短局证据；每个种族至少
+  2 个不同技术路线有完整对局证据。
+- 某策略失败时，先用相同 seed、地图、模型和对手复现，不得直接换成更容易的
+  策略来替代该项。
+
+所有 15 个策略都使用各自目录中唯一的 `Top_agent.md`。测试报告应写出实际
+读取的文件路径，避免因为 race/strategy 路由错误而误用其他种族的摘要。
+
+## 6. 20 分钟上限完整对局矩阵
 
 “20 分钟测试”应设置 `--game-time-limit 1200`。如果提前摧毁对手并得到
 `Victory`，这是正常完成的完整对局，不需要为了凑满时间阻止进攻。
@@ -154,7 +217,7 @@ python tools\run_experiment.py `
 修改调度器的通用逻辑后，还应选择 DeepSeek thinking 对三个种族各跑一场，
 防止修复只适配某一种模型输出风格。
 
-## 6. 对局后必须检查的证据
+## 7. 对局后必须检查的证据
 
 每场目录应包含：
 
@@ -192,7 +255,7 @@ rg -n -i `
 “issued” 只表示 Python 接受了命令。必须结合后续 observation、最终单位统计或
 Replay，确认单位、建筑、升级和战斗结果真的出现在 SC2 中。
 
-## 7. 策略质量检查
+## 8. 策略质量检查
 
 不要只检查胜负。阅读每个决策周期的 observation、reason 和 new queue，并记录：
 
@@ -217,7 +280,7 @@ Replay，确认单位、建筑、升级和战斗结果真的出现在 SC2 中。
 
 保持一个 `Top_agent.md`，不要重新拆分成按敌方种族命名的多个 Markdown。
 
-## 8. 从异常到修复的方法
+## 9. 从异常到修复的方法
 
 按以下顺序定位，避免用扩大超时或吞异常掩盖根因：
 
@@ -242,7 +305,7 @@ Replay，确认单位、建筑、升级和战斗结果真的出现在 SC2 中。
 5. JSON 中 unknown、unmapped、execution error 均为 0。
 6. 异常日志更新为 `FIXED`，写入修复位置和复测证据。
 
-## 9. 提交前检查清单
+## 10. 提交前检查清单
 
 - [ ] `git status -sb` 中只有本次任务相关文件。
 - [ ] 未暂存 `API_config/config.json`、日志、Replay 或缓存。
