@@ -4,9 +4,9 @@
 
 | Document | Purpose |
 |---|---|
-| [system-architecture.md](system-architecture.md) | Current single-agent decision, queue replacement, commit boundary, scheduler, and records |
-| [test-run-workflow.md](test-run-workflow.md) | Static tests, Kimi non-thinking smoke match, and record checks |
-| [environment-setup.md](environment-setup.md) | Python, StarCraft II, model configuration, and first run |
+| [system-architecture.md](system-architecture.md) | Ten-section prompt, three-race context, strategy registry, queue replacement, scheduler, automation profiles, and records |
+| [test-run-workflow.md](test-run-workflow.md) | Static tests, 15-strategy model probes, SC2 sweeps, startup checks, and record audits |
+| [environment-setup.md](environment-setup.md) | Python, StarCraft II, model configuration, startup controls, and first run |
 
 ## Preserved Sharpy reference
 

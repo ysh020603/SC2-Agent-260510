@@ -34,6 +34,27 @@ export SC2PATH=/data2/SC2/StarCraftII/
 find "$SC2PATH/Maps" -iname '*Kairos*'
 ```
 
+On Windows, do not inject a Linux `SC2PATH` into child processes. The sweep
+runner leaves discovery to the registry/default installation. Concurrent batch
+launches use a two-second gap by default to avoid initializing several clients
+in the same instant.
+
+SC2 websocket startup waits up to 180 seconds by default. Override it for a
+known slow host with either the sweep option or the child environment:
+
+```powershell
+python tools\run_kimi_nothink_strategy_sweep.py `
+  --startup-timeout 240 `
+  --launch-stagger-seconds 3 `
+  --dry-run
+
+$env:SC2_STARTUP_TIMEOUT='240'
+```
+
+If SC2 exits before its websocket is available, the runtime reports the exit
+code immediately. If the process remains alive but never publishes the
+endpoint, it reports a bounded timeout that the sweep runner can retry.
+
 ## LLM configuration
 
 Create `API_config/config.json` from the repository's expected config shape.

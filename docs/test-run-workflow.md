@@ -23,7 +23,10 @@ python -m pytest tools\tests -q
 The decision-specific tests verify:
 
 - exact JSON response parsing, including an empty queue;
-- prompt replacement semantics and unmanaged supply;
+- all ten prompt sections and their responsibility boundaries;
+- race mechanics, economy rules, observation definitions, and exact canonical
+  naming constraints;
+- prompt replacement semantics and model-owned supply/worker production;
 - 60-second and queue-drained triggers;
 - no early trigger when one item remains;
 - no empty-queue retrigger loop;
@@ -31,7 +34,11 @@ The decision-specific tests verify:
 - a research item disappears from that list as soon as the corresponding
   research order has been accepted by the SC2 engine;
 - deterministic producer selection;
-- every strategy markdown file is summary-only.
+- every strategy markdown file is summary-only;
+- every registered strategy tools module imports and exposes automation context
+  consistent with its real attack plan;
+- only five registered strategies per race are accepted;
+- sweep startup environment, unbuffered logging, and launch staggering.
 
 The smoke run uses the preserved `bot_loader` and Sharpy lifecycle, so it also
 checks that the refactored agent still starts through the repository's normal
@@ -109,6 +116,27 @@ Get-ChildItem game_records\kimi_nothink_queue_smoke -Recurse -Filter *.json |
 
 ## 6. Sweep
 
+Before launching SC2, test the current prompt and model output across all 15
+enabled strategies:
+
+```powershell
+python tools\probe_prompt_matrix.py `
+  --model-key Kimi-k2.5 `
+  --enemy-race terran `
+  --concurrency 5 `
+  --output game_records\prompt_probes\kimi_current.json
+
+python tools\probe_prompt_matrix.py `
+  --model-key DeepSeek-V4-flash_think `
+  --enemy-race terran `
+  --concurrency 5 `
+  --output game_records\prompt_probes\deepseek_current.json
+```
+
+Every probe must parse as the exact JSON contract. Review `unknown_names`,
+`unmapped_names`, and rejected responses; all must be zero before the SC2
+matrix.
+
 Dry-run the matrix without launching SC2:
 
 ```powershell
@@ -128,3 +156,32 @@ python tools\run_kimi_nothink_strategy_sweep.py `
   --repeats 1 `
   --concurrency 1
 ```
+
+Run the enabled three-race matrix:
+
+```powershell
+python tools\run_kimi_nothink_strategy_sweep.py `
+  --batch-name three_race_matrix `
+  --decision-model Kimi-k2.5 `
+  --decision-interval 60 `
+  --strategies enabled `
+  --bot-races terran,protoss,zerg `
+  --enemy-races terran,protoss,zerg `
+  --difficulties easy,medium,mediumhard `
+  --maps KairosJunctionLE `
+  --enemy-build macro `
+  --repeats 2 `
+  --concurrency 5 `
+  --launch-stagger-seconds 2 `
+  --startup-timeout 180
+```
+
+The runner writes one job log per scheduled match. Confirm each initial log
+reaches `Status.in_game`; a zero-length or stale log alone is not evidence of a
+running match. At completion, count only directories containing a parseable
+result JSON with `metadata` or `interactions`. Report startup failures,
+retries, ties, and missing results separately from win rate.
+
+The detailed model-facing repair procedure and representative strategy
+expectations live in `test/TESTING_GUIDE.md`. Record confirmed defects and
+their evidence in `test/ANOMALY_LOG.md`.

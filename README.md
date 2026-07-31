@@ -70,6 +70,33 @@ not a full-game build order.
 `SupplyDepot` is not inserted automatically. Supply planning is part of the
 model's queue.
 
+## Prompt structure
+
+The system prompt is assembled as ten explicit sections:
+
+1. agent role and responsibility boundary;
+2. decision lifecycle;
+3. queue and commitment semantics;
+4. race identity and mechanics;
+5. economy and production principles;
+6. strategy objective;
+7. automated strategy behaviors;
+8. observation field guide;
+9. allowed canonical macro outputs;
+10. JSON response contract.
+
+The user message supplies the decision cycle, trigger reason, in-game time,
+configured interval, enemy race, latest observation, and the previous queue's
+uncommitted canonical names. The previous explanation and completed queue
+history are not carried forward.
+
+Race context describes the race's shared mechanics, strengths, costs, and
+planning implications. Strategy automation context describes the exact
+script-owned attack threshold and any composition/technology gate, plus
+defense, rallying, scouting, race utilities, and special tactical behavior.
+The model therefore requests only macro production, construction, morph, and
+research work; deterministic scripts own execution, combat, and micro.
+
 ## Strategy files
 
 Strategies for every supported race live under:
@@ -80,7 +107,21 @@ SKILL/<our_race>/<strategy>/Top_agent.md
 
 Each strategy directory contains exactly one opponent-agnostic Markdown file
 with only `# Summary`. There are no per-step instructions. The summary is
-injected into every macro decision.
+injected into every macro decision. Its `strategy_tools.py` exports an
+`AUTOMATION_PROFILE`; the same object configures the real attack behavior and
+renders the model-facing automation description, preventing threshold drift.
+
+Only five representative strategies per race are enabled:
+
+| Race | Enabled strategies |
+|---|---|
+| Terran | `marine_rush`, `bio`, `blueflame_locks`, `two_base_matrix_tanks`, `yamato_rust_fleet` |
+| Protoss | `four_gate`, `dark_templar_rush`, `robo`, `voidray`, `macro_stalkers` |
+| Zerg | `twelve_pool`, `macro_roach`, `roach_hydra`, `lurkers`, `mutalisk` |
+
+The source of truth is `SKILL/<race>/registry.json`. Other strategy folders are
+retained for later curation but production launchers reject them explicitly;
+there is no empty-strategy fallback.
 
 ## Run
 
@@ -100,6 +141,7 @@ For one explicit experiment:
 ```powershell
 python tools/run_experiment.py `
   --strategy marine_rush `
+  --bot-race terran `
   --decision-model Kimi-k2.5 `
   --decision-interval 60 `
   --batch-name smoke
@@ -107,6 +149,36 @@ python tools/run_experiment.py `
 
 Both commands continue through the existing `bot_loader`/Sharpy startup path.
 The agent-specific CLI has only one model option, `--decision-model`.
+
+## Validate prompts and matches
+
+Probe all 15 enabled strategies without launching SC2:
+
+```powershell
+python tools/probe_prompt_matrix.py `
+  --model-key Kimi-k2.5 `
+  --enemy-race terran `
+  --concurrency 5
+```
+
+Run a configurable SC2 sweep:
+
+```powershell
+python tools/run_kimi_nothink_strategy_sweep.py `
+  --strategies enabled `
+  --bot-races terran,protoss,zerg `
+  --enemy-races terran,protoss,zerg `
+  --difficulties easy,medium,mediumhard `
+  --maps KairosJunctionLE `
+  --enemy-build macro `
+  --repeats 2 `
+  --concurrency 5
+```
+
+Concurrent launches are staggered by default. Each child uses unbuffered logs,
+and the SC2 websocket startup timeout is configurable. A client that exits
+before publishing its websocket fails immediately so the sweep can retry it
+instead of waiting for the full timeout.
 
 ## Records
 

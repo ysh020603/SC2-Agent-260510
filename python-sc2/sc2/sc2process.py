@@ -216,12 +216,30 @@ class SC2Process:
         )
 
     async def _connect(self) -> ClientWebSocketResponse:
-        # How long it waits for SC2 to start (in seconds)
-        for i in range(180):
+        # How long to wait for SC2 to publish its websocket endpoint.  Keep
+        # the historical 180-second default, but make it configurable for
+        # batch runners and fail immediately when the client has already
+        # exited.  Previously a launch crash was indistinguishable from a
+        # slow startup and consumed the full three-minute wait.
+        try:
+            startup_timeout = max(
+                1.0, float(os.environ.get("SC2_STARTUP_TIMEOUT", "180"))
+            )
+        except (TypeError, ValueError):
+            startup_timeout = 180.0
+        deadline = asyncio.get_running_loop().time() + startup_timeout
+        attempt = 0
+        while asyncio.get_running_loop().time() < deadline:
             if self._process is None:
                 # The ._clean() was called, clearing the process
                 logger.debug("Process cleanup complete, exit")
                 sys.exit()
+            return_code = self._process.poll()
+            if return_code is not None:
+                raise RuntimeError(
+                    f"SC2 process exited before websocket startup "
+                    f"(return code {return_code}, port {self._port})"
+                )
 
             await asyncio.sleep(1)
             try:
@@ -235,11 +253,15 @@ class SC2Process:
                 return ws
             except aiohttp.client_exceptions.ClientConnectorError:
                 await self._session.close()
-                if i > 15:
+                attempt += 1
+                if attempt > 15:
                     logger.debug("Connection refused (startup not complete (yet))")
 
         logger.debug("Websocket connection to SC2 process timed out")
-        raise TimeoutError("Websocket")
+        raise TimeoutError(
+            f"SC2 websocket startup timed out after {startup_timeout:g}s "
+            f"(port {self._port})"
+        )
 
     async def _close_connection(self) -> None:
         logger.info(f"Closing connection at {self._port}...")

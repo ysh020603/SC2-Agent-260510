@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from tools.run_kimi_nothink_strategy_sweep import _child_environment, _jobs
+from tools.run_kimi_nothink_strategy_sweep import LaunchGate, _child_environment, _jobs
 
 
 def test_strategy_sweep_carries_bot_race_into_every_job():
@@ -62,3 +62,13 @@ def test_strategy_sweep_does_not_inject_linux_sc2_path_on_windows(
     monkeypatch.delenv("SC2PATH", raising=False)
     monkeypatch.setattr(os, "name", "nt")
     assert "SC2PATH" not in _child_environment()
+
+
+def test_strategy_sweep_child_logs_are_unbuffered_and_startup_is_bounded():
+    env = _child_environment(startup_timeout=75)
+    assert env["PYTHONUNBUFFERED"] == "1"
+    assert env["SC2_STARTUP_TIMEOUT"] == "75.0"
+
+
+def test_launch_gate_clamps_negative_stagger_to_zero():
+    assert LaunchGate(-1).stagger_seconds == 0.0

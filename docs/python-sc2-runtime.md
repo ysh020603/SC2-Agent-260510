@@ -46,6 +46,19 @@ print(ensure_bundled_python_sc2())
 
 输出必须位于当前 Agent 仓库的 `python-sc2/sc2/__init__.py`。
 
+## SC2 客户端启动约定
+
+本地 `SC2Process` 会把“进程已创建”和“WebSocket 已就绪”区分为两个状态：
+
+1. 启动等待期间每秒检查 SC2 客户端是否已经退出；
+2. 客户端提前退出时立即报告返回码，不再固定空等三分钟；
+3. 使用 `SC2_STARTUP_TIMEOUT` 限制 WebSocket 等待时间，默认 180 秒；
+4. 清理时关闭连接、终止残留进程并归还 `portpicker` 端口。
+
+批量测试应使用 `tools/run_kimi_nothink_strategy_sweep.py`。该入口会错峰
+启动并发客户端、使用无缓冲日志、记录每次尝试，并对没有生成有效比赛记录的
+任务进行重试。
+
 ## 更新规则
 
 更新本地快照时：

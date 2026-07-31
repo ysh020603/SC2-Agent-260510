@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -24,6 +25,22 @@ DEFAULT_MAPS = ["KairosJunctionLE", "AutomatonLE", "AbyssalReefLE"]
 DEFAULT_BOT_RACES = ["terran", "protoss", "zerg"]
 DEFAULT_ENEMY_RACES = ["protoss", "terran", "zerg"]
 DEFAULT_DIFFICULTIES = ["medium", "mediumhard", "hard", "harder", "veryhard"]
+
+
+class LaunchGate:
+    """Keep concurrent SC2 clients from all initializing in the same instant."""
+
+    def __init__(self, stagger_seconds: float) -> None:
+        self.stagger_seconds = max(0.0, float(stagger_seconds))
+        self._lock = threading.Lock()
+        self._last_launch = 0.0
+
+    def wait(self) -> None:
+        with self._lock:
+            remaining = self.stagger_seconds - (time.monotonic() - self._last_launch)
+            if remaining > 0:
+                time.sleep(remaining)
+            self._last_launch = time.monotonic()
 
 
 @dataclass(frozen=True)
@@ -128,7 +145,7 @@ def _completed(batch_name: str, run_index: int) -> bool:
     )
 
 
-def _child_environment() -> dict[str, str]:
+def _child_environment(startup_timeout: float = 180.0) -> dict[str, str]:
     env = os.environ.copy()
     # Linux evaluation hosts use this conventional install path.  Windows
     # must let python-sc2 discover the registry/default installation; injecting
@@ -137,6 +154,8 @@ def _child_environment() -> dict[str, str]:
         env.setdefault("SC2PATH", "/data2/SC2/StarCraftII/")
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUNBUFFERED"] = "1"
+    env["SC2_STARTUP_TIMEOUT"] = str(max(1.0, float(startup_timeout)))
     return env
 
 
@@ -150,6 +169,8 @@ def _run_one(
     game_time_limit: int,
     log_dir: Path,
     max_attempts: int,
+    launch_gate: LaunchGate,
+    startup_timeout: float,
 ) -> tuple[int, str]:
     if _completed(batch_name, job.index):
         return 0, f"[{job.index}] skipped: already completed"
@@ -181,13 +202,21 @@ def _run_one(
         "--run-index",
         str(job.index),
     ]
-    env = _child_environment()
+    env = _child_environment(startup_timeout)
     log_path = log_dir / f"job_{job.index:04d}_{job.match_prefix}.log"
     exit_code = 1
     for attempt in range(1, max(1, max_attempts) + 1):
         with log_path.open("a", encoding="utf-8") as log:
             log.write(f"\n===== attempt {attempt} =====\n")
             log.write("CMD: " + " ".join(command) + "\n")
+            log.flush()
+            launch_gate.wait()
+            print(
+                f"[{job.index}] launching attempt {attempt}: "
+                f"{job.bot_race}/{job.strategy} vs "
+                f"{job.enemy_race}/{job.enemy_difficulty}",
+                flush=True,
+            )
             result = subprocess.run(
                 command,
                 cwd=ROOT,
@@ -215,6 +244,18 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--game-time-limit", type=int, default=1200)
     parser.add_argument("--max-attempts", type=int, default=3)
+    parser.add_argument(
+        "--launch-stagger-seconds",
+        type=float,
+        default=2.0,
+        help="Minimum wall-clock gap between concurrent SC2 client launches.",
+    )
+    parser.add_argument(
+        "--startup-timeout",
+        type=float,
+        default=180.0,
+        help="Seconds allowed for an SC2 client to publish its websocket.",
+    )
     parser.add_argument("--enemy-build", default="random")
     parser.add_argument("--strategies", default=",".join(DEFAULT_STRATEGIES))
     parser.add_argument("--maps", default=",".join(DEFAULT_MAPS))
@@ -248,6 +289,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     log_dir = ROOT / "game_records" / "_batch_logs" / args.batch_name
     log_dir.mkdir(parents=True, exist_ok=True)
+    launch_gate = LaunchGate(args.launch_stagger_seconds)
     failures = 0
     with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as pool:
         futures = [
@@ -261,6 +303,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 game_time_limit=args.game_time_limit,
                 log_dir=log_dir,
                 max_attempts=args.max_attempts,
+                launch_gate=launch_gate,
+                startup_timeout=args.startup_timeout,
             )
             for job in jobs
         ]

@@ -71,12 +71,35 @@ The interval is measured in game time, not wall-clock time.
 
 ## 4. Prompt and output
 
-Every prompt contains:
+`SC2_Agent/decision_agent.py` builds one system message with ten stable
+sections:
 
-- the entire strategy `# Summary`;
-- the current observation;
-- canonical unit and upgrade names for the selected playable race;
-- previous queue names that are not committed yet.
+1. agent role and responsibility boundary;
+2. decision lifecycle;
+3. queue and commitment semantics;
+4. selected-race identity and mechanics;
+5. economy, supply, worker, and bank-spending principles;
+6. the selected strategy objective from `Top_agent.md`;
+7. script-owned strategy automation behavior;
+8. observation field definitions;
+9. exact allowed canonical macro outputs;
+10. the JSON response contract.
+
+The separate user message is event state, not another policy prompt. It
+contains:
+
+- decision cycle and trigger reason;
+- current in-game time and configured interval;
+- enemy race;
+- the latest text observation;
+- previous queue names that are not committed yet;
+- an explicit reminder that accepting the answer replaces those names.
+
+The observation guide distinguishes supply used/cap/free, worker
+current/ideal, army supply, income rates, committed work under construction or
+en route, active engine queues, remembered enemy intelligence, combat power,
+losses, completed research, and threat flags. This avoids treating descriptive
+fields or engine action keys as canonical macro vocabulary.
 
 The unfinished section contains only an ordered JSON array of canonical names.
 It deliberately omits status, action keys, quantities, producers, and metadata.
@@ -177,9 +200,23 @@ file is:
 SKILL/<our_race>/<strategy>/Top_agent.md
 ```
 
-The same complete summary is provided at every decision. Strategy-specific
-`strategy_tools.py` remains loaded for non-macro tactical/background behavior;
-it is not a second macro planner.
+The same complete summary is provided at every decision. Each enabled
+`strategy_tools.py` exports one `AUTOMATION_PROFILE`. Its attack threshold and
+optional gate configure both the real tactical plan and the human-readable
+prompt context. Defense, rallying, scouting, race utilities, and special
+behaviors are also rendered from that profile. It is not a second macro
+planner.
+
+`SC2_Agent/strategy_registry.py` reads `SKILL/<race>/registry.json`. Exactly
+five representative strategies are enabled for each race. Retained but
+uncurated folders are rejected at the run boundary instead of silently loading
+an empty tactical configuration.
+
+| Race | Enabled strategies |
+|---|---|
+| Terran | `marine_rush`, `bio`, `blueflame_locks`, `two_base_matrix_tanks`, `yamato_rust_fleet` |
+| Protoss | `four_gate`, `dark_templar_rush`, `robo`, `voidray`, `macro_stalkers` |
+| Zerg | `twelve_pool`, `macro_roach`, `roach_hydra`, `lurkers`, `mutalisk` |
 
 ## 8. Record schema
 
@@ -216,6 +253,8 @@ mode it should be empty and `is_reasoning` should be false.
 |---|---|
 | `dummies/generic/universal_llm_bot.py` | trigger, prompt call, validation, replacement, records |
 | `SC2_Agent/decision_agent.py` | sole model prompt and response parser |
+| `SC2_Agent/prompt_context.py` | lifecycle, observation guide, and shared strategy automation profiles |
+| `SC2_Agent/strategy_registry.py` | five-per-race production strategy gate |
 | `SC2_Agent/top_agent.py` | summary-only strategy parser |
 | `SC2_Agent/data_tools/entity_to_actions.py` | canonical name to action mapping |
 | `SC2_Agent/execution/scheduler.py` | queue state and deterministic execution |
@@ -223,8 +262,20 @@ mode it should be empty and `is_reasoning` should be false.
 | `SC2_Agent/execution/command.py` | `PlannedAction` including queue identity |
 | `bot_loader/game_starter.py` | preserved Sharpy launcher with current agent options |
 | `run_vs_ai.py` | supported agent match CLI built on the existing bot loader |
+| `tools/probe_prompt_matrix.py` | no-engine output-contract probe across all 15 enabled strategies |
+| `tools/run_kimi_nothink_strategy_sweep.py` | retryable, staggered multi-race SC2 matrix runner |
 
-## 10. Retained versus removed code
+## 10. Batch startup behavior
+
+The sweep runner starts children with unbuffered UTF-8 output, writes and
+flushes the attempt command before launch, and enforces a configurable minimum
+gap between concurrent SC2 launches. `SC2_STARTUP_TIMEOUT` bounds websocket
+startup. The bundled `SC2Process` checks whether the client has already exited
+and reports its return code immediately; a live client that never publishes
+the websocket receives a precise timeout error. Failed jobs are retried by the
+sweep runner and are not counted as valid merely because a directory exists.
+
+## 11. Retained versus removed code
 
 Retained:
 
