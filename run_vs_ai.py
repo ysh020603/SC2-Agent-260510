@@ -27,7 +27,9 @@ DEFAULT_ENEMY_RACE = "terran"
 DEFAULT_ENEMY_DIFFICULTY = "medium"
 DEFAULT_ENEMY_BUILD = "random"
 
-DEFAULT_DECISION_MODEL = "DeepSeek-V4-flash"
+DEFAULT_DECISION_MODEL = "Kimi-k2.5"
+DEFAULT_DATA_SUBAGENT_MODEL = "Kimi-k2.5"
+DEFAULT_DECISION_AGENT_MODE = "data-v2.2"
 DEFAULT_DECISION_INTERVAL = 60.0
 DEFAULT_FORCE_STRATEGY = "marine_rush"
 DEFAULT_SKIP_VERSION_UPDATE = False
@@ -50,6 +52,8 @@ def build_match_id(
     map_name: str,
     bot_race: str,
     decision_model: str,
+    data_subagent_model: str = DEFAULT_DATA_SUBAGENT_MODEL,
+    decision_agent_mode: str = DEFAULT_DECISION_AGENT_MODE,
     decision_interval: float,
     run_index: Optional[int],
 ) -> str:
@@ -68,6 +72,8 @@ def build_match_id(
             enemy_build,
             map_name,
             decision_model,
+            data_subagent_model,
+            decision_agent_mode,
             float(decision_interval),
             run_index,
         )
@@ -99,6 +105,8 @@ def play_vs_ai(
     enemy_build: str = DEFAULT_ENEMY_BUILD,
     bot_race: str = DEFAULT_BOT_RACE,
     decision_model: str = DEFAULT_DECISION_MODEL,
+    data_subagent_model: str = DEFAULT_DATA_SUBAGENT_MODEL,
+    decision_agent_mode: str = DEFAULT_DECISION_AGENT_MODE,
     decision_interval: float = DEFAULT_DECISION_INTERVAL,
     batch_name: Optional[str] = None,
     run_index: Optional[int] = None,
@@ -133,6 +141,8 @@ def play_vs_ai(
         map_name=map_name,
         bot_race=bot_race,
         decision_model=decision_model,
+        data_subagent_model=data_subagent_model,
+        decision_agent_mode=decision_agent_mode,
         decision_interval=decision_interval,
         run_index=run_index,
     )
@@ -158,6 +168,10 @@ def play_vs_ai(
         match_id,
         "--decision-model",
         decision_model,
+        "--data-subagent-model",
+        data_subagent_model,
+        "--decision-agent-mode",
+        decision_agent_mode,
         "--decision-interval",
         str(float(decision_interval)),
         "--force-strategy",
@@ -175,7 +189,9 @@ def play_vs_ai(
         f"难度: {enemy_difficulty} | 风格: {enemy_build}"
     )
     print(f" ▷ 比赛地图 : {map_name}")
-    print(f" ▷ 决策模型 : {decision_model}")
+    print(f" ▷ MainAgent 模型: {decision_model}")
+    print(f" ▷ DataSubAgent 模型: {data_subagent_model}")
+    print(f" ▷ 决策 Agent: {decision_agent_mode}")
     print(f" ▷ 决策周期 : {float(decision_interval):g} 游戏秒")
     print(f" ▷ 固定策略 : {strategy}")
     print(f" ▷ 记录目录 : {record_dir}")
@@ -202,6 +218,12 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--enemy-build", default=DEFAULT_ENEMY_BUILD)
     parser.add_argument("--bot-race", default=DEFAULT_BOT_RACE)
     parser.add_argument("--decision-model", default=DEFAULT_DECISION_MODEL)
+    parser.add_argument("--data-subagent-model", default=DEFAULT_DATA_SUBAGENT_MODEL)
+    parser.add_argument(
+        "--decision-agent-mode",
+        choices=("data-v2.2-v2", "data-v2.2", "naive"),
+        default=DEFAULT_DECISION_AGENT_MODE,
+    )
     parser.add_argument(
         "--decision-interval",
         type=float,
@@ -231,6 +253,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         enemy_build=args.enemy_build,
         bot_race=args.bot_race,
         decision_model=args.decision_model,
+        data_subagent_model=args.data_subagent_model,
+        decision_agent_mode=args.decision_agent_mode,
         decision_interval=args.decision_interval,
         batch_name=args.batch_name or None,
         run_index=args.run_index,

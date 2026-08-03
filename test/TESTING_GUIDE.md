@@ -353,3 +353,62 @@ rg -n -i `
 - [ ] 相关异常记录已更新。
 - [ ] 文档命令包含正确的 `--bot-race`。
 - [ ] 提交信息能够概括代码、Skill 和测试证据。
+
+## 11. Data V2.2 决策模式
+
+受支持的启动器现在默认使用 `data-v2.2`；原始单次调用决策 Agent 仍以
+`--decision-agent-mode naive` 保留。两种模式共享相同的 observation、触发器、
+规范名称白名单、动作映射和 scheduler，但 Prompt 与模型编排代码完全分离。
+
+V2.2 检查顺序：
+
+1. 运行 `probe_reasoning_extraction.py`，确认 Kimi 返回
+   `is_reasoning=false` 且 reasoning 长度为 0。
+2. 运行 15 策略 Prompt matrix，要求全部 parsed，且 unknown/unmapped 为 0。
+3. 运行 360 秒真实 SC2 smoke match，确认 MainAgent 能按需要直接完成或调用
+   DataSubAgent；已经打开的会话必须成功，trace 与 Replay 均存在。
+4. 运行最长 1200 秒的完整对局，必须得到自然胜负或有明确可解释的游戏结束
+   原因，不能只用短时限 Tie 代替完整检查。
+
+推荐命令：
+
+```powershell
+python tools\probe_prompt_matrix.py `
+  --decision-agent-mode data-v2.2 `
+  --model-key Kimi-k2.5 `
+  --subagent-model-key Kimi-k2.5 `
+  --enemy-race terran `
+  --concurrency 5
+
+python tools\run_experiment.py `
+  --decision-agent-mode data-v2.2 `
+  --strategy four_gate `
+  --bot-race protoss `
+  --enemy-race terran `
+  --enemy-difficulty easy `
+  --decision-model Kimi-k2.5 `
+  --data-subagent-model Kimi-k2.5 `
+  --decision-interval 60 `
+  --game-time-limit 1200 `
+  --batch-name data_v2_2_long_regression
+```
+
+除原有检查外，还要读取 `knowledge_v2_2_traces/` 与
+`*.llm_calls.json`，确认：
+
+- decision schema 为 3 且模式为 `data-v2.2`；
+- `knowledge_query_used` 与实际 DataSubAgent 会话数一致；0 个会话是合法结果；
+- 发生查询时，MainAgent 必须在获得 DataSubAgent 回复后再利用该回复决策；
+- MainAgent 和 DataSubAgent 的 model key、API 调用角色记录正确；
+- 所有 MainAgent/DataSubAgent 模型调用均没有 provider error；
+- non-thinking 检查覆盖每一次模型调用，而不是只检查最终 MainAgent；
+- 原始完整 tool result 只保存在 trace，主对局 JSON 保存紧凑摘要；
+- 编排失败不会静默退回 naive Agent。
+
+2026-08-02 的可选查询与双 API 配置门禁结果为：88 个测试通过；Terran、
+Protoss、Zerg 各完成一局 360 秒上限的真实测试，Zerg 在 05:33 获胜。三局共
+22 个决策，均自主选择直接决策，decision/provider/reasoning/unknown/unmapped
+error 均为 0。另一个 Mutalisk 威胁定向探针成功触发 1 次 DataSubAgent 会话，
+验证了独立 model key、工具调用和 MainAgent 二轮决策。此前 Protoss
+`four_gate` 对 Easy Terran 在 09:50 获胜的完整对局证据仍然有效。详细记录见
+`docs/data-v2.2-decision-agent.md`。

@@ -47,6 +47,16 @@ from SC2_Agent.top_agent import parse_strategy_summary
 
 logger = logging.getLogger("UniversalLLMBot")
 
+NAIVE_DECISION_AGENT_MODE = "naive"
+KNOWLEDGE_V22_DECISION_AGENT_MODE = "data-v2.2"
+KNOWLEDGE_V22_V2_DECISION_AGENT_MODE = "data-v2.2-v2"
+SUPPORTED_DECISION_AGENT_MODES = {
+    NAIVE_DECISION_AGENT_MODE,
+    KNOWLEDGE_V22_DECISION_AGENT_MODE,
+    KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
+}
+DEFAULT_KNOWLEDGE_MODEL_KEY = "Kimi-k2.5"
+
 class UniversalLLMBot(KnowledgeBot):
     """Single-decision-agent macro runtime."""
 
@@ -61,7 +71,9 @@ class UniversalLLMBot(KnowledgeBot):
         race_name: str = "terran",
         record_dir: str = "",
         *,
-        decision_model_key: str = "",
+        decision_model_key: str = DEFAULT_KNOWLEDGE_MODEL_KEY,
+        data_subagent_model_key: str = DEFAULT_KNOWLEDGE_MODEL_KEY,
+        decision_agent_mode: str = KNOWLEDGE_V22_DECISION_AGENT_MODE,
         decision_interval_seconds: float = DEFAULT_DECISION_INTERVAL_SECONDS,
         force_strategy: Optional[str] = None,
     ):
@@ -69,6 +81,8 @@ class UniversalLLMBot(KnowledgeBot):
         self.race_name = normalize_race(race_name)
         self.record_dir = record_dir.strip()
         self.decision_model_key = decision_model_key.strip()
+        self.data_subagent_model_key = data_subagent_model_key.strip()
+        self.decision_agent_mode = str(decision_agent_mode).strip().lower()
         self.decision_interval_seconds = max(1.0, float(decision_interval_seconds))
         force = (force_strategy or "").strip()
         self.force_strategy = force if force and force.lower() != "none" else None
@@ -84,6 +98,8 @@ class UniversalLLMBot(KnowledgeBot):
         self._accepted_queue_count = 0
         self._queue_had_work_since_decision = False
         self._last_drained_state = True
+        self._knowledge_v2_2_v2_planner_state: Dict[str, Any] = {}
+        self._knowledge_v2_2_v2_ledger: Dict[str, Any] = {"facts": {}}
 
         self._llm_call_records: List[Dict[str, Any]] = []
         self._llm_call_seq = 0
@@ -111,6 +127,11 @@ class UniversalLLMBot(KnowledgeBot):
     async def on_start(self):
         if not self.force_strategy:
             raise ValueError("UniversalLLMBot requires --force-strategy.")
+        if self.decision_agent_mode not in SUPPORTED_DECISION_AGENT_MODES:
+            raise ValueError(
+                f"Unsupported decision agent mode {self.decision_agent_mode!r}; "
+                f"expected one of {sorted(SUPPORTED_DECISION_AGENT_MODES)}."
+            )
         self.decision_interval_seconds = max(1.0, float(self.decision_interval_seconds))
         self._last_decision_time = -self.decision_interval_seconds
         self._apply_forced_strategy(self.force_strategy)
@@ -231,7 +252,14 @@ class UniversalLLMBot(KnowledgeBot):
         parsed: Optional[MacroDecision] = None
 
         record: Dict[str, Any] = {
-            "schema_version": 2,
+            "schema_version": (
+                4
+                if self.decision_agent_mode == KNOWLEDGE_V22_V2_DECISION_AGENT_MODE
+                else 3
+                if self.decision_agent_mode == KNOWLEDGE_V22_DECISION_AGENT_MODE
+                else 2
+            ),
+            "decision_agent_mode": self.decision_agent_mode,
             "cycle": self._decision_cycle_count,
             "game_time": round(game_time, 2),
             "trigger_reason": trigger_reason,
@@ -255,7 +283,7 @@ class UniversalLLMBot(KnowledgeBot):
             obs_text, obs_snapshot = self._capture_observation_bundle()
             record["observation_at_this_moment"] = obs_text
             record["observation_structured"] = obs_snapshot
-            messages = build_decision_messages(
+            prompt_arguments = dict(
                 race=self.race_name,
                 strategy_summary=self.strategy_summary,
                 obs_text=obs_text,
@@ -270,12 +298,103 @@ class UniversalLLMBot(KnowledgeBot):
                 decision_interval_seconds=self.decision_interval_seconds,
                 enemy_race=self.strategy_enemy_race,
             )
-            api_result = call_openai_detailed(
-                messages=messages,
-                model_key=self.decision_model_key,
-            )
-            raw_response = str(api_result.get("content") or "")
-            parsed = parse_decision_response(raw_response)
+            if self.decision_agent_mode in {
+                KNOWLEDGE_V22_DECISION_AGENT_MODE,
+                KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
+            }:
+                if self.decision_agent_mode == KNOWLEDGE_V22_V2_DECISION_AGENT_MODE:
+                    from SC2_Agent.knowledge_v2_2_v2 import (
+                        build_knowledge_decision_context,
+                        run_decision,
+                    )
+                    knowledge_context = build_knowledge_decision_context(
+                        **prompt_arguments,
+                        observation_structured=obs_snapshot,
+                        planner_state=self._knowledge_v2_2_v2_planner_state,
+                        knowledge_ledger=self._knowledge_v2_2_v2_ledger,
+                    )
+                    # Keep this compact: Windows installations without long-path
+                    # support can otherwise reject traces inside descriptive
+                    # experiment/match directories before the model is called.
+                    trace_folder = "kv2_traces"
+                    record_key = "knowledge_v2_2_v2"
+                else:
+                    from SC2_Agent.knowledge_v2_2 import (
+                        build_knowledge_decision_context,
+                        run_decision,
+                    )
+                    knowledge_context = build_knowledge_decision_context(**prompt_arguments)
+                    trace_folder = "knowledge_v2_2_traces"
+                    record_key = "knowledge_v2_2"
+                messages = [
+                    {"role": "system", "content": knowledge_context["system_prompt"]},
+                    {"role": "user", "content": knowledge_context["decision_event"]},
+                ]
+                trace_dir = (
+                    os.path.join(self.record_dir, trace_folder)
+                    if self.record_dir
+                    else None
+                )
+                run_arguments = dict(
+                    system_prompt=knowledge_context["system_prompt"],
+                    decision_event=knowledge_context["decision_event"],
+                    provider=self.decision_model_key,
+                    subagent_provider=self.data_subagent_model_key,
+                    enable_reasoning=False,
+                    log_dir=trace_dir,
+                    decision_metadata=knowledge_context["metadata"],
+                )
+                if self.decision_agent_mode == KNOWLEDGE_V22_V2_DECISION_AGENT_MODE:
+                    run_arguments.update(
+                        planning_snapshot=knowledge_context["planning_snapshot"],
+                        planner_state=self._knowledge_v2_2_v2_planner_state,
+                        knowledge_ledger=self._knowledge_v2_2_v2_ledger,
+                    )
+                knowledge_result = run_decision(**run_arguments)
+                decision_payload = knowledge_result["decision"]
+                raw_response = json.dumps(decision_payload, ensure_ascii=False)
+                parsed = MacroDecision(
+                    reason=str(decision_payload["reason"]),
+                    ordered_names=list(decision_payload["ordered_names"]),
+                )
+                final_call = (knowledge_result.get("reasoning_trace") or [{}])[-1]
+                api_result = {
+                    "content": raw_response,
+                    "model": final_call.get("model", ""),
+                    "is_reasoning": False,
+                    "reasoning": "",
+                    "reasoning_source": "none",
+                    "reasoning_extract_mode": "none",
+                    "raw_content": raw_response,
+                    "error": "",
+                    "knowledge_result": knowledge_result,
+                }
+                record[record_key] = {
+                    "run_id": knowledge_result.get("run_id"),
+                    "trace_path": knowledge_result.get("log_path"),
+                    "main_round_count": len(knowledge_result.get("main_decisions") or []),
+                    "subagent_session_count": len(knowledge_result.get("subagent_sessions") or []),
+                    "model_call_count": len(knowledge_result.get("reasoning_trace") or []),
+                    "mainagent_model_key": self.decision_model_key,
+                    "data_subagent_model_key": self.data_subagent_model_key,
+                    "knowledge_query_used": bool(
+                        (knowledge_result.get("routing") or {}).get("knowledge_query_used")
+                    ),
+                    "knowledge_cache_hit": bool(
+                        (knowledge_result.get("routing") or {}).get("knowledge_cache_hit")
+                    ),
+                    "queue_audit": knowledge_result.get("queue_audit"),
+                    "knowledge_application": knowledge_result.get("knowledge_application"),
+                    "dataset": knowledge_result.get("dataset"),
+                }
+            else:
+                messages = build_decision_messages(**prompt_arguments)
+                api_result = call_openai_detailed(
+                    messages=messages,
+                    model_key=self.decision_model_key,
+                )
+                raw_response = str(api_result.get("content") or "")
+                parsed = parse_decision_response(raw_response)
             if parsed is None:
                 record["error"] = "invalid_decision_response_keep_old_queue"
                 self._llm_infer_emit(
@@ -448,7 +567,9 @@ class UniversalLLMBot(KnowledgeBot):
                 "game_time": round(float(getattr(self, "time", 0.0)), 2),
                 "decision_cycle": self._decision_cycle_count,
                 "agent": "macro_decision",
+                "decision_agent_mode": self.decision_agent_mode,
                 "model_key": self.decision_model_key,
+                "data_subagent_model_key": self.data_subagent_model_key,
                 "model": llm_result.get("model", ""),
                 "is_reasoning": llm_result.get("is_reasoning"),
                 "prompt": list(messages),
@@ -463,9 +584,64 @@ class UniversalLLMBot(KnowledgeBot):
                 ),
                 "raw_content": llm_result.get("raw_content", "") or "",
                 "error": llm_result.get("error", "") or "",
+                "knowledge_v2_2": self._knowledge_call_summary(llm_result),
             }
         )
         self._flush_llm_call_log()
+
+    @staticmethod
+    def _knowledge_call_summary(llm_result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        result = llm_result.get("knowledge_result")
+        if not isinstance(result, dict):
+            return None
+        sessions = []
+        for session in result.get("subagent_sessions") or []:
+            sessions.append({
+                "session_id": session.get("session_id"),
+                "main_round": session.get("main_round"),
+                "question": session.get("question"),
+                "query_type": session.get("query_type"),
+                "targets": list(session.get("targets") or []),
+                "requested_fields": list(session.get("requested_fields") or []),
+                "selected_tools": list(session.get("selected_tools") or []),
+                "reply": session.get("reply"),
+                "observation_count": len(session.get("observations") or []),
+                "cache_hit": bool(session.get("cache_hit")),
+            })
+        calls = []
+        for call in result.get("reasoning_trace") or []:
+            calls.append({
+                "phase": call.get("phase"),
+                "agent_role": call.get("agent_role"),
+                "provider": call.get("provider"),
+                "model_key": call.get("model_key"),
+                "model": call.get("model"),
+                "is_reasoning": call.get("is_reasoning"),
+                "reasoning_available": call.get("reasoning_available"),
+                "reasoning_source": call.get("reasoning_source"),
+                "finish_reason": call.get("finish_reason"),
+                "latency_seconds": call.get("latency_seconds"),
+                "rate_limit_wait_seconds": call.get("rate_limit_wait_seconds"),
+                "error": call.get("error", ""),
+            })
+        return {
+            "agent_version": result.get("agent_version"),
+            "run_id": result.get("run_id"),
+            "trace_path": result.get("log_path"),
+            "dataset": result.get("dataset"),
+            "mainagent_provider": result.get("mainagent_provider"),
+            "data_subagent_provider": result.get("data_subagent_provider"),
+            "knowledge_query_used": bool((result.get("routing") or {}).get("knowledge_query_used")),
+            "knowledge_cache_hit": bool((result.get("routing") or {}).get("knowledge_cache_hit")),
+            "planning_snapshot": result.get("planning_snapshot"),
+            "queue_audit": result.get("queue_audit"),
+            "knowledge_application": result.get("knowledge_application"),
+            "query_skip_reason": result.get("query_skip_reason"),
+            "knowledge_not_used_reason": result.get("knowledge_not_used_reason"),
+            "main_decisions": result.get("main_decisions"),
+            "subagent_sessions": sessions,
+            "model_calls": calls,
+        }
 
     def _llm_call_log_path(self) -> Optional[str]:
         recorder = getattr(self, "llm_observation_recorder", None)

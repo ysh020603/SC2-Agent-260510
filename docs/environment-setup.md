@@ -16,6 +16,12 @@ The repository loads its bundled `python-sc2/` snapshot through
 The existing Sharpy `bot_loader/` remains the common startup layer for both
 the retained demo bots and `UniversalLLMBot`.
 
+The `data-v2.2` decision runtime and its complete SC2 dataset are vendored
+under `SC2_Agent/knowledge_v2_2/`. A checkout of the sibling
+`SC2_DATA_Agent` repository is not required at runtime.
+The additive planning mode `data-v2.2-v2` has its own copied runtime, prompts,
+and dataset under `SC2_Agent/knowledge_v2_2_v2/`; V1 remains independent.
+
 ## StarCraft II
 
 Set `SC2PATH` to the StarCraft II root and make sure the requested map exists.
@@ -84,6 +90,18 @@ The file is ignored by Git. The supported runtime accepts one model key:
 
 Never commit or echo the real credential.
 
+MainAgent and DataSubAgent accept independent model keys. Each key selects its
+own complete entry in `llm_agents_pool`, so the roles may use different
+`api_url`, `api_key`, and `model_name` values. The defaults are both
+`Kimi-k2.5` non-thinking. `data-v2.2` may make several calls when MainAgent
+chooses to query knowledge. A package-local cross-process rate limiter defaults
+Kimi to 50 calls per rolling minute. If the configured provider quota is
+different, set a safe value from 1 through the provider maximum:
+
+```powershell
+$env:SC2_KIMI_RPM='50'
+```
+
 ## Verify without a match
 
 ```powershell
@@ -91,6 +109,7 @@ python run_vs_ai.py --help
 python run_custom.py --help
 python tools\run_experiment.py --help
 python tools\run_kimi_nothink_strategy_sweep.py --dry-run
+python API_Tools\probe_reasoning_extraction.py --model-key Kimi-k2.5 --max-tokens 256
 python -m pytest tools\tests -q
 ```
 
@@ -99,12 +118,19 @@ python -m pytest tools\tests -q
 ```powershell
 $env:SC2_GAME_TIME_LIMIT='240'
 python tools\run_experiment.py `
+  --decision-agent-mode data-v2.2 `
   --strategy marine_rush `
+  --bot-race terran `
   --decision-model Kimi-k2.5 `
+  --data-subagent-model Kimi-k2.5 `
   --decision-interval 60 `
   --enemy-race terran `
   --enemy-difficulty medium `
-  --batch-name first_summary_queue_test
+  --batch-name first_data_v2_2_test
 ```
 
-See [test-run-workflow.md](test-run-workflow.md) for record validation.
+Use `--decision-agent-mode naive` to run the preserved baseline. See
+[data-v2.2-decision-agent.md](data-v2.2-decision-agent.md) for the mode boundary
+and [data-v2.2-v2-decision-agent.md](data-v2.2-v2-decision-agent.md) for the
+planning and combat-capability mode,
+and [test-run-workflow.md](test-run-workflow.md) for record validation.

@@ -37,6 +37,15 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--enemy-build", default="random")
     parser.add_argument("--decision-model", default=run_vs_ai.DEFAULT_DECISION_MODEL)
     parser.add_argument(
+        "--data-subagent-model",
+        default=run_vs_ai.DEFAULT_DATA_SUBAGENT_MODEL,
+    )
+    parser.add_argument(
+        "--decision-agent-mode",
+        choices=("data-v2.2-v2", "data-v2.2", "naive"),
+        default=run_vs_ai.DEFAULT_DECISION_AGENT_MODE,
+    )
+    parser.add_argument(
         "--decision-interval",
         type=float,
         default=run_vs_ai.DEFAULT_DECISION_INTERVAL,
@@ -81,6 +90,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         enemy_build=args.enemy_build,
         bot_race=args.bot_race,
         decision_model=args.decision_model,
+        data_subagent_model=args.data_subagent_model,
+        decision_agent_mode=args.decision_agent_mode,
         decision_interval=args.decision_interval,
         batch_name=args.batch_name or None,
         run_index=args.run_index,

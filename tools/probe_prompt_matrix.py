@@ -23,6 +23,7 @@ from SC2_Agent.data_tools import (
     race_upgrade_names,
 )
 from SC2_Agent.decision_agent import build_decision_messages, parse_decision_response
+from SC2_Agent.knowledge_v2_2 import build_knowledge_decision_context, run_decision
 from SC2_Agent.prompt_context import StrategyAutomationProfile
 from SC2_Agent.strategy_registry import enabled_strategy_names
 from SC2_Agent.top_agent import parse_strategy_summary
@@ -60,7 +61,14 @@ INITIAL_OBSERVATION = {
 }
 
 
-def _probe_one(model: str, enemy_race: str, race: str, strategy: str) -> dict:
+def _probe_one(
+    model: str,
+    subagent_model: str,
+    decision_agent_mode: str,
+    enemy_race: str,
+    race: str,
+    strategy: str,
+) -> dict:
     strategy_dir = ROOT / "SKILL" / race / strategy
     summary = parse_strategy_summary(
         (strategy_dir / "Top_agent.md").read_text(encoding="utf-8")
@@ -69,7 +77,7 @@ def _probe_one(model: str, enemy_race: str, race: str, strategy: str) -> dict:
     profile = getattr(module, "AUTOMATION_PROFILE", None)
     if not isinstance(profile, StrategyAutomationProfile):
         raise ValueError(f"Missing automation profile for {race}/{strategy}")
-    messages = build_decision_messages(
+    prompt_arguments = dict(
         race=race,
         enemy_race=enemy_race,
         strategy_summary=summary,
@@ -84,9 +92,75 @@ def _probe_one(model: str, enemy_race: str, race: str, strategy: str) -> dict:
         game_time_seconds=0,
         decision_interval_seconds=60,
     )
-    result = call_openai_detailed(messages=messages, model_key=model)
-    raw = str(result.get("content") or "")
-    parsed = parse_decision_response(raw)
+    knowledge_result = None
+    if decision_agent_mode in {"data-v2.2", "data-v2.2-v2"}:
+        run_kwargs = {}
+        if decision_agent_mode == "data-v2.2-v2":
+            from SC2_Agent.knowledge_v2_2_v2 import (
+                build_knowledge_decision_context as build_v2_context,
+                run_decision as run_v2_decision,
+            )
+            structured = {
+                "time": 0.0,
+                "economy": {
+                    "minerals": 50,
+                    "vespene": 0,
+                    "minerals_per_min": 720,
+                    "vespene_per_min": 0,
+                    "supply_used": 12,
+                    "supply_cap": 15,
+                    "supply_left": 3,
+                    "supply_workers": 12,
+                    "ideal_worker_count": 16,
+                },
+                "own_forces": {
+                    "completed": {
+                        {"terran": "SCV", "protoss": "PROBE", "zerg": "DRONE"}[race]: 12,
+                        {"terran": "COMMANDCENTER", "protoss": "NEXUS", "zerg": "HATCHERY"}[race]: 1,
+                    },
+                    "under_construction": {},
+                    "workers_en_route": {},
+                    "active_queues": {},
+                },
+            }
+            ledger = {"facts": {}}
+            planner_state = {}
+            context = build_v2_context(
+                **prompt_arguments,
+                observation_structured=structured,
+                planner_state=planner_state,
+                knowledge_ledger=ledger,
+            )
+            selected_run_decision = run_v2_decision
+            run_kwargs = {
+                "planning_snapshot": context["planning_snapshot"],
+                "planner_state": planner_state,
+                "knowledge_ledger": ledger,
+            }
+            trace_name = "knowledge_v2_2_v2_traces"
+        else:
+            context = build_knowledge_decision_context(**prompt_arguments)
+            selected_run_decision = run_decision
+            trace_name = "knowledge_v2_2_traces"
+        knowledge_result = selected_run_decision(
+            system_prompt=context["system_prompt"],
+            decision_event=context["decision_event"],
+            provider=model,
+            subagent_provider=subagent_model,
+            enable_reasoning=False,
+            log_dir=ROOT / "game_records" / "prompt_probes" / trace_name,
+            decision_metadata=context["metadata"],
+            **run_kwargs,
+        )
+        payload = knowledge_result["decision"]
+        raw = json.dumps(payload, ensure_ascii=False)
+        parsed = parse_decision_response(raw)
+        result = (knowledge_result.get("reasoning_trace") or [{}])[-1]
+    else:
+        messages = build_decision_messages(**prompt_arguments)
+        result = call_openai_detailed(messages=messages, model_key=model)
+        raw = str(result.get("content") or "")
+        parsed = parse_decision_response(raw)
     unknown = []
     unmapped = []
     if parsed is not None:
@@ -100,6 +174,8 @@ def _probe_one(model: str, enemy_race: str, race: str, strategy: str) -> dict:
         "race": race,
         "strategy": strategy,
         "model_key": model,
+        "data_subagent_model_key": subagent_model,
+        "decision_agent_mode": decision_agent_mode,
         "parsed": parsed is not None,
         "reason": parsed.reason if parsed else "",
         "ordered_names": parsed.ordered_names if parsed else [],
@@ -109,12 +185,23 @@ def _probe_one(model: str, enemy_race: str, race: str, strategy: str) -> dict:
         "is_reasoning": result.get("is_reasoning"),
         "reasoning_source": result.get("reasoning_source", "none"),
         "raw_response": raw,
+        "knowledge_trace_path": (
+            knowledge_result.get("log_path") if knowledge_result else None
+        ),
+        "main_round_count": len(knowledge_result.get("main_decisions") or []) if knowledge_result else 0,
+        "subagent_session_count": len(knowledge_result.get("subagent_sessions") or []) if knowledge_result else 0,
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-key", required=True)
+    parser.add_argument("--subagent-model-key", default="Kimi-k2.5")
+    parser.add_argument(
+        "--decision-agent-mode",
+        choices=("data-v2.2-v2", "data-v2.2", "naive"),
+        default="data-v2.2",
+    )
     parser.add_argument("--enemy-race", default="terran")
     parser.add_argument("--concurrency", type=int, default=5)
     parser.add_argument("--output", default="")
@@ -131,6 +218,8 @@ def main() -> int:
             pool.submit(
                 _probe_one,
                 args.model_key,
+                args.subagent_model_key,
+                args.decision_agent_mode,
                 args.enemy_race,
                 race,
                 strategy,
@@ -146,6 +235,8 @@ def main() -> int:
                     "race": race,
                     "strategy": strategy,
                     "model_key": args.model_key,
+                    "data_subagent_model_key": args.subagent_model_key,
+                    "decision_agent_mode": args.decision_agent_mode,
                     "parsed": False,
                     "provider_error": repr(exc),
                     "unknown_names": [],
@@ -165,13 +256,15 @@ def main() -> int:
         ROOT
         / "game_records"
         / "prompt_probes"
-        / f"{datetime.now():%Y%m%d_%H%M%S}_{args.model_key}.json"
+        / f"{datetime.now():%Y%m%d_%H%M%S}_{args.decision_agent_mode}_{args.model_key}.json"
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
         json.dumps(
             {
                 "model_key": args.model_key,
+                "data_subagent_model_key": args.subagent_model_key,
+                "decision_agent_mode": args.decision_agent_mode,
                 "enemy_race": args.enemy_race,
                 "count": len(rows),
                 "rows": rows,

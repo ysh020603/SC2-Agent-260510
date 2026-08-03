@@ -164,6 +164,8 @@ def _run_one(
     *,
     batch_name: str,
     model: str,
+    subagent_model: str,
+    decision_agent_mode: str,
     decision_interval: float,
     enemy_build: str,
     game_time_limit: int,
@@ -195,6 +197,10 @@ def _run_one(
         enemy_build,
         "--decision-model",
         model,
+        "--data-subagent-model",
+        subagent_model,
+        "--decision-agent-mode",
+        decision_agent_mode,
         "--decision-interval",
         str(decision_interval),
         "--game-time-limit",
@@ -239,6 +245,12 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("--batch-name", default="kimi_nothink_summary_queue")
     parser.add_argument("--decision-model", default="Kimi-k2.5")
+    parser.add_argument("--data-subagent-model", default="Kimi-k2.5")
+    parser.add_argument(
+        "--decision-agent-mode",
+        choices=("data-v2.2-v2", "data-v2.2", "naive"),
+        default="data-v2.2",
+    )
     parser.add_argument("--decision-interval", type=float, default=60.0)
     parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument("--repeats", type=int, default=2)
@@ -279,7 +291,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     jobs = [job for job in jobs if job.index >= args.start_index]
     print(
-        f"model={args.decision_model} interval={args.decision_interval:g}s "
+        f"main_model={args.decision_model} subagent_model={args.data_subagent_model} "
+        f"mode={args.decision_agent_mode} "
+        f"interval={args.decision_interval:g}s "
         f"jobs={len(jobs)} concurrency={args.concurrency}"
     )
     if args.dry_run:
@@ -298,6 +312,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 job,
                 batch_name=args.batch_name,
                 model=args.decision_model,
+                subagent_model=args.data_subagent_model,
+                decision_agent_mode=args.decision_agent_mode,
                 decision_interval=args.decision_interval,
                 enemy_build=args.enemy_build,
                 game_time_limit=args.game_time_limit,

@@ -154,7 +154,18 @@ Builds:
         parser.add_argument(
             "--decision-model",
             help="Model key from config.json for the macro decision agent.",
-            default="",
+            default="Kimi-k2.5",
+        )
+        parser.add_argument(
+            "--data-subagent-model",
+            help="Independent model key from config.json for DataSubAgent.",
+            default="Kimi-k2.5",
+        )
+        parser.add_argument(
+            "--decision-agent-mode",
+            choices=("data-v2.2-v2", "data-v2.2", "naive"),
+            help="Macro decision orchestration mode.",
+            default="data-v2.2",
         )
         parser.add_argument(
             "--decision-interval",
@@ -295,6 +306,10 @@ Builds:
                     recorder.output_folder = record_dir
             if getattr(args, "decision_model", None) and hasattr(my_bot, "decision_model_key"):
                 my_bot.decision_model_key = args.decision_model
+            if getattr(args, "data_subagent_model", None) and hasattr(my_bot, "data_subagent_model_key"):
+                my_bot.data_subagent_model_key = args.data_subagent_model
+            if hasattr(my_bot, "decision_agent_mode"):
+                my_bot.decision_agent_mode = args.decision_agent_mode
             if getattr(args, "decision_interval", None) and hasattr(my_bot, "decision_interval_seconds"):
                 my_bot.decision_interval_seconds = float(args.decision_interval)
             if hasattr(my_bot, "force_strategy"):

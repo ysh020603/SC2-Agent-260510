@@ -2,9 +2,18 @@
 
 ## 1. Scope
 
-The runtime has one LLM responsibility: periodically produce a complete,
-ordered macro queue in canonical names for Terran, Protoss, or Zerg. Naming and ordering are one
-operation. Concrete execution is code-owned.
+The runtime has one public LLM responsibility: periodically produce a complete,
+ordered macro queue in canonical names for Terran, Protoss, or Zerg. Naming and
+ordering are one operation. Concrete execution is code-owned. Three selectable
+implementations fulfill that same responsibility:
+
+- `data-v2.2`, the supported-launcher default, orchestrates MainAgent and one
+  or more fresh DataSubAgent sessions over a repository-local SC2 dataset;
+- `data-v2.2-v2` is the independent V2 planning branch with deterministic task
+  decomposition, preflight knowledge routing, production-throughput assembly,
+  match-local knowledge cache, and weapon-layer gating;
+- `naive` preserves the original single-call `SC2_Agent/decision_agent.py`
+  implementation unchanged.
 
 There is no:
 
@@ -31,7 +40,9 @@ current structured/text observation
 uncommitted canonical names from previous queue
                  │
                  ▼
-SC2_Agent/decision_agent.py
+decision-agent mode
+     ├─ naive ─────── SC2_Agent/decision_agent.py
+     └─ data-v2.2 ── MainAgent ↔ DataSubAgent ↔ local query tools/data
                  │
         {reason, ordered_names}
                  │
@@ -71,8 +82,8 @@ The interval is measured in game time, not wall-clock time.
 
 ## 4. Prompt and output
 
-`SC2_Agent/decision_agent.py` builds one system message with ten stable
-sections:
+The naive branch remains exactly the single system message built by
+`SC2_Agent/decision_agent.py`, with ten stable sections:
 
 1. agent role and responsibility boundary;
 2. decision lifecycle;
@@ -122,6 +133,22 @@ Output:
 The model plans only the near-term horizon before the next decision and is
 asked to keep the queue compact, normally no more than 20 names. This prevents
 the summary from being expanded into a full-game build order every minute.
+
+The `data-v2.2` branch independently maintains equivalent decision policy in
+`SC2_Agent/knowledge_v2_2/prompts/main_system.md` and
+`decision_prompt.py`; it does not import the naive prompt. Its MainAgent gets
+the same event message and exact executable allowlist, plus local context for
+the V2.2 entity/relation shapes, evidence references, query boundaries, and
+focused DataSubAgent questions. MainAgent may finalize immediately or open a
+fresh DataSubAgent session when a decision-relevant static fact is uncertain.
+It may ask follow-ups and then returns the same public `reason` and
+`ordered_names` fields. DataSubAgent uses native tool calls; full raw results
+stay in the trace while compact references are shown to the model.
+
+MainAgent and DataSubAgent have independent model keys. Because model keys map
+to complete API profiles, the two roles may use different endpoints,
+credentials, and models. Both defaults are currently `Kimi-k2.5` with
+reasoning disabled.
 
 `reason` is persisted for auditing but is not chain-of-thought. Empty
 `ordered_names` is legal. A malformed response, or a non-empty response for
@@ -220,7 +247,11 @@ an empty tactical configuration.
 
 ## 8. Record schema
 
-The main interaction stream uses `schema_version: 2`. A decision record stores:
+The main interaction stream keeps `schema_version: 2` for naive decisions and
+uses `schema_version: 3` for `data-v2.2` and schema 4 for `data-v2.2-v2`. All store the normal trigger,
+observation, decision, mapping, and queue transition. V2.2 additionally stores
+`decision_agent_mode` and an orchestration summary. A representative public
+portion is:
 
 ```json
 {
@@ -242,17 +273,27 @@ The main interaction stream uses `schema_version: 2`. A decision record stores:
 }
 ```
 
-The companion `*.llm_calls.json` has one `agent: "macro_decision"` entry per
-model call. `decision_reason` is the public response field. Any provider-side
-reasoning is stored separately as `provider_reasoning`; in Kimi non-thinking
-mode it should be empty and `is_reasoning` should be false.
+For naive mode, the companion `*.llm_calls.json` has one
+`agent: "macro_decision"` entry per decision. In V2.2 it summarizes the final
+MainAgent decision, every DataSubAgent session, and every underlying model
+call. `decision_reason` is public; provider reasoning stays separate. In Kimi
+non-thinking mode every model call must report `is_reasoning: false` and no
+provider reasoning. Raw deterministic tool results live only in the matching
+`knowledge_v2_2_traces/<trace-id>/trace.json`; V2 planning mode uses the compact
+`kv2_traces/<date>/<trace-id>/trace.json` path.
 
 ## 9. Main files
 
 | File | Responsibility |
 |---|---|
 | `dummies/generic/universal_llm_bot.py` | trigger, prompt call, validation, replacement, records |
-| `SC2_Agent/decision_agent.py` | sole model prompt and response parser |
+| `SC2_Agent/decision_agent.py` | preserved naive prompt and response parser |
+| `SC2_Agent/knowledge_v2_2/agent.py` | knowledge-mode public decision entry point |
+| `SC2_Agent/knowledge_v2_2/main_agent.py` | MainAgent orchestration and optional knowledge-query decision |
+| `SC2_Agent/knowledge_v2_2/sub_agent.py` | fresh DataSubAgent sessions and native tool loop |
+| `SC2_Agent/knowledge_v2_2/decision_prompt.py` | independent decision event context |
+| `SC2_Agent/knowledge_v2_2/data_sc2_260701/` | vendored V2.2 data and evidence |
+| `SC2_Agent/knowledge_v2_2_v2/` | independent V2 prompts, planner, agents, tools, cache, traces, and copied dataset |
 | `SC2_Agent/prompt_context.py` | lifecycle, observation guide, and shared strategy automation profiles |
 | `SC2_Agent/strategy_registry.py` | five-per-race production strategy gate |
 | `SC2_Agent/top_agent.py` | summary-only strategy parser |
@@ -263,6 +304,7 @@ mode it should be empty and `is_reasoning` should be false.
 | `bot_loader/game_starter.py` | preserved Sharpy launcher with current agent options |
 | `run_vs_ai.py` | supported agent match CLI built on the existing bot loader |
 | `tools/probe_prompt_matrix.py` | no-engine output-contract probe across all 15 enabled strategies |
+| `tools/probe_v2_resource_combat_scenarios.py` | DeepSeek resource conversion and attack-layer probes |
 | `tools/run_kimi_nothink_strategy_sweep.py` | retryable, staggered multi-race SC2 matrix runner |
 
 ## 10. Batch startup behavior
@@ -285,6 +327,9 @@ Retained:
 - deterministic execution code required to turn canonical names into SC2
   commands;
 - strategy-specific tactical/background `strategy_tools.py`.
+- the original naive decision agent as an explicitly selectable baseline;
+- a self-contained V2.2 MainAgent, DataSubAgent, query runtime, and complete
+  data snapshot maintained inside this repository.
 
 Removed:
 
