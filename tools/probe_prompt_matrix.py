@@ -158,7 +158,6 @@ def _probe_one(
             decision_event=context["decision_event"],
             provider=model,
             subagent_provider=subagent_model,
-            enable_reasoning=False,
             log_dir=ROOT / "game_records" / "prompt_probes" / trace_name,
             decision_metadata=context["metadata"],
             **run_kwargs,

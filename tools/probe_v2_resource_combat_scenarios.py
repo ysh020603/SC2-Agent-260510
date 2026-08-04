@@ -154,7 +154,6 @@ def run_probe(
             decision_event=context["decision_event"],
             provider=model_key,
             subagent_provider=model_key,
-            enable_reasoning=False,
             log_dir=output_root / race,
             decision_metadata=context["metadata"],
             planning_snapshot=context["planning_snapshot"],
@@ -172,7 +171,6 @@ def run_probe(
             decision_event=v1_context["decision_event"],
             provider=model_key,
             subagent_provider=model_key,
-            enable_reasoning=False,
             log_dir=output_root / race,
             decision_metadata=v1_context["metadata"],
         )
@@ -182,9 +180,7 @@ def run_probe(
         main_round_count = len(result["main_decisions"])
     else:
         messages = build_decision_messages(**prompt_arguments)
-        raw = call_openai_detailed(
-            messages=messages, model_key=model_key, is_reasoning=False
-        )
+        raw = call_openai_detailed(messages=messages, model_key=model_key)
         if raw.get("error"):
             raise RuntimeError(raw["error"])
         parsed = parse_decision_response(str(raw.get("content") or ""))

@@ -11,14 +11,29 @@ from .rate_limiter import acquire_provider_slot
 from .trace import TraceRecorder
 
 
-def resolve_model_key(provider: str, enable_reasoning: bool) -> str:
+def configured_reasoning_mode(provider: str) -> bool | None:
+    """Return the selected profile's reasoning mode without guessing from its name."""
+
     pool = load_agent_pool().get("llm_agents_pool") or {}
     current = pool.get(provider)
-    if not isinstance(current, dict) or bool(current.get("is_reasoning")) == enable_reasoning:
+    if not isinstance(current, dict):
+        return None
+    value = current.get("is_reasoning")
+    return value if isinstance(value, bool) else None
+
+
+def resolve_model_key(provider: str, reasoning_mode: bool | None = None) -> str:
+    """Resolve only an explicit per-call override to a matching sibling profile."""
+
+    if reasoning_mode is None:
+        return provider
+    pool = load_agent_pool().get("llm_agents_pool") or {}
+    current = pool.get(provider)
+    if not isinstance(current, dict) or current.get("is_reasoning") is reasoning_mode:
         return provider
     wanted = provider[:-6] if provider.lower().endswith("_think") else f"{provider}_think"
     for key, value in pool.items():
-        if key.lower() == wanted.lower() and bool(value.get("is_reasoning")) == enable_reasoning:
+        if key.lower() == wanted.lower() and value.get("is_reasoning") is reasoning_mode:
             return key
     return provider
 
@@ -33,7 +48,6 @@ class LLMInvoker:
         recorder: TraceRecorder,
         provider: str,
         model: str | None,
-        enable_reasoning: bool,
         *,
         agent_role: str = "agent",
         trace: list[dict[str, Any]] | None = None,
@@ -41,7 +55,7 @@ class LLMInvoker:
         self.recorder = recorder
         self.provider = provider
         self.model = model
-        self.enable_reasoning = enable_reasoning
+        self.reasoning_mode = configured_reasoning_mode(provider)
         self.agent_role = agent_role
         self.trace = trace if trace is not None else []
 
@@ -53,13 +67,16 @@ class LLMInvoker:
         tools: list[dict[str, Any]] | None = None,
         reasoning: bool | None = None,
     ) -> dict[str, Any]:
-        reasoning_enabled = self.enable_reasoning if reasoning is None else reasoning
+        reasoning_enabled = self.reasoning_mode if reasoning is None else reasoning
         model_key = resolve_model_key(self.provider, reasoning_enabled)
         request_payload: dict[str, Any] = {
             "agent_role": self.agent_role,
             "phase": phase,
             "provider": self.provider,
+            "configured_model_key": self.provider,
             "model_key": model_key,
+            "profile_reasoning_mode": self.reasoning_mode,
+            "reasoning_override": reasoning,
             "reasoning_requested": reasoning_enabled,
             "messages": messages,
             "tool_names": [tool["function"]["name"] for tool in tools or []],
@@ -108,8 +125,12 @@ class LLMInvoker:
             "agent_role": self.agent_role,
             "phase": phase,
             "provider": self.provider,
+            "configured_model_key": self.provider,
             "model_key": model_key,
             "model": result.get("model"),
+            "profile_reasoning_mode": self.reasoning_mode,
+            "reasoning_override": reasoning,
+            "reasoning_requested": reasoning_enabled,
             "is_reasoning": result.get("is_reasoning"),
             "reasoning": result.get("reasoning", ""),
             "reasoning_available": bool(result.get("reasoning")),
@@ -137,4 +158,10 @@ def assistant_message(result: dict[str, Any]) -> dict[str, Any]:
     return message
 
 
-__all__ = ["LLMInvoker", "V2TraceRecorder", "assistant_message", "resolve_model_key"]
+__all__ = [
+    "LLMInvoker",
+    "V2TraceRecorder",
+    "assistant_message",
+    "configured_reasoning_mode",
+    "resolve_model_key",
+]

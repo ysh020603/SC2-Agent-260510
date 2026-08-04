@@ -79,7 +79,7 @@ class DataSubAgent:
             {"role": "user", "content": question},
         ]
         selection_result = self.invoker(
-            f"sub_{session_id}_select_tools", messages, reasoning=False
+            f"sub_{session_id}_select_tools", messages
         )
         selection_content = selection_result.get("content", "")
         try:
@@ -205,7 +205,9 @@ class DataSubAgent:
                 ),
             })
             try:
-                summary_result = self.invoker(f"sub_{session_id}_tool_limit_summary", messages, reasoning=False)
+                summary_result = self.invoker(
+                    f"sub_{session_id}_tool_limit_summary", messages
+                )
                 final_content = summary_result.get("content", "")
             except Exception as exc:
                 self.recorder.record("sub_tool_limit_summary_failed", {

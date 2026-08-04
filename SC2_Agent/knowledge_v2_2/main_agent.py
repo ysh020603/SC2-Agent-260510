@@ -63,7 +63,6 @@ class MainAgent:
                 repair = self.invoker(
                     f"main_round_{main_round + 1}_repair",
                     messages,
-                    reasoning=False,
                 )
                 content = str(repair.get("content") or "")
                 decision = validate_main_decision(parse_json_object(content))
@@ -109,7 +108,7 @@ class MainAgent:
                 "public reason, and ordered_names using only the visible macro allowlist."
             ),
         })
-        result = self.invoker("main_round_limit_final_decision", messages, reasoning=False)
+        result = self.invoker("main_round_limit_final_decision", messages)
         decision = validate_main_decision(parse_json_object(str(result.get("content") or "")))
         if decision["action"] != "final_decision":
             raise RuntimeError("MainAgent failed to return final_decision at the round limit.")

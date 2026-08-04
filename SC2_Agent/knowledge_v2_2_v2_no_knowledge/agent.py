@@ -23,7 +23,6 @@ from .sub_agent import DataSubAgent
 
 
 DEFAULT_PROVIDER = "Kimi-k2.5"
-DEFAULT_ENABLE_REASONING = False
 
 
 def get_provider_catalog() -> dict[str, dict[str, Any]]:
@@ -40,7 +39,6 @@ def run_decision(
     subagent_provider: str | None = None,
     subagent_model: str | None = None,
     data_path: str | Path = DEFAULT_DATA_PATH,
-    enable_reasoning: bool = DEFAULT_ENABLE_REASONING,
     log_dir: str | Path | None = None,
     decision_metadata: dict[str, Any] | None = None,
     planning_snapshot: dict[str, Any] | None = None,
@@ -64,7 +62,6 @@ def run_decision(
             recorder,
             provider,
             model,
-            enable_reasoning,
             agent_role="main_agent",
             trace=reasoning_trace,
         )
@@ -72,7 +69,6 @@ def run_decision(
             recorder,
             resolved_subagent_provider,
             subagent_model,
-            enable_reasoning,
             agent_role="data_subagent_no_knowledge",
             trace=reasoning_trace,
         )
@@ -332,7 +328,11 @@ def run_decision(
             "provider": provider,
             "mainagent_provider": provider,
             "data_subagent_provider": resolved_subagent_provider,
-            "reasoning_enabled": enable_reasoning,
+            "reasoning_enabled": main_invoker.reasoning_mode is True,
+            "reasoning_policy": "main_profile_subagent_forced_non_reasoning",
+            "mainagent_reasoning_enabled": main_invoker.reasoning_mode,
+            "data_subagent_configured_reasoning_mode": subagent_invoker.reasoning_mode,
+            "data_subagent_reasoning_enabled": False,
             "dataset": dataset_metadata,
             "routing": {
                 "strategy": "planning_main_triggered_tool_free_subagent_with_match_cache",
@@ -365,7 +365,6 @@ def run_decision(
 
 
 __all__ = [
-    "DEFAULT_ENABLE_REASONING",
     "DEFAULT_PROVIDER",
     "get_provider_catalog",
     "run_decision",

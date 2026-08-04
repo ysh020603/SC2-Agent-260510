@@ -365,7 +365,6 @@ class UniversalLLMBot(KnowledgeBot):
                     decision_event=knowledge_context["decision_event"],
                     provider=self.decision_model_key,
                     subagent_provider=self.data_subagent_model_key,
-                    enable_reasoning=False,
                     log_dir=trace_dir,
                     decision_metadata=knowledge_context["metadata"],
                 )
@@ -385,26 +384,64 @@ class UniversalLLMBot(KnowledgeBot):
                     reason=str(decision_payload["reason"]),
                     ordered_names=list(decision_payload["ordered_names"]),
                 )
-                final_call = (knowledge_result.get("reasoning_trace") or [{}])[-1]
+                reasoning_trace = knowledge_result.get("reasoning_trace") or []
+                main_calls = [
+                    call
+                    for call in reasoning_trace
+                    if call.get("agent_role") == "main_agent"
+                ]
+                final_call = (main_calls or reasoning_trace or [{}])[-1]
                 api_result = {
                     "content": raw_response,
+                    "model_key": final_call.get("model_key", self.decision_model_key),
                     "model": final_call.get("model", ""),
-                    "is_reasoning": False,
-                    "reasoning": "",
-                    "reasoning_source": "none",
-                    "reasoning_extract_mode": "none",
-                    "raw_content": raw_response,
+                    "is_reasoning": final_call.get("is_reasoning"),
+                    "reasoning": final_call.get("reasoning", "") or "",
+                    "reasoning_source": final_call.get("reasoning_source", "none")
+                    or "none",
+                    "reasoning_extract_mode": final_call.get(
+                        "reasoning_extract_mode", "none"
+                    )
+                    or "none",
+                    "raw_content": final_call.get("raw_content", "") or raw_response,
                     "error": "",
                     "knowledge_result": knowledge_result,
                 }
+                actual_main_model_keys = sorted({
+                    str(call.get("model_key") or "")
+                    for call in main_calls
+                    if call.get("model_key")
+                })
+                actual_subagent_model_keys = sorted({
+                    str(call.get("model_key") or "")
+                    for call in reasoning_trace
+                    if call.get("agent_role") != "main_agent" and call.get("model_key")
+                })
                 record[record_key] = {
                     "run_id": knowledge_result.get("run_id"),
                     "trace_path": knowledge_result.get("log_path"),
                     "main_round_count": len(knowledge_result.get("main_decisions") or []),
                     "subagent_session_count": len(knowledge_result.get("subagent_sessions") or []),
                     "model_call_count": len(knowledge_result.get("reasoning_trace") or []),
-                    "mainagent_model_key": self.decision_model_key,
-                    "data_subagent_model_key": self.data_subagent_model_key,
+                    "mainagent_model_key": (
+                        actual_main_model_keys[-1] if actual_main_model_keys else None
+                    ),
+                    "data_subagent_model_key": (
+                        actual_subagent_model_keys[-1]
+                        if actual_subagent_model_keys
+                        else None
+                    ),
+                    "configured_mainagent_model_key": self.decision_model_key,
+                    "configured_data_subagent_model_key": self.data_subagent_model_key,
+                    "actual_mainagent_model_keys": actual_main_model_keys,
+                    "actual_data_subagent_model_keys": actual_subagent_model_keys,
+                    "reasoning_policy": knowledge_result.get("reasoning_policy"),
+                    "mainagent_reasoning_enabled": knowledge_result.get(
+                        "mainagent_reasoning_enabled"
+                    ),
+                    "data_subagent_reasoning_enabled": knowledge_result.get(
+                        "data_subagent_reasoning_enabled"
+                    ),
                     "knowledge_query_used": bool(
                         (knowledge_result.get("routing") or {}).get("knowledge_query_used")
                     ),
@@ -596,8 +633,9 @@ class UniversalLLMBot(KnowledgeBot):
                 "decision_cycle": self._decision_cycle_count,
                 "agent": "macro_decision",
                 "decision_agent_mode": self.decision_agent_mode,
-                "model_key": self.decision_model_key,
-                "data_subagent_model_key": self.data_subagent_model_key,
+                "model_key": llm_result.get("model_key") or self.decision_model_key,
+                "configured_model_key": self.decision_model_key,
+                "configured_data_subagent_model_key": self.data_subagent_model_key,
                 "model": llm_result.get("model", ""),
                 "is_reasoning": llm_result.get("is_reasoning"),
                 "prompt": list(messages),
@@ -642,8 +680,12 @@ class UniversalLLMBot(KnowledgeBot):
                 "phase": call.get("phase"),
                 "agent_role": call.get("agent_role"),
                 "provider": call.get("provider"),
+                "configured_model_key": call.get("configured_model_key"),
                 "model_key": call.get("model_key"),
                 "model": call.get("model"),
+                "profile_reasoning_mode": call.get("profile_reasoning_mode"),
+                "reasoning_override": call.get("reasoning_override"),
+                "reasoning_requested": call.get("reasoning_requested"),
                 "is_reasoning": call.get("is_reasoning"),
                 "reasoning_available": call.get("reasoning_available"),
                 "reasoning_source": call.get("reasoning_source"),
@@ -659,6 +701,15 @@ class UniversalLLMBot(KnowledgeBot):
             "dataset": result.get("dataset"),
             "mainagent_provider": result.get("mainagent_provider"),
             "data_subagent_provider": result.get("data_subagent_provider"),
+            "configured_mainagent_model_key": result.get("mainagent_provider"),
+            "configured_data_subagent_model_key": result.get(
+                "data_subagent_provider"
+            ),
+            "reasoning_policy": result.get("reasoning_policy"),
+            "mainagent_reasoning_enabled": result.get("mainagent_reasoning_enabled"),
+            "data_subagent_reasoning_enabled": result.get(
+                "data_subagent_reasoning_enabled"
+            ),
             "knowledge_query_used": bool((result.get("routing") or {}).get("knowledge_query_used")),
             "knowledge_cache_hit": bool((result.get("routing") or {}).get("knowledge_cache_hit")),
             "planning_snapshot": result.get("planning_snapshot"),

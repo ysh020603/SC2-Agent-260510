@@ -92,6 +92,12 @@ Configuration:
 - two matches per race, one against each of the other races, six concurrent
   matches, 60-second decisions, 1,200-second limit.
 
+For current runs, MainAgent and DataSubAgent independently inherit reasoning
+mode from their configured API profiles across every phase, including repairs
+and fallback summaries. See
+[reasoning-profile-routing.md](reasoning-profile-routing.md) for acceptance
+criteria and treatment of historical nominal-think batches.
+
 The first launch attempts exposed two runner defects before SC2 loaded: the
 low-level CLI did not accept `data-v2.2-v2`, and difficulty keys are
 case-sensitive (`mediumhard`). A later invalid batch exposed Windows path

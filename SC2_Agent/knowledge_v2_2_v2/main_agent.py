@@ -71,7 +71,6 @@ class MainAgent:
                 repair = self.invoker(
                     f"main_round_{main_round + 1}_repair",
                     messages,
-                    reasoning=False,
                 )
                 content = str(repair.get("content") or "")
                 decision = validate_main_decision(parse_json_object(content))
@@ -161,7 +160,6 @@ class MainAgent:
             result = self.invoker(
                 f"main_round_limit_final_decision_{final_round + 1}",
                 messages,
-                reasoning=False,
             )
             content = str(result.get("content") or "")
             try:

@@ -164,10 +164,11 @@ def test_run_decision_routes_main_and_subagent_to_independent_providers(monkeypa
     created = []
 
     class FakeInvoker:
-        def __init__(self, recorder, provider, model, enable_reasoning, *, agent_role, trace):
+        def __init__(self, recorder, provider, model, *, agent_role, trace):
             self.provider = provider
             self.agent_role = agent_role
             self.trace = trace
+            self.reasoning_mode = provider == "main-api-key"
             created.append(self)
 
     class FakeSubAgent:
@@ -208,6 +209,9 @@ def test_run_decision_routes_main_and_subagent_to_independent_providers(monkeypa
     ]
     assert result["routing"]["knowledge_query_used"] is False
     assert result["subagent_sessions"] == []
+    assert result["reasoning_policy"] == "per_role_api_profile"
+    assert result["mainagent_reasoning_enabled"] is True
+    assert result["data_subagent_reasoning_enabled"] is False
 
 
 def test_vendored_dataset_is_local_and_covers_all_macro_names():

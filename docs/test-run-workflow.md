@@ -172,6 +172,15 @@ Raw query results can be large and intentionally live only in each trace. The
 main match and call-summary files should contain orchestration metadata rather
 than duplicate tool payloads.
 
+For thinking/non-thinking comparisons, validate every applicable role rather
+than trusting the batch name. `configured_model_key`, resolved `model_key`,
+`profile_reasoning_mode`, `reasoning_requested`, and returned `is_reasoning`
+must agree. V1/V2 MainAgent repairs and DataSubAgent selection/summary calls
+inherit their role profile. Only the no-knowledge SubAgent is intentionally
+forced non-thinking. Historical knowledge batches with
+`reasoning_requested: false` are non-thinking data even when named `think`.
+See [reasoning-profile-routing.md](reasoning-profile-routing.md).
+
 ## 7. Failure semantics
 
 - A malformed naive response or one with no mappable names leaves the old

@@ -102,6 +102,12 @@ different, set a safe value from 1 through the provider maximum:
 $env:SC2_KIMI_RPM='50'
 ```
 
+The selected profile's `is_reasoning` value controls every normal call for that
+role; the knowledge launcher has no separate reasoning switch. A `_think`
+suffix is only a naming convention. Validate configured/resolved keys and the
+reasoning fields described in
+[reasoning-profile-routing.md](reasoning-profile-routing.md).
+
 ## Verify without a match
 
 ```powershell

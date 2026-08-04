@@ -154,6 +154,14 @@ to complete API profiles, the two roles may use different endpoints,
 credentials, and models. Both defaults are currently `Kimi-k2.5` with
 reasoning disabled.
 
+Each role's selected API profile is also the single source of truth for
+reasoning mode. The knowledge launcher does not pass a second global boolean,
+and repair/final/tool-selection calls inherit their role profile. Trace records
+separate configured and resolved model keys plus profile, requested, and actual
+reasoning values. The tool-free no-knowledge SubAgent is the sole intentional
+non-reasoning override; its MainAgent still follows its own profile. See
+[reasoning-profile-routing.md](reasoning-profile-routing.md).
+
 The V2 no-knowledge control reuses the V2 MainAgent class, MainAgent prompts,
 preflight questions, and deterministic planner/auditor. Only the DataSubAgent
 differs: its prompt is rewritten for direct answering, it receives no tool

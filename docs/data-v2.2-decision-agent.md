@@ -101,6 +101,11 @@ permits it:
 $env:SC2_KIMI_RPM='50'
 ```
 
+Reasoning mode is taken independently from each role's selected API profile.
+MainAgent repair/final calls and DataSubAgent selection/summary calls do not
+override that profile. Trace fields distinguish configured and resolved keys;
+see [reasoning-profile-routing.md](reasoning-profile-routing.md).
+
 Run either mode explicitly:
 
 ```powershell

@@ -23,6 +23,12 @@ Changed only on the SubAgent side:
   `answer_source: "model_prior"`, and `knowledge_database_access: false`;
 - no `tool_request` / `tool_response` events can be emitted.
 
+The non-thinking constraint applies only to this control's DataSubAgent. Its
+MainAgent follows the `decision_model` API profile, so a thinking MainAgent can
+still be compared against a deliberately non-thinking, tool-free SubAgent. The
+trace records the configured SubAgent key and any resolved non-thinking sibling
+separately.
+
 The deterministic V2 planner and auditor still read the repository dataset.
 This mode therefore isolates SubAgent retrieval, not all code-side data use.
 It is not equivalent to `naive`.

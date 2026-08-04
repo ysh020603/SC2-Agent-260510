@@ -18,6 +18,9 @@ runner.
 
 API URLs and credentials do not belong in an experiment file. Model keys refer
 to complete profiles in the ignored `API_config/config.json`.
+The profile's `is_reasoning` value, rather than an experiment name containing
+`think`, determines the actual mode. See
+[reasoning-profile-routing.md](reasoning-profile-routing.md).
 
 ## Prepare a run
 
@@ -145,3 +148,8 @@ The templates reproduce the earlier full baseline layout:
 V2. `matrix450-qwen-four-group.example.json` captures the four-group
 naive/V2 × thinking/non-thinking Qwen ablation that previously required a
 one-off shell script.
+
+Before counting a thinking batch, audit its knowledge trace and require the
+configured key, resolved key, `profile_reasoning_mode`, `reasoning_requested`,
+and `is_reasoning` to agree. A batch or experiment name is not sufficient
+evidence.
