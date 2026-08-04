@@ -4,12 +4,14 @@
 
 `data-v2.2-v2` is an additive planning and knowledge-utilization mode. It does
 not replace or modify the preserved `naive` implementation, and it does not
-modify the existing `data-v2.2` DataAgent baseline (V1). The three selectable
+modify the existing `data-v2.2` DataAgent baseline (V1). The four selectable
 modes are:
 
 - `naive`: preserved single-call decision Agent;
 - `data-v2.2`: independently maintained DataAgent V1;
-- `data-v2.2-v2`: planning-constrained DataAgent V2.
+- `data-v2.2-v2`: planning-constrained DataAgent V2;
+- `data-v2.2-v2-no-knowledge`: the same V2 planning harness with a tool-free,
+  model-prior DataSubAgent control.
 
 All modes receive the same live observation, strategy summary, trigger state,
 and uncommitted queue. All return the same public `{reason, ordered_names}`
@@ -205,3 +207,6 @@ Use the same scenarios for a mode comparison by adding one of
 V2 match decisions use schema 4 and store full per-decision traces under
 `<match>/kv2_traces/`. `knowledge_query_used` counts new DataSubAgent sessions;
 cache reuse is recorded separately.
+
+The no-knowledge control design and same-six-match result are documented in
+[data-v2.2-v2-no-knowledge.md](data-v2.2-v2-no-knowledge.md).

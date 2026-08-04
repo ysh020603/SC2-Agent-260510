@@ -4,7 +4,7 @@
 
 The runtime has one public LLM responsibility: periodically produce a complete,
 ordered macro queue in canonical names for Terran, Protoss, or Zerg. Naming and
-ordering are one operation. Concrete execution is code-owned. Three selectable
+ordering are one operation. Concrete execution is code-owned. Four selectable
 implementations fulfill that same responsibility:
 
 - `data-v2.2`, the supported-launcher default, orchestrates MainAgent and one
@@ -12,6 +12,8 @@ implementations fulfill that same responsibility:
 - `data-v2.2-v2` is the independent V2 planning branch with deterministic task
   decomposition, preflight knowledge routing, production-throughput assembly,
   match-local knowledge cache, and weapon-layer gating;
+- `data-v2.2-v2-no-knowledge` keeps the same V2 MainAgent wording and planning
+  harness, but uses a tool-free DataSubAgent with a direct-answer prompt;
 - `naive` preserves the original single-call `SC2_Agent/decision_agent.py`
   implementation unchanged.
 
@@ -41,8 +43,10 @@ uncommitted canonical names from previous queue
                  │
                  ▼
 decision-agent mode
-     ├─ naive ─────── SC2_Agent/decision_agent.py
-     └─ data-v2.2 ── MainAgent ↔ DataSubAgent ↔ local query tools/data
+     ├─ naive ───────────────── SC2_Agent/decision_agent.py
+     ├─ data-v2.2 ───────────── MainAgent ↔ DataSubAgent ↔ query tools/data
+     ├─ data-v2.2-v2 ────────── V2 planner ↔ DataSubAgent ↔ query tools/data
+     └─ V2 no-knowledge control V2 planner ↔ tool-free DataSubAgent
                  │
         {reason, ordered_names}
                  │
@@ -150,6 +154,15 @@ to complete API profiles, the two roles may use different endpoints,
 credentials, and models. Both defaults are currently `Kimi-k2.5` with
 reasoning disabled.
 
+The V2 no-knowledge control reuses the V2 MainAgent class, MainAgent prompts,
+preflight questions, and deterministic planner/auditor. Only the DataSubAgent
+differs: its prompt is rewritten for direct answering, it receives no tool
+catalog, makes one non-thinking model call without tools, records
+`answer_source: "model_prior"` and `knowledge_database_access: false`, and
+stores no tool observations. The planner/auditor still reads the static
+dataset; the control isolates SubAgent retrieval rather than all deterministic
+data use.
+
 `reason` is persisted for auditing but is not chain-of-thought. Empty
 `ordered_names` is legal. A malformed response, or a non-empty response for
 which no name can be mapped, leaves the old queue unchanged.
@@ -248,7 +261,7 @@ an empty tactical configuration.
 ## 8. Record schema
 
 The main interaction stream keeps `schema_version: 2` for naive decisions and
-uses `schema_version: 3` for `data-v2.2` and schema 4 for `data-v2.2-v2`. All store the normal trigger,
+uses `schema_version: 3` for `data-v2.2` and schema 4 for both V2 modes. All store the normal trigger,
 observation, decision, mapping, and queue transition. V2.2 additionally stores
 `decision_agent_mode` and an orchestration summary. A representative public
 portion is:
@@ -280,7 +293,8 @@ call. `decision_reason` is public; provider reasoning stays separate. In Kimi
 non-thinking mode every model call must report `is_reasoning: false` and no
 provider reasoning. Raw deterministic tool results live only in the matching
 `knowledge_v2_2_traces/<trace-id>/trace.json`; V2 planning mode uses the compact
-`kv2_traces/<date>/<trace-id>/trace.json` path.
+`kv2_traces/<date>/<trace-id>/trace.json` path, and the control uses
+`kv2_no_knowledge_traces/<date>/<trace-id>/trace.json`.
 
 ## 9. Main files
 
@@ -294,6 +308,7 @@ provider reasoning. Raw deterministic tool results live only in the matching
 | `SC2_Agent/knowledge_v2_2/decision_prompt.py` | independent decision event context |
 | `SC2_Agent/knowledge_v2_2/data_sc2_260701/` | vendored V2.2 data and evidence |
 | `SC2_Agent/knowledge_v2_2_v2/` | independent V2 prompts, planner, agents, tools, cache, traces, and copied dataset |
+| `SC2_Agent/knowledge_v2_2_v2_no_knowledge/` | tool-free V2 control DataSubAgent, prompt, orchestration, and trace metadata |
 | `SC2_Agent/prompt_context.py` | lifecycle, observation guide, and shared strategy automation profiles |
 | `SC2_Agent/strategy_registry.py` | five-per-race production strategy gate |
 | `SC2_Agent/top_agent.py` | summary-only strategy parser |

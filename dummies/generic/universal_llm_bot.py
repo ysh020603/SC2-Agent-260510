@@ -50,10 +50,12 @@ logger = logging.getLogger("UniversalLLMBot")
 NAIVE_DECISION_AGENT_MODE = "naive"
 KNOWLEDGE_V22_DECISION_AGENT_MODE = "data-v2.2"
 KNOWLEDGE_V22_V2_DECISION_AGENT_MODE = "data-v2.2-v2"
+KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE = "data-v2.2-v2-no-knowledge"
 SUPPORTED_DECISION_AGENT_MODES = {
     NAIVE_DECISION_AGENT_MODE,
     KNOWLEDGE_V22_DECISION_AGENT_MODE,
     KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
+    KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
 }
 DEFAULT_KNOWLEDGE_MODEL_KEY = "Kimi-k2.5"
 
@@ -100,6 +102,8 @@ class UniversalLLMBot(KnowledgeBot):
         self._last_drained_state = True
         self._knowledge_v2_2_v2_planner_state: Dict[str, Any] = {}
         self._knowledge_v2_2_v2_ledger: Dict[str, Any] = {"facts": {}}
+        self._knowledge_v2_2_v2_no_knowledge_planner_state: Dict[str, Any] = {}
+        self._knowledge_v2_2_v2_no_knowledge_ledger: Dict[str, Any] = {"facts": {}}
 
         self._llm_call_records: List[Dict[str, Any]] = []
         self._llm_call_seq = 0
@@ -254,7 +258,10 @@ class UniversalLLMBot(KnowledgeBot):
         record: Dict[str, Any] = {
             "schema_version": (
                 4
-                if self.decision_agent_mode == KNOWLEDGE_V22_V2_DECISION_AGENT_MODE
+                if self.decision_agent_mode in {
+                    KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
+                    KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
+                }
                 else 3
                 if self.decision_agent_mode == KNOWLEDGE_V22_DECISION_AGENT_MODE
                 else 2
@@ -301,23 +308,41 @@ class UniversalLLMBot(KnowledgeBot):
             if self.decision_agent_mode in {
                 KNOWLEDGE_V22_DECISION_AGENT_MODE,
                 KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
+                KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
             }:
-                if self.decision_agent_mode == KNOWLEDGE_V22_V2_DECISION_AGENT_MODE:
-                    from SC2_Agent.knowledge_v2_2_v2 import (
-                        build_knowledge_decision_context,
-                        run_decision,
-                    )
+                if self.decision_agent_mode in {
+                    KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
+                    KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
+                }:
+                    if (
+                        self.decision_agent_mode
+                        == KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE
+                    ):
+                        from SC2_Agent.knowledge_v2_2_v2_no_knowledge import (
+                            build_knowledge_decision_context,
+                            run_decision,
+                        )
+
+                        planner_state = self._knowledge_v2_2_v2_no_knowledge_planner_state
+                        answer_ledger = self._knowledge_v2_2_v2_no_knowledge_ledger
+                        trace_folder = "kv2_no_knowledge_traces"
+                        record_key = "knowledge_v2_2_v2_no_knowledge"
+                    else:
+                        from SC2_Agent.knowledge_v2_2_v2 import (
+                            build_knowledge_decision_context,
+                            run_decision,
+                        )
+
+                        planner_state = self._knowledge_v2_2_v2_planner_state
+                        answer_ledger = self._knowledge_v2_2_v2_ledger
+                        trace_folder = "kv2_traces"
+                        record_key = "knowledge_v2_2_v2"
                     knowledge_context = build_knowledge_decision_context(
                         **prompt_arguments,
                         observation_structured=obs_snapshot,
-                        planner_state=self._knowledge_v2_2_v2_planner_state,
-                        knowledge_ledger=self._knowledge_v2_2_v2_ledger,
+                        planner_state=planner_state,
+                        knowledge_ledger=answer_ledger,
                     )
-                    # Keep this compact: Windows installations without long-path
-                    # support can otherwise reject traces inside descriptive
-                    # experiment/match directories before the model is called.
-                    trace_folder = "kv2_traces"
-                    record_key = "knowledge_v2_2_v2"
                 else:
                     from SC2_Agent.knowledge_v2_2 import (
                         build_knowledge_decision_context,
@@ -344,11 +369,14 @@ class UniversalLLMBot(KnowledgeBot):
                     log_dir=trace_dir,
                     decision_metadata=knowledge_context["metadata"],
                 )
-                if self.decision_agent_mode == KNOWLEDGE_V22_V2_DECISION_AGENT_MODE:
+                if self.decision_agent_mode in {
+                    KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
+                    KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
+                }:
                     run_arguments.update(
                         planning_snapshot=knowledge_context["planning_snapshot"],
-                        planner_state=self._knowledge_v2_2_v2_planner_state,
-                        knowledge_ledger=self._knowledge_v2_2_v2_ledger,
+                        planner_state=planner_state,
+                        knowledge_ledger=answer_ledger,
                     )
                 knowledge_result = run_decision(**run_arguments)
                 decision_payload = knowledge_result["decision"]

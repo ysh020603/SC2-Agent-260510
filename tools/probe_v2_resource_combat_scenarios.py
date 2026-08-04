@@ -23,6 +23,9 @@ from SC2_Agent.knowledge_v2_2 import (
     run_decision as run_v1_decision,
 )
 from SC2_Agent.knowledge_v2_2_v2 import build_knowledge_decision_context, run_decision
+from SC2_Agent.knowledge_v2_2_v2_no_knowledge import (
+    run_decision as run_no_knowledge_decision,
+)
 from SC2_Agent.knowledge_v2_2_v2.planner import build_queue_audit
 from SC2_Agent.prompt_context import StrategyAutomationProfile
 from SC2_Agent.top_agent import parse_strategy_summary
@@ -140,8 +143,13 @@ def run_probe(
         planner_state=planner_state,
         knowledge_ledger=ledger,
     )
-    if decision_agent_mode == "data-v2.2-v2":
-        result = run_decision(
+    if decision_agent_mode in {"data-v2.2-v2", "data-v2.2-v2-no-knowledge"}:
+        selected_run_decision = (
+            run_no_knowledge_decision
+            if decision_agent_mode == "data-v2.2-v2-no-knowledge"
+            else run_decision
+        )
+        result = selected_run_decision(
             system_prompt=context["system_prompt"],
             decision_event=context["decision_event"],
             provider=model_key,
@@ -214,7 +222,7 @@ def main() -> int:
     parser.add_argument("--model-key", default="DeepSeek-V4-flash")
     parser.add_argument(
         "--decision-agent-mode",
-        choices=("data-v2.2-v2", "data-v2.2", "naive"),
+        choices=("data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
         default="data-v2.2-v2",
     )
     parser.add_argument("--output-root", default="")

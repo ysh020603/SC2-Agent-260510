@@ -14,7 +14,8 @@ In addition to the scheduler and original decision tests, the V2.2 tests
 verify:
 
 - supported launchers, `GameStarter`, and the low-level bot all default to
-  `data-v2.2`, while `data-v2.2-v2` and `naive` remain explicitly selectable;
+  `data-v2.2`, while `data-v2.2-v2`, `data-v2.2-v2-no-knowledge`, and `naive`
+  remain explicitly selectable;
 - the new prompt contains the original event context and separately maintained
   data/subagent guidance;
 - MainAgent can finalize directly or choose a DataSubAgent session;
@@ -27,6 +28,9 @@ verify:
 - tool catalog, dispatcher, argument schemas, compact evidence references, and
   expansion stay synchronized;
 - all V2.2 prompt and static context files remain English ASCII.
+- the no-knowledge DataSubAgent uses a direct-answer prompt, receives no tools,
+  emits no observations, and marks database access false while MainAgent
+  wording and V2 queue assembly stay shared with `data-v2.2-v2`.
 
 ## 2. Model configuration
 
@@ -120,6 +124,7 @@ unmapped name, or missing match result is a release failure.
 Under `game_records/<batch>/<match>/`, inspect the match JSON,
 `*.llm_calls.json`, log, Replay, and the mode-specific trace directory
 (`knowledge_v2_2_traces/` for V1 or `kv2_traces/` for V2).
+The no-knowledge control uses `kv2_no_knowledge_traces/`.
 
 Expected for `data-v2.2`:
 
@@ -144,6 +149,16 @@ reports an air or ground gap. Mineral/strength target shortfalls are measured
 but do not by themselves discard an otherwise executable decision. See
 `docs/data-v2.2-v2-decision-agent.md` for the 2026-08-03 and 2026-08-04 DeepSeek
 experiments, mode comparison, and directed probes.
+
+For `data-v2.2-v2-no-knowledge`, apply the same V2 queue gates and additionally
+require every session to have `selected_tools: []`, `observations: []`,
+`answer_source: "model_prior"` (or `"model_prior_cache"`),
+`knowledge_database_access: false`, and no tool request/response event.
+`knowledge_query_used` must remain false even when the tool-free DataSubAgent
+was used. The SubAgent system prompt may differ from V2, but MainAgent prompts
+and focused questions must remain aligned. The deterministic dataset-load event
+is expected because the V2 planner/auditor remains data-backed. See
+`docs/data-v2.2-v2-no-knowledge.md`.
 
 Useful search:
 

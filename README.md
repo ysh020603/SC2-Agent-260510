@@ -8,13 +8,11 @@ mode.
 ```text
 strategy summary + observation + previous uncommitted canonical names
                                │
-                 ┌─────────────┴─────────────┐
-                 │                           │
-              naive                    data-v2.2
-          one model call          MainAgent ↔ DataSubAgent
-                                         ↕
-                               local V2.2 SC2 dataset
-                 │                           │
+              naive / data-v2.2 / data-v2.2-v2 / V2 control
+                 │          │             │           │
+          one model call    └──── MainAgent ↔ DataSubAgent
+                                           ↕
+                              dataset tools or model prior
                  └─────────────┬─────────────┘
                                ▼
                     {reason, ordered_names}
@@ -41,10 +39,15 @@ command submission.
   executable queue assembly, match-local knowledge caching, and weapon-layer-
   gated air/ground responses. The 2026-08-04 same-six-match DeepSeek regression
   improved from 2W/4L to 2W/0L/4T with 156/156 successful V2 traces.
+- `data-v2.2-v2-no-knowledge` is the V2 control condition. MainAgent wording and
+  V2 planning harness stay the same; only the DataSubAgent is tool-free and
+  answers focused questions directly from model knowledge under a direct-answer
+  prompt. The planner/auditor still uses the static dataset, so the isolated
+  variable is SubAgent retrieval.
 - `naive` uses the preserved `SC2_Agent/decision_agent.py` implementation. It
   shares neither prompt files nor orchestration code with either knowledge mode.
 
-All three modes accept the same trigger context and return the same public contract:
+All four modes accept the same trigger context and return the same public contract:
 
 ```json
 {
@@ -59,12 +62,13 @@ as scheduler actions.
 
 ## Repository boundary
 
-Only the `UniversalLLMBot` macro-planning path selects between the three modes.
+Only the `UniversalLLMBot` macro-planning path selects between the four modes.
 The repository retains Sharpy, bundled `python-sc2`, example bots, ladder
 launchers, mapping code, and deterministic execution. The V2.2 dependency
 closures are copied under `SC2_Agent/knowledge_v2_2/` and
-`SC2_Agent/knowledge_v2_2_v2/`; neither imports from or modifies the sibling
-`SC2_DATA_Agent` repository.
+`SC2_Agent/knowledge_v2_2_v2/`. The control package is under
+`SC2_Agent/knowledge_v2_2_v2_no_knowledge/`; none imports from or modifies the
+sibling `SC2_DATA_Agent` repository.
 
 `UniversalLLMBot`, `GameStarter`, and the supported CLIs all use `data-v2.2` by
 default. Existing callers can select the preserved implementation explicitly
@@ -131,6 +135,16 @@ python run_vs_ai.py `
   --force-strategy lurkers
 ```
 
+Select the tool-free V2 control condition:
+
+```powershell
+python run_vs_ai.py `
+  --decision-agent-mode data-v2.2-v2-no-knowledge `
+  --decision-model DeepSeek-V4-flash `
+  --data-subagent-model DeepSeek-V4-flash `
+  --force-strategy lurkers
+```
+
 For one reproducible experiment:
 
 ```powershell
@@ -176,10 +190,12 @@ selected mode, MainAgent rounds, DataSubAgent sessions, model-call reasoning
 flags, whether a knowledge query was used, and queue transition. A decision
 may legitimately contain zero DataSubAgent sessions. Full V2.2 tool results are kept in
 `knowledge_v2_2_traces/` under the match directory; V2 planning traces use the
-Windows-safe compact directory `kv2_traces/`.
+Windows-safe compact directory `kv2_traces/`, while control traces use
+`kv2_no_knowledge_traces/`.
 
 See [Data V2.2 decision mode](docs/data-v2.2-decision-agent.md),
 [Data V2.2 V2 planning mode](docs/data-v2.2-v2-decision-agent.md),
+[Data V2.2 V2 no-knowledge control](docs/data-v2.2-v2-no-knowledge.md),
 [system architecture](docs/system-architecture.md),
 [test workflow](docs/test-run-workflow.md),
 [model-facing test and repair guide](test/TESTING_GUIDE.md),

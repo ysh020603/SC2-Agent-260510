@@ -93,13 +93,25 @@ def _probe_one(
         decision_interval_seconds=60,
     )
     knowledge_result = None
-    if decision_agent_mode in {"data-v2.2", "data-v2.2-v2"}:
+    if decision_agent_mode in {
+        "data-v2.2",
+        "data-v2.2-v2",
+        "data-v2.2-v2-no-knowledge",
+    }:
         run_kwargs = {}
-        if decision_agent_mode == "data-v2.2-v2":
-            from SC2_Agent.knowledge_v2_2_v2 import (
-                build_knowledge_decision_context as build_v2_context,
-                run_decision as run_v2_decision,
-            )
+        if decision_agent_mode in {"data-v2.2-v2", "data-v2.2-v2-no-knowledge"}:
+            if decision_agent_mode == "data-v2.2-v2-no-knowledge":
+                from SC2_Agent.knowledge_v2_2_v2_no_knowledge import (
+                    build_knowledge_decision_context as build_v2_context,
+                    run_decision as run_v2_decision,
+                )
+                trace_name = "knowledge_v2_2_v2_no_knowledge_traces"
+            else:
+                from SC2_Agent.knowledge_v2_2_v2 import (
+                    build_knowledge_decision_context as build_v2_context,
+                    run_decision as run_v2_decision,
+                )
+                trace_name = "knowledge_v2_2_v2_traces"
             structured = {
                 "time": 0.0,
                 "economy": {
@@ -137,7 +149,6 @@ def _probe_one(
                 "planner_state": planner_state,
                 "knowledge_ledger": ledger,
             }
-            trace_name = "knowledge_v2_2_v2_traces"
         else:
             context = build_knowledge_decision_context(**prompt_arguments)
             selected_run_decision = run_decision
@@ -199,7 +210,7 @@ def main() -> int:
     parser.add_argument("--subagent-model-key", default="Kimi-k2.5")
     parser.add_argument(
         "--decision-agent-mode",
-        choices=("data-v2.2-v2", "data-v2.2", "naive"),
+        choices=("data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
         default="data-v2.2",
     )
     parser.add_argument("--enemy-race", default="terran")
