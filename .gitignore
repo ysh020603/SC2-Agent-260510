@@ -125,3 +125,7 @@ python-sc2/**/*.py[cod]
 
 # LLM API keys (copy from API_config/config.example.json)
 API_config/config.json
+
+# Experiment templates are versioned; machine/run-specific instances are not.
+experiment_configs/local/*
+!experiment_configs/local/.gitkeep

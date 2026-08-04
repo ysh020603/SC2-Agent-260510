@@ -212,6 +212,21 @@ Concurrent launches are staggered. Confirm each child reaches
 Report startup failures, retries, ties, and missing results separately from win
 rate.
 
+For a reusable multi-group comparison, use the versioned configuration layer:
+
+```powershell
+python tools\run_experiment_config.py `
+  --config experiment_configs\templates\matrix450-three-mode.example.json `
+  --validate
+```
+
+Copy the chosen template into ignored `experiment_configs/local/`, assign
+unique real batch names, dry-run it, and then execute it. The loader reports
+the expanded job count before launch and the runner writes a resolved manifest.
+See [experiment-configuration.md](experiment-configuration.md). Long ad-hoc CLI
+commands remain supported for small diagnostics, but are not the authoritative
+record of a formal comparison.
+
 ## 9. Recorded integration result
 
 On 2026-08-02, the optional-query and split-provider revision completed with

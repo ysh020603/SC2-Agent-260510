@@ -321,6 +321,8 @@ provider reasoning. Raw deterministic tool results live only in the matching
 | `tools/probe_prompt_matrix.py` | no-engine output-contract probe across all 15 enabled strategies |
 | `tools/probe_v2_resource_combat_scenarios.py` | DeepSeek resource conversion and attack-layer probes |
 | `tools/run_kimi_nothink_strategy_sweep.py` | retryable, staggered multi-race SC2 matrix runner |
+| `tools/experiment_config.py` | strict versioned experiment config loading and sweep translation |
+| `tools/run_experiment_config.py` | multi-group foreground/tmux orchestration and resolved manifests |
 
 ## 10. Batch startup behavior
 
@@ -331,6 +333,12 @@ startup. The bundled `SC2Process` checks whether the client has already exited
 and reports its return code immediately; a live client that never publishes
 the websocket receives a precise timeout error. Failed jobs are retried by the
 sweep runner and are not counted as valid merely because a directory exists.
+
+Formal multi-group experiments add a configuration layer above the sweep. It
+does not duplicate job expansion or retry logic. Tracked JSON templates define
+the comparison, ignored local instances hold run-specific names/settings, and
+the launcher records the source hash, Git commit, resolved arguments, expected
+job counts, and exit status in an ignored manifest.
 
 ## 11. Retained versus removed code
 

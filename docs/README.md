@@ -7,6 +7,7 @@
 | [system-architecture.md](system-architecture.md) | Ten-section prompt, three-race context, strategy registry, queue replacement, scheduler, automation profiles, and records |
 | [test-run-workflow.md](test-run-workflow.md) | Static tests, 15-strategy model probes, SC2 sweeps, startup checks, and record audits |
 | [environment-setup.md](environment-setup.md) | Python, StarCraft II, model configuration, startup controls, and first run |
+| [experiment-configuration.md](experiment-configuration.md) | Versioned experiment templates, local instances, validation, tmux, resume, and manifests |
 | [data-v2.2-decision-agent.md](data-v2.2-decision-agent.md) | DataAgent V1 boundary, optional knowledge routing, and Kimi validation |
 | [data-v2.2-v2-decision-agent.md](data-v2.2-v2-decision-agent.md) | DataAgent V2 resource-to-strength planning, attack-layer knowledge, and DeepSeek validation |
 | [data-v2.2-v2-no-knowledge.md](data-v2.2-v2-no-knowledge.md) | V2 control: same MainAgent wording, tool-free direct-answer SubAgent, probes and history |

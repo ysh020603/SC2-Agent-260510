@@ -1,0 +1,62 @@
+{
+  "$schema": "../schema.json",
+  "schema_version": 1,
+  "name": "matrix450_qwen_four_group_example",
+  "description": "Four parallel 450-game groups matching the prior Qwen naive/V2 thinking ablation.",
+  "execution": {
+    "backend": "tmux",
+    "parallel_experiments": true,
+    "max_parallel_experiments": 4,
+    "experiment_stagger_seconds": 3,
+    "log_root": "game_records/_batch_logs/config_runs/matrix450_qwen_four_group",
+    "tmux_session_prefix": "sc2exp",
+    "replace_existing_tmux_session": false,
+    "environment": {
+      "SC2PATH": "/data2/SC2/StarCraftII/"
+    }
+  },
+  "defaults": {
+    "decision_model": "qwen3-32b",
+    "data_subagent_model": "qwen3-32b",
+    "decision_interval": 60,
+    "concurrency": 10,
+    "repeats": 2,
+    "game_time_limit": 1200,
+    "max_attempts": 3,
+    "launch_stagger_seconds": 2,
+    "startup_timeout": 180,
+    "enemy_build": "macro",
+    "strategies": ["enabled"],
+    "maps": ["KairosJunctionLE"],
+    "bot_races": ["terran", "protoss", "zerg"],
+    "enemy_races": ["terran", "protoss", "zerg"],
+    "difficulties": ["easy", "medium", "mediumhard", "hard", "harder"],
+    "start_index": 0
+  },
+  "experiments": [
+    {
+      "name": "naive_nothink",
+      "batch_name": "matrix450_qwen3_32b_naive_nothink_example",
+      "decision_agent_mode": "naive"
+    },
+    {
+      "name": "naive_think",
+      "batch_name": "matrix450_qwen3_32b_naive_think_example",
+      "decision_agent_mode": "naive",
+      "decision_model": "qwen3-32b_think",
+      "data_subagent_model": "qwen3-32b_think"
+    },
+    {
+      "name": "v2_nothink",
+      "batch_name": "matrix450_qwen3_32b_v2_nothink_example",
+      "decision_agent_mode": "data-v2.2-v2"
+    },
+    {
+      "name": "v2_think",
+      "batch_name": "matrix450_qwen3_32b_v2_think_example",
+      "decision_agent_mode": "data-v2.2-v2",
+      "decision_model": "qwen3-32b_think",
+      "data_subagent_model": "qwen3-32b_think"
+    }
+  ]
+}

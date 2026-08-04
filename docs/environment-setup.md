@@ -109,6 +109,7 @@ python run_vs_ai.py --help
 python run_custom.py --help
 python tools\run_experiment.py --help
 python tools\run_kimi_nothink_strategy_sweep.py --dry-run
+python tools\run_experiment_config.py --config experiment_configs\templates\matrix450-three-mode.example.json --validate
 python API_Tools\probe_reasoning_extraction.py --model-key Kimi-k2.5 --max-tokens 256
 python -m pytest tools\tests -q
 ```
@@ -134,3 +135,7 @@ Use `--decision-agent-mode naive` to run the preserved baseline. See
 and [data-v2.2-v2-decision-agent.md](data-v2.2-v2-decision-agent.md) for the
 planning and combat-capability mode,
 and [test-run-workflow.md](test-run-workflow.md) for record validation.
+Use [experiment-configuration.md](experiment-configuration.md) for repeatable
+multi-group comparisons. Tracked templates contain no credentials; copy them
+to ignored `experiment_configs/local/` before assigning real batch names and
+machine-specific execution settings.
