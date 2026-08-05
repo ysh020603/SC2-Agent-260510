@@ -44,10 +44,15 @@ command submission.
   answers focused questions directly from model knowledge under a direct-answer
   prompt. The planner/auditor still uses the static dataset, so the isolated
   variable is SubAgent retrieval.
+- `data-v2.3` is the portable knowledge successor. APIs receive ordinary text
+  completions only; repository tools are selected and executed locally. Its
+  composition-level response matrix and feasibility ranking prefer verified,
+  affordable, producer-ready mobile responses and preserve deterministic
+  fallback when model summarization or data retrieval fails.
 - `naive` uses the preserved `SC2_Agent/decision_agent.py` implementation. It
   shares neither prompt files nor orchestration code with either knowledge mode.
 
-All four modes accept the same trigger context and return the same public contract:
+All five modes accept the same trigger context and return the same public contract:
 
 ```json
 {
@@ -62,12 +67,13 @@ as scheduler actions.
 
 ## Repository boundary
 
-Only the `UniversalLLMBot` macro-planning path selects between the four modes.
+Only the `UniversalLLMBot` macro-planning path selects between the five modes.
 The repository retains Sharpy, bundled `python-sc2`, example bots, ladder
 launchers, mapping code, and deterministic execution. The V2.2 dependency
 closures are copied under `SC2_Agent/knowledge_v2_2/` and
 `SC2_Agent/knowledge_v2_2_v2/`. The control package is under
-`SC2_Agent/knowledge_v2_2_v2_no_knowledge/`; none imports from or modifies the
+`SC2_Agent/knowledge_v2_2_v2_no_knowledge/`; V2.3 is under
+`SC2_Agent/knowledge_v2_3/`. None imports from or modifies the
 sibling `SC2_DATA_Agent` repository.
 
 `UniversalLLMBot`, `GameStarter`, and the supported CLIs all use `data-v2.2` by
@@ -145,6 +151,16 @@ python run_vs_ai.py `
   --force-strategy lurkers
 ```
 
+Select the provider-independent V2.3 mode:
+
+```powershell
+python run_vs_ai.py `
+  --decision-agent-mode data-v2.3 `
+  --decision-model DeepSeek-V4-flash `
+  --data-subagent-model DeepSeek-V4-flash `
+  --force-strategy lurkers
+```
+
 For one reproducible experiment:
 
 ```powershell
@@ -191,11 +207,12 @@ flags, whether a knowledge query was used, and queue transition. A decision
 may legitimately contain zero DataSubAgent sessions. Full V2.2 tool results are kept in
 `knowledge_v2_2_traces/` under the match directory; V2 planning traces use the
 Windows-safe compact directory `kv2_traces/`, while control traces use
-`kv2_no_knowledge_traces/`.
+`kv2_no_knowledge_traces/` and V2.3 uses `kv2_3_traces/`.
 
 See [Data V2.2 decision mode](docs/data-v2.2-decision-agent.md),
 [Data V2.2 V2 planning mode](docs/data-v2.2-v2-decision-agent.md),
 [Data V2.2 V2 no-knowledge control](docs/data-v2.2-v2-no-knowledge.md),
+[Data V2.3 portable knowledge mode](docs/data-v2.3-decision-agent.md),
 [system architecture](docs/system-architecture.md),
 [test workflow](docs/test-run-workflow.md),
 [current V2 trace-analysis workspace](test/README.md),

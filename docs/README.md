@@ -12,6 +12,7 @@
 | [data-v2.2-decision-agent.md](data-v2.2-decision-agent.md) | DataAgent V1 boundary, optional knowledge routing, and Kimi validation |
 | [data-v2.2-v2-decision-agent.md](data-v2.2-v2-decision-agent.md) | DataAgent V2 resource-to-strength planning, attack-layer knowledge, and DeepSeek validation |
 | [data-v2.2-v2-no-knowledge.md](data-v2.2-v2-no-knowledge.md) | V2 control: same MainAgent wording, tool-free direct-answer SubAgent, probes and history |
+| [data-v2.3-decision-agent.md](data-v2.3-decision-agent.md) | Portable text-only knowledge orchestration, composition-level evidence routing, feasibility filters, and validation |
 
 ## Preserved Sharpy reference
 

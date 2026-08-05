@@ -97,10 +97,21 @@ def _probe_one(
         "data-v2.2",
         "data-v2.2-v2",
         "data-v2.2-v2-no-knowledge",
+        "data-v2.3",
     }:
         run_kwargs = {}
-        if decision_agent_mode in {"data-v2.2-v2", "data-v2.2-v2-no-knowledge"}:
-            if decision_agent_mode == "data-v2.2-v2-no-knowledge":
+        if decision_agent_mode in {
+            "data-v2.3",
+            "data-v2.2-v2",
+            "data-v2.2-v2-no-knowledge",
+        }:
+            if decision_agent_mode == "data-v2.3":
+                from SC2_Agent.knowledge_v2_3 import (
+                    build_knowledge_decision_context as build_v2_context,
+                    run_decision as run_v2_decision,
+                )
+                trace_name = "knowledge_v2_3_traces"
+            elif decision_agent_mode == "data-v2.2-v2-no-knowledge":
                 from SC2_Agent.knowledge_v2_2_v2_no_knowledge import (
                     build_knowledge_decision_context as build_v2_context,
                     run_decision as run_v2_decision,
@@ -209,7 +220,7 @@ def main() -> int:
     parser.add_argument("--subagent-model-key", default="Kimi-k2.5")
     parser.add_argument(
         "--decision-agent-mode",
-        choices=("data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
+        choices=("data-v2.3", "data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
         default="data-v2.2",
     )
     parser.add_argument("--enemy-race", default="terran")

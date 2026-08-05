@@ -248,7 +248,7 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--data-subagent-model", default="Kimi-k2.5")
     parser.add_argument(
         "--decision-agent-mode",
-        choices=("data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
+        choices=("data-v2.3", "data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
         default="data-v2.2",
     )
     parser.add_argument("--decision-interval", type=float, default=60.0)

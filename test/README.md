@@ -30,6 +30,8 @@ batch 名还表明 harness 修订号不同，且 no-external-knowledge 目录中
 
 ## 当前工作入口
 
+- [`V2_3_VALIDATION_REPORT.md`](V2_3_VALIDATION_REPORT.md)：V2.3 通用文本调用、
+  Hard 20 分钟基线、知识负迁移归因，以及按空中/地面威胁拆分的组合式修正。
 - [`V2_KNOWLEDGE_ABLATION_PLAN.md`](V2_KNOWLEDGE_ABLATION_PLAN.md)：如何严格配对
   knowledge / no-external-knowledge 轨迹，以及交给其他 Agent 的分析任务。
 - [`TRACE_REVIEW_TEMPLATE.md`](TRACE_REVIEW_TEMPLATE.md)：每个 matchup 的统一审阅模板。
@@ -39,4 +41,3 @@ batch 名还表明 harness 修订号不同，且 no-external-knowledge 目录中
 分析时以 `match.json`、`match.llm_calls.json` 和相应 trace JSON 为事实来源。不要用
 batch 名推断 reasoning 是否开启，也不要引用模型的隐藏思维过程；只使用 observation、
 结构化规划字段、工具请求/返回、公开 decision reason、最终队列和比赛结果。
-

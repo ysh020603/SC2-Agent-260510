@@ -21,6 +21,9 @@ under `SC2_Agent/knowledge_v2_2/`. A checkout of the sibling
 `SC2_DATA_Agent` repository is not required at runtime.
 The additive planning mode `data-v2.2-v2` has its own copied runtime, prompts,
 and dataset under `SC2_Agent/knowledge_v2_2_v2/`; V1 remains independent.
+The additive `data-v2.3` runtime is under `SC2_Agent/knowledge_v2_3/`. It owns
+its prompts and routing code but reuses the immutable repository-local V2 data
+release; it never imports the sibling `SC2_DATA_Agent` checkout.
 
 ## StarCraft II
 

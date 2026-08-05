@@ -4,7 +4,7 @@
 
 The runtime has one public LLM responsibility: periodically produce a complete,
 ordered macro queue in canonical names for Terran, Protoss, or Zerg. Naming and
-ordering are one operation. Concrete execution is code-owned. Four selectable
+ordering are one operation. Concrete execution is code-owned. Five selectable
 implementations fulfill that same responsibility:
 
 - `data-v2.2`, the supported-launcher default, orchestrates MainAgent and one
@@ -14,6 +14,10 @@ implementations fulfill that same responsibility:
   match-local knowledge cache, and weapon-layer gating;
 - `data-v2.2-v2-no-knowledge` keeps the same V2 MainAgent wording and planning
   harness, but uses a tool-free DataSubAgent with a direct-answer prompt;
+- `data-v2.3` keeps the V2 planning boundary while moving tool selection and
+  execution into a local portable router. Models exchange ordinary JSON/text,
+  and evidence is filtered by composition coverage, weapon layer, producer,
+  prerequisites, affordability, timing, and mobile-combat usefulness;
 - `naive` preserves the original single-call `SC2_Agent/decision_agent.py`
   implementation unchanged.
 

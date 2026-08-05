@@ -14,7 +14,7 @@ In addition to the scheduler and original decision tests, the V2.2 tests
 verify:
 
 - supported launchers, `GameStarter`, and the low-level bot all default to
-  `data-v2.2`, while `data-v2.2-v2`, `data-v2.2-v2-no-knowledge`, and `naive`
+  `data-v2.2`, while `data-v2.2-v2`, `data-v2.2-v2-no-knowledge`, `data-v2.3`, and `naive`
   remain explicitly selectable;
 - the new prompt contains the original event context and separately maintained
   data/subagent guidance;
@@ -31,6 +31,9 @@ verify:
 - the no-knowledge DataSubAgent uses a direct-answer prompt, receives no tools,
   emits no observations, and marks database access false while MainAgent
   wording and V2 queue assembly stay shared with `data-v2.2-v2`.
+- V2.3 rejects provider-native tools, executes repository queries locally,
+  sends DataSubAgent one ordinary text completion, preserves deterministic
+  evidence on summary failure, and continues safely when retrieval fails.
 
 ## 2. Model configuration
 

@@ -163,7 +163,7 @@ Builds:
         )
         parser.add_argument(
             "--decision-agent-mode",
-            choices=("data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
+            choices=("data-v2.3", "data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
             help="Macro decision orchestration mode.",
             default="data-v2.2",
         )

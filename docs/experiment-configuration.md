@@ -59,6 +59,11 @@ experiment names, duplicate enabled batch names, and paths that escape the
 repository. It also expands the matrix and reports the exact job count. The
 tracked 450 templates must report 450 jobs for every experiment group.
 
+Supported `decision_agent_mode` values include `naive`, `data-v2.2`,
+`data-v2.2-v2`, `data-v2.2-v2-no-knowledge`, and `data-v2.3`. V2.3 requires no
+special API fields beyond normal response text; the model and subagent profiles
+remain independently configurable.
+
 `--dry-run` prints the exact commands without starting SC2. Use
 `--print-commands` when shell-ready command text is the only desired output.
 

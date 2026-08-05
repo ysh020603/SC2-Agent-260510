@@ -1,0 +1,20 @@
+{
+  "schema_version": "sc2-data-v2.3-lineage-v1",
+  "parent_package": "SC2_Agent.knowledge_v2_2_v2",
+  "original_source_commit": "dd981f58bdb7ab5b0828a3cd100f868fbdad71f7",
+  "dataset_release": "data_sc2_260701",
+  "dataset_generated_at": "2026-07-01T04:10:43.932155Z",
+  "dataset_storage": "SC2_Agent/knowledge_v2_2_v2/data_sc2_260701",
+  "shared_boundary": [
+    "immutable static dataset only"
+  ],
+  "independently_owned": [
+    "runtime",
+    "prompts",
+    "context",
+    "knowledge router",
+    "query engine extensions",
+    "MainAgent and DataSubAgent orchestration",
+    "trace schema"
+  ]
+}
