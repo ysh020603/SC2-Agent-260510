@@ -248,5 +248,7 @@ before MainAgent finalized on round two. The earlier full Protoss victory at
 09:50 remains the natural-result integration gate. Detailed evidence is in
 `docs/data-v2.2-decision-agent.md`.
 
-The model-facing repair procedure remains in `test/TESTING_GUIDE.md`. Record
-confirmed defects and follow-up evidence in `test/ANOMALY_LOG.md`.
+Current V2 testing and paired knowledge/no-external-knowledge trace analysis start
+from `test/README.md`. The earlier model-facing repair procedure and anomaly log
+are frozen under `test/archive/2026-07-legacy-agent-validation/` for historical
+reproduction only.

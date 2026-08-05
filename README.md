@@ -198,6 +198,6 @@ See [Data V2.2 decision mode](docs/data-v2.2-decision-agent.md),
 [Data V2.2 V2 no-knowledge control](docs/data-v2.2-v2-no-knowledge.md),
 [system architecture](docs/system-architecture.md),
 [test workflow](docs/test-run-workflow.md),
-[model-facing test and repair guide](test/TESTING_GUIDE.md),
-[anomaly log](test/ANOMALY_LOG.md), and
+[current V2 trace-analysis workspace](test/README.md),
+[knowledge ablation plan](test/V2_KNOWLEDGE_ABLATION_PLAN.md), and
 [environment setup](docs/environment-setup.md).
