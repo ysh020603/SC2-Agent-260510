@@ -49,10 +49,15 @@ command submission.
   composition-level response matrix and feasibility ranking prefer verified,
   affordable, producer-ready mobile responses and preserve deterministic
   fallback when model summarization or data retrieval fails.
+- `data-v2.3-no-knowledge` is the V2.3 control condition. MainAgent wording and
+  the V2.3 planning harness stay the same; only the DataSubAgent is tool-free
+  and answers focused questions directly from model knowledge. The
+  planner/auditor still uses the static dataset, so the isolated variable is
+  SubAgent retrieval.
 - `naive` uses the preserved `SC2_Agent/decision_agent.py` implementation. It
   shares neither prompt files nor orchestration code with either knowledge mode.
 
-All five modes accept the same trigger context and return the same public contract:
+All six modes accept the same trigger context and return the same public contract:
 
 ```json
 {
@@ -161,6 +166,16 @@ python run_vs_ai.py `
   --force-strategy lurkers
 ```
 
+Select the tool-free V2.3 control condition:
+
+```powershell
+python run_vs_ai.py `
+  --decision-agent-mode data-v2.3-no-knowledge `
+  --decision-model DeepSeek-V4-flash `
+  --data-subagent-model DeepSeek-V4-flash `
+  --force-strategy lurkers
+```
+
 For one reproducible experiment:
 
 ```powershell
@@ -207,12 +222,14 @@ flags, whether a knowledge query was used, and queue transition. A decision
 may legitimately contain zero DataSubAgent sessions. Full V2.2 tool results are kept in
 `knowledge_v2_2_traces/` under the match directory; V2 planning traces use the
 Windows-safe compact directory `kv2_traces/`, while control traces use
-`kv2_no_knowledge_traces/` and V2.3 uses `kv2_3_traces/`.
+`kv2_no_knowledge_traces/`, V2.3 uses `kv2_3_traces/`, and V2.3 no-knowledge
+uses `kv2_3_no_knowledge_traces/`.
 
 See [Data V2.2 decision mode](docs/data-v2.2-decision-agent.md),
 [Data V2.2 V2 planning mode](docs/data-v2.2-v2-decision-agent.md),
 [Data V2.2 V2 no-knowledge control](docs/data-v2.2-v2-no-knowledge.md),
 [Data V2.3 portable knowledge mode](docs/data-v2.3-decision-agent.md),
+[Data V2.3 no-knowledge control](docs/data-v2.3-no-knowledge.md),
 [system architecture](docs/system-architecture.md),
 [test workflow](docs/test-run-workflow.md),
 [current V2 trace-analysis workspace](test/README.md),

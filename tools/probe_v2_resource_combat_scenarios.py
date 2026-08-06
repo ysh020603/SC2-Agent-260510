@@ -30,6 +30,9 @@ from SC2_Agent.knowledge_v2_3 import (
     build_knowledge_decision_context as build_v23_decision_context,
     run_decision as run_v23_decision,
 )
+from SC2_Agent.knowledge_v2_3_no_knowledge import (
+    run_decision as run_v23_no_knowledge_decision,
+)
 from SC2_Agent.knowledge_v2_2_v2.planner import build_queue_audit
 from SC2_Agent.prompt_context import StrategyAutomationProfile
 from SC2_Agent.top_agent import parse_strategy_summary
@@ -143,7 +146,7 @@ def run_probe(
     )
     context_builder = (
         build_v23_decision_context
-        if decision_agent_mode == "data-v2.3"
+        if decision_agent_mode in {"data-v2.3", "data-v2.3-no-knowledge"}
         else build_knowledge_decision_context
     )
     context = context_builder(
@@ -154,18 +157,18 @@ def run_probe(
     )
     if decision_agent_mode in {
         "data-v2.3",
+        "data-v2.3-no-knowledge",
         "data-v2.2-v2",
         "data-v2.2-v2-no-knowledge",
     }:
-        selected_run_decision = (
-            run_v23_decision
-            if decision_agent_mode == "data-v2.3"
-            else (
-                run_no_knowledge_decision
-                if decision_agent_mode == "data-v2.2-v2-no-knowledge"
-                else run_decision
-            )
-        )
+        if decision_agent_mode == "data-v2.3":
+            selected_run_decision = run_v23_decision
+        elif decision_agent_mode == "data-v2.3-no-knowledge":
+            selected_run_decision = run_v23_no_knowledge_decision
+        elif decision_agent_mode == "data-v2.2-v2-no-knowledge":
+            selected_run_decision = run_no_knowledge_decision
+        else:
+            selected_run_decision = run_decision
         result = selected_run_decision(
             system_prompt=context["system_prompt"],
             decision_event=context["decision_event"],
@@ -235,7 +238,7 @@ def main() -> int:
     parser.add_argument("--model-key", default="DeepSeek-V4-flash")
     parser.add_argument(
         "--decision-agent-mode",
-        choices=("data-v2.3", "data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
+        choices=("data-v2.3", "data-v2.3-no-knowledge", "data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
         default="data-v2.2-v2",
     )
     parser.add_argument("--output-root", default="")

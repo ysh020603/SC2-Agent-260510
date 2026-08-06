@@ -52,12 +52,14 @@ KNOWLEDGE_V22_DECISION_AGENT_MODE = "data-v2.2"
 KNOWLEDGE_V22_V2_DECISION_AGENT_MODE = "data-v2.2-v2"
 KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE = "data-v2.2-v2-no-knowledge"
 KNOWLEDGE_V23_DECISION_AGENT_MODE = "data-v2.3"
+KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE = "data-v2.3-no-knowledge"
 SUPPORTED_DECISION_AGENT_MODES = {
     NAIVE_DECISION_AGENT_MODE,
     KNOWLEDGE_V22_DECISION_AGENT_MODE,
     KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
     KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
     KNOWLEDGE_V23_DECISION_AGENT_MODE,
+    KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE,
 }
 DEFAULT_KNOWLEDGE_MODEL_KEY = "Kimi-k2.5"
 
@@ -108,6 +110,8 @@ class UniversalLLMBot(KnowledgeBot):
         self._knowledge_v2_2_v2_no_knowledge_ledger: Dict[str, Any] = {"facts": {}}
         self._knowledge_v2_3_planner_state: Dict[str, Any] = {}
         self._knowledge_v2_3_ledger: Dict[str, Any] = {"facts": {}}
+        self._knowledge_v2_3_no_knowledge_planner_state: Dict[str, Any] = {}
+        self._knowledge_v2_3_no_knowledge_ledger: Dict[str, Any] = {"facts": {}}
 
         self._llm_call_records: List[Dict[str, Any]] = []
         self._llm_call_seq = 0
@@ -266,6 +270,7 @@ class UniversalLLMBot(KnowledgeBot):
                     KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
                     KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
                     KNOWLEDGE_V23_DECISION_AGENT_MODE,
+                    KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE,
                 }
                 else 3
                 if self.decision_agent_mode == KNOWLEDGE_V22_DECISION_AGENT_MODE
@@ -315,11 +320,13 @@ class UniversalLLMBot(KnowledgeBot):
                 KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
                 KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
                 KNOWLEDGE_V23_DECISION_AGENT_MODE,
+                KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE,
             }:
                 if self.decision_agent_mode in {
                     KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
                     KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
                     KNOWLEDGE_V23_DECISION_AGENT_MODE,
+                    KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE,
                 }:
                     if self.decision_agent_mode == KNOWLEDGE_V23_DECISION_AGENT_MODE:
                         from SC2_Agent.knowledge_v2_3 import (
@@ -331,6 +338,19 @@ class UniversalLLMBot(KnowledgeBot):
                         answer_ledger = self._knowledge_v2_3_ledger
                         trace_folder = "kv2_3_traces"
                         record_key = "knowledge_v2_3"
+                    elif (
+                        self.decision_agent_mode
+                        == KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE
+                    ):
+                        from SC2_Agent.knowledge_v2_3_no_knowledge import (
+                            build_knowledge_decision_context,
+                            run_decision,
+                        )
+
+                        planner_state = self._knowledge_v2_3_no_knowledge_planner_state
+                        answer_ledger = self._knowledge_v2_3_no_knowledge_ledger
+                        trace_folder = "kv2_3_no_knowledge_traces"
+                        record_key = "knowledge_v2_3_no_knowledge"
                     elif (
                         self.decision_agent_mode
                         == KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE
@@ -389,6 +409,7 @@ class UniversalLLMBot(KnowledgeBot):
                     KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
                     KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
                     KNOWLEDGE_V23_DECISION_AGENT_MODE,
+                    KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE,
                 }:
                     run_arguments.update(
                         planning_snapshot=knowledge_context["planning_snapshot"],

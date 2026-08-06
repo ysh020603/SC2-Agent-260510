@@ -3,7 +3,9 @@
 ## Purpose
 
 `data-v2.3` is an additive mode built from the V2 planning harness. It leaves
-`naive`, `data-v2.2`, `data-v2.2-v2`, and the no-knowledge control unchanged.
+`naive`, `data-v2.2`, `data-v2.2-v2`, and the V2 no-knowledge control unchanged.
+Its own retrieval control is the sibling mode `data-v2.3-no-knowledge`; see
+[data-v2.3-no-knowledge.md](data-v2.3-no-knowledge.md).
 Its two goals are to remove provider-native tool-call coupling and reduce the
 negative transfer observed when retrieved SC2 facts were relevant in isolation
 but not executable in the live match.

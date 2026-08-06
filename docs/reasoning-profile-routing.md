@@ -24,11 +24,12 @@ contract repairs, forced final decisions, tool selection, tool rounds, and
 tool-limit summaries. MainAgent and DataSubAgent may therefore use independent
 providers and independent reasoning modes.
 
-The only intentional call-level override is the tool-free SubAgent in
-`data-v2.2-v2-no-knowledge`. Its MainAgent follows the Main profile, while its
-SubAgent always makes one non-reasoning call. If that SubAgent was configured
-with a thinking profile and a matching non-thinking sibling exists, the runtime
-resolves the call to that sibling and records both keys.
+The only intentional call-level overrides are the tool-free SubAgents in
+`data-v2.2-v2-no-knowledge` and `data-v2.3-no-knowledge`. Their MainAgents
+follow the Main profile, while their SubAgents always make one non-reasoning
+call. If that SubAgent was configured with a thinking profile and a matching
+non-thinking sibling exists, the runtime resolves the call to that sibling and
+records both keys.
 
 ## Recorded identity
 

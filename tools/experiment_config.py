@@ -25,6 +25,7 @@ DECISION_AGENT_MODES = {
     "data-v2.2-v2",
     "data-v2.2-v2-no-knowledge",
     "data-v2.3",
+    "data-v2.3-no-knowledge",
 }
 RACES = {"terran", "protoss", "zerg"}
 DIFFICULTIES = {
