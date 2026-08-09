@@ -146,6 +146,85 @@ class HumanSkillAgent:
             "gas-consuming action, then return the complete replacement queue."
         )
 
+    @staticmethod
+    def _production_capacity_error(
+        *,
+        race: str,
+        obs_text: str,
+        ordered_names: List[str],
+        canonical_unit_names: List[str],
+    ) -> str:
+        """Reject obvious idle-producer overbuilding and ask the LLM to re-plan."""
+        if "[Own Forces & Infrastructure]" not in obs_text or "Active Queues:" not in obs_text:
+            return ""
+        mechanics = race_mechanics(race)
+        own_section = obs_text.split("[Own Forces & Infrastructure]", 1)[1].split(
+            "[Enemy Intelligence]", 1
+        )[0]
+        infrastructure, active_queues = own_section.split("Active Queues:", 1)
+        counts: Dict[str, int] = {}
+        for count, entity in re.findall(r"\b([0-9]+)\s+([A-Z][A-Z0-9_]*)\b", infrastructure):
+            counts[entity] = counts.get(entity, 0) + int(count)
+        active_army_training = sum(
+            int(count)
+            for count, entity in re.findall(
+                r"\bTraining\s+([0-9]+)\s+([A-Z][A-Z0-9_]*)\b", active_queues
+            )
+            if entity != mechanics.worker.upper()
+        )
+
+        producer_names: set[str] = set()
+        entity_candidates: Dict[str, list[Any]] = {}
+        for entity_name in canonical_unit_names:
+            try:
+                candidates = list(action_candidates_for_entity(race, entity_name))
+            except Exception:
+                candidates = []
+            entity_candidates[entity_name] = candidates
+            for candidate in candidates:
+                if candidate.execution_mode in {"train", "warp_in"}:
+                    producer_names.update(candidate.executors)
+
+        for planned_name in ordered_names:
+            if planned_name not in producer_names:
+                continue
+            build_candidates = entity_candidates.get(planned_name)
+            if build_candidates is None:
+                try:
+                    build_candidates = list(action_candidates_for_entity(race, planned_name))
+                except Exception:
+                    build_candidates = []
+            if not any(candidate.execution_mode == "worker_build" for candidate in build_candidates):
+                continue
+            existing = counts.get(planned_name.upper(), 0)
+            if existing <= 0:
+                continue
+            planned_demand = 0
+            for entity_name in ordered_names:
+                candidates = entity_candidates.get(entity_name)
+                if candidates is None:
+                    try:
+                        candidates = list(action_candidates_for_entity(race, entity_name))
+                    except Exception:
+                        candidates = []
+                if any(
+                    candidate.execution_mode in {"train", "warp_in"}
+                    and planned_name in candidate.executors
+                    for candidate in candidates
+                ):
+                    planned_demand += 1
+            if active_army_training + planned_demand <= existing * 2:
+                return (
+                    f"FINAL_DECISION rejected: {existing} own {planned_name} production "
+                    f"structure(s) already exist or are in progress, but only "
+                    f"{active_army_training} army unit(s) are actively training and the queue "
+                    f"requests {planned_demand} compatible unit(s). Do not use {planned_name} "
+                    "to mean 'keep producing'. Remove the extra structure and spend through "
+                    "the existing capacity, unless you queue enough compatible units to "
+                    "justify more throughput."
+                )
+        return ""
+
     def decide(
         self,
         *,
@@ -234,6 +313,25 @@ class HumanSkillAgent:
                 )
                 if resource_error:
                     feedback = resource_error
+                    rounds.append(
+                        AgentRound(
+                            round=round_number,
+                            type="invalid",
+                            error=feedback,
+                            model_key=self.model_key,
+                            model=str(result.get("model") or ""),
+                            token_usage=self._usage(result),
+                        )
+                    )
+                    return False
+                capacity_error = self._production_capacity_error(
+                    race=race,
+                    obs_text=obs_text,
+                    ordered_names=parsed.decision.ordered_names,
+                    canonical_unit_names=canonical_unit_names,
+                )
+                if capacity_error:
+                    feedback = capacity_error
                     rounds.append(
                         AgentRound(
                             round=round_number,

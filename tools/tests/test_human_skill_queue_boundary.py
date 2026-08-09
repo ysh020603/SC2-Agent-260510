@@ -143,3 +143,28 @@ def test_gas_cost_queue_is_repaired_by_llm_before_acceptance(fixture_skill_root,
     assert [item.type for item in result.rounds] == ["read_skill", "invalid", "decision"]
     assert "no own Assimilator" in result.rounds[1].error
     assert result.decision.ordered_names == ["Assimilator", "Stalker"]
+
+
+def test_idle_production_overbuild_is_repaired_by_llm(fixture_skill_root, api_config):
+    agent = _agent(
+        fixture_skill_root,
+        api_config,
+        [
+            '{"type":"read_skill","node_id":"N001"}',
+            '{"type":"decision","reason":"more capacity","ordered_names":["Gateway","Stalker"]}',
+            '{"type":"decision","reason":"use capacity","ordered_names":["Stalker","Stalker"]}',
+        ],
+    )
+    kwargs = _kwargs()
+    kwargs["obs_text"] = (
+        "[Economy] 500 minerals, 100 vespene; income 900 mins/min, 0 gas/min.\n"
+        "[Own Forces & Infrastructure]\n"
+        "Completed: 2 GATEWAY, 1 CYBERNETICSCORE.\n"
+        "Under Construction: none.\nWorkers En Route: none.\nActive Queues: none.\n"
+        "[Enemy Intelligence] 1 GATEWAY."
+    )
+    kwargs["canonical_unit_names"] = ["Gateway", "Pylon", "Stalker"]
+    result = agent.decide(**kwargs)
+    assert [item.type for item in result.rounds] == ["read_skill", "invalid", "decision"]
+    assert "already exist or are in progress" in result.rounds[1].error
+    assert result.decision.ordered_names == ["Stalker", "Stalker"]

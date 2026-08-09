@@ -63,6 +63,11 @@ Inspect resource bank, income, free supply, current/ideal workers, army supply,
 production capacity, prerequisites, and active queues. Avoid supply blocks,
 keep worker growth sensible, spend persistent banks through usable production,
 and keep the queue focused on work safe before the next decision.
+Every structure name requests one additional new structure; it never means
+"keep using" a completed structure. Add production capacity only when the
+existing relevant producers are close to continuously busy or the planned unit
+throughput can use the extra capacity. When producers are idle, prefer units,
+necessary technology, or economy instead of another production structure.
 If the queue contains gas-cost units, structures, or upgrades and current gas
 plus gas income cannot fund them, include your race's gas structure before the
 first gas-cost action unless an own gas structure is completed or in progress.
