@@ -1,0 +1,1 @@
+{"skill_id":"PvP_O01","opening_name":"Cyber Core Expand","method":"ablation_flat_adaptive","root":"SKILL.md","nodes":{"N001":{"path":"nodes/N001.md","type":"positive","title":"Stabilize against observed ground pressure","summary":"Strengthen the current ground path.","trigger_summary":"Enemy Intelligence appears ground-oriented.","children":[]}}}
