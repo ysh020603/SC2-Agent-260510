@@ -63,6 +63,12 @@ Inspect resource bank, income, free supply, current/ideal workers, army supply,
 production capacity, prerequisites, and active queues. Avoid supply blocks,
 keep worker growth sensible, spend persistent banks through usable production,
 and keep the queue focused on work safe before the next decision.
+Size repeated unit orders to cover the full next decision interval, not just
+the units affordable at this instant. If minerals are at least 1500 or mineral
+income is at least 1800 per minute, normally include 20-40 executable combat
+unit orders after urgent economy, supply, and technology work; do not stop at
+an arbitrary eight units while a large bank and idle production remain. Use
+the cheaper appropriate unit when gas is the limiting resource.
 Every structure name requests one additional new structure; it never means
 "keep using" a completed structure. Add production capacity only when the
 existing relevant producers are close to continuously busy or the planned unit
@@ -108,7 +114,8 @@ Canonical upgrades:
 
 Use exact case-sensitive names from these lists only. Repeat a name for
 multiple copies. Do not output counts, action keys, positions, or prose outside
-the JSON object. Keep the queue compact, normally no more than 20 names.
+the JSON object. Keep the queue compact, normally no more than 20 names, except
+that the high-bank/high-income production rule may extend it to 40 names.
 
 [14. Skill Read Protocol]
 {final_instruction}

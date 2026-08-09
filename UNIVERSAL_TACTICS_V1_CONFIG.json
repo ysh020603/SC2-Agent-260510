@@ -5,7 +5,7 @@
   "debug_logging": false,
   "enemy_air_fraction_gate": 0.35,
   "enemy_ground_fraction_gate": 0.5,
-  "global_min_attack_power": 6.0,
+  "global_min_attack_power": 12.0,
   "max_supply_attack": true,
   "max_supply_trigger": 190.0,
   "meaningful_zone_threat_power": 0.5,

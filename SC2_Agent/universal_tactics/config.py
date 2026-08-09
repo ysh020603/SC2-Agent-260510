@@ -10,7 +10,10 @@ from dataclasses import asdict, dataclass
 @dataclass(frozen=True)
 class UniversalTacticalConfig:
     min_cohesion_to_attack: float = 0.72
-    global_min_attack_power: float = 6.0
+    # Live 1200-second calibration showed that a nominal power of 6-9 can be
+    # assessed as a small advantage yet is too brittle to survive the first
+    # counter-attack.  Require a real army core before leaving gather posture.
+    global_min_attack_power: float = 12.0
 
     clear_advantage_attack: bool = True
     timing_window_attack: bool = True
