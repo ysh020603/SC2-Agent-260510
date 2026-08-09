@@ -12,9 +12,12 @@
   "decision_model": "DeepSeek-V4-flash",
   "decision_model_is_reasoning": false,
   "strategy_automation": {
-    "profile": "race_generic_human_skill",
+    "profile": "universal_tactical_controller_v1",
     "shared_across_all_six_variants": true,
-    "attack_thresholds": {"protoss": 16, "terran": 18, "zerg": 16}
+    "shared_across_all_races": true,
+    "skill_specific_attack_thresholds": false,
+    "config_file": "UNIVERSAL_TACTICS_V1_CONFIG.json",
+    "config_sha256": "9c215280db208dca844d96e1e449f8c698cf8531376a1dc38c2190dcdbf0892b"
   },
   "agent_variants": {
     "human-skill-full": "full_signed_graph",

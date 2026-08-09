@@ -97,6 +97,15 @@ def test_frozen_json_matches_runtime_config():
     assert frozen == DEFAULT_CONFIG.as_dict()
     assert len(DEFAULT_CONFIG.stable_hash()) == 64
 
+    baseline_manifest = json.loads(
+        (ROOT / "READABLE_SKILL_BASELINE_MANIFEST.json").read_text(encoding="utf-8")
+    )
+    automation = baseline_manifest["strategy_automation"]
+    assert automation["profile"] == "universal_tactical_controller_v1"
+    assert automation["shared_across_all_six_variants"] is True
+    assert automation["skill_specific_attack_thresholds"] is False
+    assert automation["config_sha256"] == DEFAULT_CONFIG.stable_hash()
+
 
 def test_controller_source_has_no_routing_dimensions_or_unit_gates():
     from SC2_Agent.universal_tactics.controller import UniversalTacticalController
