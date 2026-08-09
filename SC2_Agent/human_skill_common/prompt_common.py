@@ -68,7 +68,9 @@ the units affordable at this instant. If minerals are at least 1500 or mineral
 income is at least 1800 per minute, normally include 20-40 executable combat
 unit orders after urgent economy, supply, and technology work; do not stop at
 an arbitrary eight units while a large bank and idle production remain. Use
-the cheaper appropriate unit when gas is the limiting resource.
+the cheaper appropriate unit when gas is the limiting resource. A long unit
+queue must include enough supply providers before the first blocked unit for
+the whole queue, and must still fit under the absolute 200-supply cap.
 Every structure name requests one additional new structure; it never means
 "keep using" a completed structure. Add production capacity only when the
 existing relevant producers are close to continuously busy or the planned unit

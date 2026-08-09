@@ -15,3 +15,11 @@ def test_final_decision_protocol():
 def test_unknown_fields_and_types_rejected():
     assert parse_agent_response('{"type":"read_skill","node_id":"N001","path":"../../x"}').error
     assert parse_agent_response('{"type":"decision","reason":"x","ordered_names":"Pylon"}').error
+
+
+def test_decision_queue_has_a_hard_length_limit():
+    names = ",".join('"Stalker"' for _ in range(41))
+    parsed = parse_agent_response(
+        '{"type":"decision","reason":"too long","ordered_names":[' + names + "]}"
+    )
+    assert "at most 40" in parsed.error

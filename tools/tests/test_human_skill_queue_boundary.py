@@ -127,6 +127,16 @@ def test_max_supply_feedback_does_not_recommend_another_provider(fixture_skill_r
     assert "cannot raise the 200 cap" in error
 
 
+def test_supply_feedback_counts_all_providers_needed(fixture_skill_root, api_config):
+    agent = _agent(fixture_skill_root, api_config, [])
+    error = agent._queue_supply_error(
+        race="protoss",
+        obs_text="Supply: 100/100",
+        ordered_names=["Stalker"] * 10,
+    )
+    assert "at least 3 additional Pylon entries" in error
+
+
 def test_invalid_responses_keep_old_queue_semantics(fixture_skill_root, api_config):
     agent = _agent(fixture_skill_root, api_config, ["bad"] * 5)
     result = agent.decide(**_kwargs())
@@ -235,7 +245,7 @@ def test_zerg_larva_morph_supply_is_not_hidden_by_generic_morph_cost(fixture_ski
         obs_text="[Economy] Supply: 13/14 (workers 12, army 0).",
         ordered_names=["Overlord", "Drone", "Drone"],
     )
-    assert "Move Overlord before Drone" in blocked
+    assert "at least 1 additional Overlord entry before Drone" in blocked
     assert executable == ""
 
 

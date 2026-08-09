@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import math
 import re
 from typing import Any, Callable, Dict, List, Optional
 
@@ -300,6 +301,24 @@ class HumanSkillAgent:
                 delta = 0.0
             deltas.append(delta)
 
+        provider_gain = 8.0
+        try:
+            provider_candidates = list(action_candidates_for_entity(race, mechanics.supply_provider))
+            provider_candidate = provider_candidates[0] if provider_candidates else None
+            provider_info = cost_for_action(provider_candidate.ability_name) if provider_candidate else {}
+            provider_delta = float(((provider_info.get("cost") or {}).get("supply") or 0))
+            if (
+                provider_candidate is not None
+                and provider_candidate.target_kind in {"Morph", "MorphPlace"}
+                and "Larva" in provider_candidate.executors
+            ):
+                units, _ = build_entity_indexes(load_database())
+                provider_unit = units.get(provider_candidate.target_result) or {}
+                provider_delta = float(provider_unit.get("supply") or 0)
+            provider_gain = max(1.0, -provider_delta)
+        except Exception:
+            pass
+
         for index, (entity_name, delta) in enumerate(zip(ordered_names, deltas)):
             if delta < 0:
                 projected_cap = min(200.0, projected_cap - delta)
@@ -317,15 +336,24 @@ class HumanSkillAgent:
                     "morphs until combat losses create room; an additional supply provider "
                     "cannot raise the 200 cap."
                 )
-            later_provider = next(
-                (ordered_names[j] for j in range(index + 1, len(deltas)) if deltas[j] < 0),
-                "",
-            )
-            instruction = (
-                f"Move {later_provider} before {entity_name}"
-                if later_provider
-                else f"Include {mechanics.supply_provider} before {entity_name}"
-            )
+            remaining_demand = sum(max(0.0, item) for item in deltas[index:])
+            free_supply = max(0.0, projected_cap - projected_used)
+            max_extra_supply = max(0.0, 200.0 - projected_cap)
+            if remaining_demand > free_supply + max_extra_supply + 1e-6:
+                instruction = (
+                    "Shorten the unit queue: even after raising the cap to 200, only "
+                    f"{free_supply + max_extra_supply:g} more supply can fit"
+                )
+            else:
+                providers_needed = max(
+                    1,
+                    int(math.ceil(max(0.0, remaining_demand - free_supply) / provider_gain)),
+                )
+                instruction = (
+                    f"Place at least {providers_needed} additional {mechanics.supply_provider} "
+                    f"entr{'y' if providers_needed == 1 else 'ies'} before {entity_name}, or "
+                    "shorten the unit queue to fit"
+                )
             return (
                 "FINAL_DECISION rejected: the sequential queue reaches a supply block at "
                 f"{entity_name} (projected {projected_used:g}/{projected_cap:g}). "

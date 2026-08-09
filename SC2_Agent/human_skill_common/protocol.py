@@ -9,6 +9,9 @@ from typing import Any, Dict, Optional
 from .schema import FinalDecision, ProtocolParseResult, ReadSkillRequest
 
 
+MAX_ORDERED_NAMES = 40
+
+
 def extract_json_object(text: str) -> Optional[Dict[str, Any]]:
     cleaned = str(text or "").strip()
     if cleaned.startswith("```"):
@@ -50,6 +53,10 @@ def parse_agent_response(text: str) -> ProtocolParseResult:
             return ProtocolParseResult(error="decision reason must be non-empty")
         if not isinstance(names, list) or any(not isinstance(name, str) or not name.strip() for name in names):
             return ProtocolParseResult(error="ordered_names must be a list of names")
+        if len(names) > MAX_ORDERED_NAMES:
+            return ProtocolParseResult(
+                error=f"ordered_names must contain at most {MAX_ORDERED_NAMES} names; shorten the queue"
+            )
         return ProtocolParseResult(
             decision=FinalDecision(
                 reason=reason.strip()[:2000],
