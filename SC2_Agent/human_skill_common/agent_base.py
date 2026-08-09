@@ -309,6 +309,14 @@ class HumanSkillAgent:
             if projected_used + delta <= projected_cap + 1e-6:
                 projected_used += delta
                 continue
+            if projected_cap >= 200.0 - 1e-6 and projected_used >= projected_cap - 1e-6:
+                return (
+                    "FINAL_DECISION rejected: the army is already at the maximum supply "
+                    f"({projected_used:g}/{projected_cap:g}), so {entity_name} cannot start. "
+                    "Return an empty ordered_names queue or only zero-supply upgrades and "
+                    "morphs until combat losses create room; an additional supply provider "
+                    "cannot raise the 200 cap."
+                )
             later_provider = next(
                 (ordered_names[j] for j in range(index + 1, len(deltas)) if deltas[j] < 0),
                 "",
@@ -349,9 +357,10 @@ class HumanSkillAgent:
         llm_calls: List[Dict[str, Any]] = []
         feedback = ""
         decision: Optional[FinalDecision] = None
+        force_final_next = False
 
         def run_round(round_number: int, force_final: bool) -> bool:
-            nonlocal feedback, decision
+            nonlocal feedback, decision, force_final_next
             messages = build_human_skill_messages(
                 race=race,
                 enemy_race=enemy_race,
@@ -489,6 +498,25 @@ class HumanSkillAgent:
                 return True
             if parsed.request is not None and not force_final:
                 node_id = parsed.request.node_id
+                if node_id in reads_this_cycle:
+                    feedback = (
+                        f"READ_SKILL rejected: {node_id} was already served in this "
+                        "decision and is visible in Previously Read Skill Nodes. "
+                        "The next response must be FINAL_DECISION."
+                    )
+                    force_final_next = True
+                    rounds.append(
+                        AgentRound(
+                            round_number,
+                            "read_skill",
+                            node_id,
+                            feedback,
+                            self.model_key,
+                            str(result.get("model") or ""),
+                            self._usage(result),
+                        )
+                    )
+                    return False
                 if len(reads_this_cycle) >= self.MAX_SKILL_READS_PER_DECISION:
                     feedback = "READ_SKILL rejected: per-decision read limit reached."
                     rounds.append(
@@ -562,7 +590,9 @@ class HumanSkillAgent:
             return False
 
         for round_number in range(1, self.MAX_AGENT_ROUNDS_PER_DECISION + 1):
-            if run_round(round_number, False):
+            force_final = force_final_next
+            force_final_next = False
+            if run_round(round_number, force_final):
                 break
         if decision is None:
             run_round(self.MAX_AGENT_ROUNDS_PER_DECISION + 1, True)

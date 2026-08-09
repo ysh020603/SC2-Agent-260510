@@ -98,6 +98,35 @@ def test_repeated_read_is_served_from_memory(fixture_skill_root, api_config):
     assert agent.memory.read_stats["N001"]["reuse_count"] == 1
 
 
+def test_same_cycle_repeated_read_forces_final_decision(fixture_skill_root, api_config):
+    agent = _agent(
+        fixture_skill_root,
+        api_config,
+        [
+            '{"type":"read_skill","node_id":"N001"}',
+            '{"type":"read_skill","node_id":"N001"}',
+            '{"type":"decision","reason":"use the node","ordered_names":[]}',
+        ],
+    )
+    result = agent.decide(**_kwargs(1))
+    assert result.decision.reason == "use the node"
+    assert result.skill_reads_this_cycle == ["N001"]
+    assert "already served" in result.rounds[1].error
+    assert result.llm_calls[2]["force_final"] is True
+
+
+def test_max_supply_feedback_does_not_recommend_another_provider(fixture_skill_root, api_config):
+    agent = _agent(fixture_skill_root, api_config, [])
+    error = agent._queue_supply_error(
+        race="protoss",
+        obs_text="Supply: 200/200",
+        ordered_names=["Stalker"],
+    )
+    assert "maximum supply" in error
+    assert "empty ordered_names" in error
+    assert "cannot raise the 200 cap" in error
+
+
 def test_invalid_responses_keep_old_queue_semantics(fixture_skill_root, api_config):
     agent = _agent(fixture_skill_root, api_config, ["bad"] * 5)
     result = agent.decide(**_kwargs())
