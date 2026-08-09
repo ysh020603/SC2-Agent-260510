@@ -68,12 +68,21 @@ def test_gather_and_defense_do_not_block_adaptive_attack():
     assert "return True" in inspect.getsource(PlanZoneGatherTerran.execute)
 
 
-def test_human_skill_bot_does_not_import_strategy_tools_or_profile():
+def test_live_bots_do_not_import_strategy_tools_or_profiles():
     source = (ROOT / "dummies" / "generic" / "universal_llm_bot.py").read_text(encoding="utf-8")
     assert "_load_strategy_tools" not in source
     assert ".strategy_tools" not in source
     assert "AUTOMATION_PROFILE" not in source
     assert "_load_universal_tactical_tools" in source
+
+    human_source = (
+        ROOT / "dummies" / "generic" / "universal_llm_human_skill_bot.py"
+    ).read_text(encoding="utf-8")
+    assert "_load_strategy_tools" not in human_source
+    assert ".strategy_tools" not in human_source
+    assert "attack_threshold" not in human_source
+    assert "attack_value" not in human_source
+    assert "UNIVERSAL_TACTICAL_PROFILE" in human_source
 
 
 def test_universal_profile_has_no_threshold_or_special_strategy_gate():

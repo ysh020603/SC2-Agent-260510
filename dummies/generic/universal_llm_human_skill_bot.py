@@ -22,11 +22,7 @@ from SC2_Agent.human_skill_common.skill_loader import (
 from SC2_Agent.human_skill_common.trace_recorder import HumanSkillTraceRecorder
 from SC2_Agent.human_skill_common.validation import resolve_api_config
 from SC2_Agent.human_skill_common.variants import load_variant_package
-from SC2_Agent.prompt_context import (
-    protoss_automation_profile,
-    terran_automation_profile,
-    zerg_automation_profile,
-)
+from SC2_Agent.universal_tactics import UNIVERSAL_TACTICAL_PROFILE
 from dummies.generic.universal_llm_bot import UniversalLLMBot
 
 logger = logging.getLogger("UniversalLLMHumanSkillBot")
@@ -99,7 +95,7 @@ class UniversalLLMHumanSkillBot(UniversalLLMBot):
         self.selected_strategy = skill_id
         self.strategy_summary = skill.root_markdown
         self.strategy_enemy_race = enemy_race
-        self.strategy_automation_context = self._generic_automation_profile().render()
+        self.strategy_automation_context = UNIVERSAL_TACTICAL_PROFILE
         self._llm_infer_emit(
             f">>> HUMAN SKILL: agent={self.human_skill_agent} method={spec.method} " f"skill={skill_id} root={root}"
         )
@@ -116,32 +112,6 @@ class UniversalLLMHumanSkillBot(UniversalLLMBot):
                 "automation_profile": self.strategy_automation_context,
             }
         )
-
-    def _generic_automation_profile(self):
-        strategy = "race_generic_human_skill"
-        if self.race_name == "protoss":
-            return protoss_automation_profile(strategy=strategy, attack_threshold=16)
-        if self.race_name == "terran":
-            return terran_automation_profile(strategy=strategy, attack_threshold=18)
-        if self.race_name == "zerg":
-            return zerg_automation_profile(strategy=strategy, attack_threshold=16)
-        raise ValueError(f"unsupported race: {self.race_name}")
-
-    def _load_strategy_tools(self):
-        """One race-generic tactical profile shared by all six variants."""
-        if self.race_name == "protoss":
-            from SKILL.protoss.common_tools import make_protoss_strategy_tools
-
-            return make_protoss_strategy_tools(attack_value=16)
-        if self.race_name == "terran":
-            from SC2_Agent.human_skill_common.automation import make_terran_generic_tools
-
-            return make_terran_generic_tools(attack_value=18)
-        if self.race_name == "zerg":
-            from SKILL.zerg.common_tools import make_zerg_strategy_tools
-
-            return make_zerg_strategy_tools(attack_value=16)
-        raise ValueError(f"unsupported race: {self.race_name}")
 
     async def on_end(self, game_result):
         if self._human_agent is not None and self._human_trace is not None:
