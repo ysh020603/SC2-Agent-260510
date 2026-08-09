@@ -47,6 +47,23 @@ class AIIterationTimeoutError(RuntimeError):
     pass
 
 
+def _game_info_refresh_due(
+    *, current_game_loop: int, last_refresh_game_loop: int, interval_game_loops: int
+) -> bool:
+    """Return whether the dynamic pathing grid should be refreshed.
+
+    RequestGameInfo is substantially heavier than an observation on the pinned
+    Linux SC2 build.  Asking for it after every four-game-loop step can
+    eventually wedge the native response queue in long, unit-heavy matches.
+    Zero retains the upstream every-step behavior for callers that explicitly
+    require it; formal experiments use a bounded five-game-second interval.
+    """
+
+    return interval_game_loops <= 0 or (
+        current_game_loop - last_refresh_game_loop >= interval_game_loops
+    )
+
+
 @dataclass
 class GameMatch:
     """Dataclass for hosting a match of SC2.
@@ -119,9 +136,10 @@ async def _play_game_ai(
     client: Client, player_id: int, ai: BotAI, realtime: bool, game_time_limit: int | None
 ) -> Result:
     gs: GameState | None = None
+    proto_game_info = None
 
     async def initialize_first_step() -> Result | None:
-        nonlocal gs
+        nonlocal gs, proto_game_info
         ai._initialize_variables()
 
         game_data = await client.get_game_data()
@@ -155,6 +173,15 @@ async def _play_game_ai(
     result = await initialize_first_step()
     if result is not None:
         return result
+
+    try:
+        game_info_refresh_game_loops = int(
+            os.environ.get("SC2_GAME_INFO_REFRESH_GAME_LOOPS", "0")
+        )
+    except (TypeError, ValueError):
+        game_info_refresh_game_loops = 0
+    game_info_refresh_game_loops = max(0, game_info_refresh_game_loops)
+    last_game_info_refresh_loop = int(gs.game_loop)
 
     async def run_bot_iteration(iteration: int):
         nonlocal gs
@@ -244,12 +271,19 @@ async def _play_game_ai(
         if game_time_limit and gs.game_loop / 22.4 > game_time_limit:
             await ai.on_end(Result.Tie)
             return Result.Tie
-        try:
-            proto_game_info = await client._execute(game_info=sc_pb.RequestGameInfo())
-        except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
-            raise
-        except ConnectionAlreadyClosedError:
-            return await recover_from_protocol_timeout("game_info")
+        if _game_info_refresh_due(
+            current_game_loop=int(gs.game_loop),
+            last_refresh_game_loop=last_game_info_refresh_loop,
+            interval_game_loops=game_info_refresh_game_loops,
+        ):
+            try:
+                proto_game_info = await client._execute(game_info=sc_pb.RequestGameInfo())
+            except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
+                raise
+            except ConnectionAlreadyClosedError:
+                return await recover_from_protocol_timeout("game_info")
+            last_game_info_refresh_loop = int(gs.game_loop)
+        assert proto_game_info is not None
         ai._prepare_step(gs, proto_game_info)
 
         try:

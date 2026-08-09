@@ -174,6 +174,15 @@ def main() -> int:
     parser.add_argument("--wall-timeout", type=int, default=3000)
     parser.add_argument("--protocol-response-timeout", type=float, default=90.0)
     parser.add_argument("--ai-step-timeout", type=float, default=180.0)
+    parser.add_argument(
+        "--game-info-refresh-game-loops",
+        type=int,
+        default=112,
+        help=(
+            "Refresh the dynamic pathing grid at this SC2 game-loop interval. "
+            "112 is five game seconds and avoids an expensive request every step."
+        ),
+    )
     parser.add_argument("--launch-stagger", type=float, default=5.0)
     parser.add_argument("--batch-prefix", default="human_skill_ablation_1200_mediumhard_20260809")
     parser.add_argument("--manifest-name", default="suite_manifest.json")
@@ -191,6 +200,7 @@ def main() -> int:
         or args.protocol_response_timeout <= 0
         or args.ai_step_timeout <= 0
         or args.launch_stagger < 0
+        or args.game_info_refresh_game_loops < 1
     ):
         raise ValueError("timeouts must be positive")
 
@@ -216,6 +226,7 @@ def main() -> int:
         "wall_timeout": args.wall_timeout,
         "protocol_response_timeout": args.protocol_response_timeout,
         "ai_step_timeout": args.ai_step_timeout,
+        "game_info_refresh_game_loops": args.game_info_refresh_game_loops,
         "launch_stagger": args.launch_stagger,
         "retry_concurrency": args.retry_concurrency,
         "max_attempts": args.max_attempts,
@@ -300,6 +311,7 @@ def main() -> int:
                 "SC2_STARTUP_TIMEOUT": "240",
                 "SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS": str(args.protocol_response_timeout),
                 "SC2_AI_STEP_TIMEOUT_SECONDS": str(args.ai_step_timeout),
+                "SC2_GAME_INFO_REFRESH_GAME_LOOPS": str(args.game_info_refresh_game_loops),
                 "SC2_ALLOW_GLOBAL_WINESERVER_KILL": "0",
                 "PYTHONUNBUFFERED": "1",
             }
