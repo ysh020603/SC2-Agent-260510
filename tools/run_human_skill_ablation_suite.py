@@ -154,11 +154,19 @@ def main() -> int:
     parser.add_argument("--map-name", default="KairosJunctionLE")
     parser.add_argument("--game-time-limit", type=int, default=1200)
     parser.add_argument("--decision-interval", type=float, default=60.0)
-    parser.add_argument("--concurrency", type=int, default=3)
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        default=1,
+        help=(
+            "Active native SC2 clients. Keep at 1 for formal 1200-second runs: "
+            "the Linux SC2 binary can stall and SIGSEGV with concurrent clients."
+        ),
+    )
     parser.add_argument(
         "--retry-concurrency",
         type=int,
-        default=2,
+        default=1,
         help="Lower-concurrency retry pool used after watchdog/client failures.",
     )
     parser.add_argument("--max-attempts", type=int, default=3)
@@ -212,7 +220,7 @@ def main() -> int:
         "retry_concurrency": args.retry_concurrency,
         "max_attempts": args.max_attempts,
         "retry_backoff": args.retry_backoff,
-        "runtime_failure_policy": "exclude_invalid_artifact_and_retry_at_lower_concurrency",
+        "runtime_failure_policy": "exclude_invalid_artifact_and_retry_serially",
         "global_wineserver_kill_allowed": False,
         "model": args.model,
         "conditions": [asdict(item) for item in conditions],
