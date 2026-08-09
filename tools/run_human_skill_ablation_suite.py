@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import subprocess
 import threading
 import time
@@ -59,6 +60,82 @@ CONDITIONS = (
     Condition(13, "zerg", "protoss", "ZvP_O06", "air"),
     Condition(14, "zerg", "terran", "ZvT_O05", "power"),
 )
+
+
+def _proc_ppid(proc_dir: Path) -> int | None:
+    try:
+        stat_text = (proc_dir / "stat").read_text(encoding="utf-8")
+        _prefix, separator, suffix = stat_text.rpartition(")")
+        if not separator:
+            return None
+        fields = suffix.strip().split()
+        return int(fields[1])
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def _process_tree(root_pid: int, proc_root: Path = Path("/proc")) -> set[int]:
+    """Return root_pid and every discoverable descendant from procfs."""
+
+    children: dict[int, list[int]] = {}
+    try:
+        entries = tuple(proc_root.iterdir())
+    except OSError:
+        return {root_pid}
+    for entry in entries:
+        if not entry.name.isdigit():
+            continue
+        ppid = _proc_ppid(entry)
+        if ppid is not None:
+            children.setdefault(ppid, []).append(int(entry.name))
+    result = {root_pid}
+    pending = [root_pid]
+    while pending:
+        parent = pending.pop()
+        for child in children.get(parent, ()):
+            if child not in result:
+                result.add(child)
+                pending.append(child)
+    return result
+
+
+def _sc2_process_pids(proc_root: Path = Path("/proc")) -> set[int]:
+    """Find native SC2 client processes without matching unrelated shells."""
+
+    result: set[int] = set()
+    try:
+        entries = tuple(proc_root.iterdir())
+    except OSError:
+        return result
+    for entry in entries:
+        if not entry.name.isdigit():
+            continue
+        try:
+            command = (entry / "cmdline").read_bytes().replace(b"\0", b" ")
+        except OSError:
+            continue
+        if b"/SC2_x64 " in command or command.rstrip().endswith(b"/SC2_x64"):
+            result.add(int(entry.name))
+    return result
+
+
+def _terminate_process_group(process: subprocess.Popen, timeout_seconds: float = 10.0) -> None:
+    if process.poll() is not None:
+        return
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    try:
+        process.wait(timeout=timeout_seconds)
+        return
+    except subprocess.TimeoutExpired:
+        pass
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        return
+    process.wait(timeout=timeout_seconds)
 
 
 def _method_for_trace(trace: dict) -> str:
@@ -184,6 +261,15 @@ def main() -> int:
         ),
     )
     parser.add_argument("--launch-stagger", type=float, default=5.0)
+    parser.add_argument(
+        "--foreign-sc2-wait-timeout",
+        type=float,
+        default=21600.0,
+        help=(
+            "Wait this many seconds for SC2 clients owned by other experiment "
+            "trees to leave the host before starting a match."
+        ),
+    )
     parser.add_argument("--batch-prefix", default="human_skill_ablation_1200_mediumhard_20260809")
     parser.add_argument("--manifest-name", default="suite_manifest.json")
     parser.add_argument("--model", default="DeepSeek-V4-flash")
@@ -201,6 +287,7 @@ def main() -> int:
         or args.ai_step_timeout <= 0
         or args.launch_stagger < 0
         or args.game_info_refresh_game_loops < 1
+        or args.foreign_sc2_wait_timeout <= 0
     ):
         raise ValueError("timeouts must be positive")
 
@@ -228,10 +315,13 @@ def main() -> int:
         "ai_step_timeout": args.ai_step_timeout,
         "game_info_refresh_game_loops": args.game_info_refresh_game_loops,
         "launch_stagger": args.launch_stagger,
+        "foreign_sc2_wait_timeout": args.foreign_sc2_wait_timeout,
         "retry_concurrency": args.retry_concurrency,
         "max_attempts": args.max_attempts,
         "retry_backoff": args.retry_backoff,
-        "runtime_failure_policy": "exclude_invalid_artifact_and_retry_serially",
+        "runtime_failure_policy": (
+            "exclude_invalid_artifact_retry_serially_and_abort_on_foreign_sc2_overlap"
+        ),
         "global_wineserver_kill_allowed": False,
         "model": args.model,
         "conditions": [asdict(item) for item in conditions],
@@ -318,10 +408,50 @@ def main() -> int:
         )
         started = time.time()
         attempt_log_path = log_path.with_suffix(f".attempt{attempt}.log")
+        foreign_overlap: list[int] = []
+        process_returncode: int | None = None
         with attempt_log_path.open("w", encoding="utf-8") as log:
-            process = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
+            wait_started = time.monotonic()
+            while True:
+                busy_pids = sorted(_sc2_process_pids())
+                if not busy_pids:
+                    break
+                if time.monotonic() - wait_started >= args.foreign_sc2_wait_timeout:
+                    log.write(
+                        f"FOREIGN_SC2_WAIT_TIMEOUT pids={busy_pids} "
+                        f"timeout={args.foreign_sc2_wait_timeout}\n"
+                    )
+                    foreign_overlap = busy_pids
+                    break
+                log.write(f"FOREIGN_SC2_WAIT pids={busy_pids}\n")
+                log.flush()
+                time.sleep(5.0)
+
+            if not foreign_overlap:
+                process = subprocess.Popen(
+                    command,
+                    cwd=ROOT,
+                    env=env,
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                )
+                while process.poll() is None:
+                    own_tree = _process_tree(process.pid)
+                    foreign_pids = sorted(_sc2_process_pids() - own_tree)
+                    if foreign_pids:
+                        foreign_overlap = foreign_pids
+                        log.write(
+                            f"FOREIGN_SC2_OVERLAP pids={foreign_pids}; "
+                            "terminating only this experiment process group\n"
+                        )
+                        log.flush()
+                        _terminate_process_group(process)
+                        break
+                    time.sleep(2.0)
+                process_returncode = process.wait()
         artifact_complete = condition.skill_id in completed_skill_ids(ROOT / "game_records" / batch_name)
-        complete = process.returncode == 0 and artifact_complete
+        complete = not foreign_overlap and process_returncode == 0 and artifact_complete
         return {
             "method": method_name,
             "agent": agent,
@@ -330,10 +460,17 @@ def main() -> int:
             "attempt": attempt,
             "log_path": str(attempt_log_path.relative_to(ROOT)),
             "status": "complete" if complete else "retryable_failure",
-            "returncode": process.returncode,
+            "returncode": process_returncode,
             "artifact_complete": artifact_complete,
+            "foreign_sc2_overlap_pids": foreign_overlap,
             "failure_reason": (
-                "" if complete else "nonzero_exit" if process.returncode else "invalid_or_watchdog_artifact"
+                ""
+                if complete
+                else "foreign_sc2_overlap"
+                if foreign_overlap
+                else "nonzero_exit"
+                if process_returncode
+                else "invalid_or_watchdog_artifact"
             ),
             "wall_seconds": round(time.time() - started, 2),
         }
