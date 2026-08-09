@@ -28,6 +28,16 @@ def mean(values: list[float]) -> float:
     return round(statistics.fmean(values), 4) if values else math.nan
 
 
+def exact_two_sided_sign_p(baseline_better: int, method_better: int) -> float:
+    """Exact two-sided sign test over outcome-discordant paired matches."""
+
+    n = int(baseline_better) + int(method_better)
+    if n <= 0:
+        return math.nan
+    tail = sum(math.comb(n, i) for i in range(min(baseline_better, method_better) + 1)) / (2**n)
+    return round(min(1.0, 2.0 * tail), 6)
+
+
 def read_rows(prefix: str, methods: tuple[str, ...] = METHOD_NAMES) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for method in methods:
@@ -124,6 +134,35 @@ def aggregate(rows: list[dict[str, Any]], methods: tuple[str, ...] = METHOD_NAME
     return result
 
 
+def aggregate_by_bot_race(
+    rows: list[dict[str, Any]], methods: tuple[str, ...] = METHOD_NAMES
+) -> dict[str, dict[str, Any]]:
+    race_name = {"P": "protoss", "T": "terran", "Z": "zerg"}
+    result: dict[str, dict[str, Any]] = {}
+    for method in methods:
+        result[method] = {}
+        for prefix, race in race_name.items():
+            group = [
+                row
+                for row in rows
+                if row["method"] == method
+                and not row["watchdog_recovery"]
+                and str(row.get("skill_id") or "").startswith(prefix)
+            ]
+            result[method][race] = {
+                "n": len(group),
+                "results": dict(Counter(row["result"] for row in group)),
+                "outcome_score": mean([float(row["outcome_score"]) for row in group]),
+                "mean_rur_consume_per_min": mean(
+                    [float(row["rur_consume_per_min"]) for row in group]
+                ),
+                "mean_rur_float_avg_bank": mean(
+                    [float(row["rur_float_avg_bank"]) for row in group]
+                ),
+            }
+    return result
+
+
 def paired(
     rows: list[dict[str, Any]],
     methods: tuple[str, ...] = METHOD_NAMES,
@@ -143,10 +182,19 @@ def paired(
         if method == baseline:
             continue
         keys = sorted(set(full) & set(by_method[method]))
+        baseline_better = sum(
+            full[key]["outcome_score"] > by_method[method][key]["outcome_score"] for key in keys
+        )
+        method_better = sum(
+            full[key]["outcome_score"] < by_method[method][key]["outcome_score"] for key in keys
+        )
         comparisons[method] = {
             "paired_n": len(keys),
             "baseline_minus_method_outcome": mean(
                 [full[key]["outcome_score"] - by_method[method][key]["outcome_score"] for key in keys]
+            ),
+            "method_minus_baseline_outcome": mean(
+                [by_method[method][key]["outcome_score"] - full[key]["outcome_score"] for key in keys]
             ),
             "baseline_minus_method_consume": mean(
                 [full[key]["rur_consume_per_min"] - by_method[method][key]["rur_consume_per_min"] for key in keys]
@@ -154,14 +202,13 @@ def paired(
             "method_minus_baseline_bank": mean(
                 [by_method[method][key]["rur_float_avg_bank"] - full[key]["rur_float_avg_bank"] for key in keys]
             ),
-            "baseline_better_outcome": sum(
-                full[key]["outcome_score"] > by_method[method][key]["outcome_score"] for key in keys
-            ),
+            "baseline_better_outcome": baseline_better,
             "same_outcome": sum(
                 full[key]["outcome_score"] == by_method[method][key]["outcome_score"] for key in keys
             ),
-            "method_better_outcome": sum(
-                full[key]["outcome_score"] < by_method[method][key]["outcome_score"] for key in keys
+            "method_better_outcome": method_better,
+            "outcome_sign_test_p_two_sided": exact_two_sided_sign_p(
+                baseline_better, method_better
             ),
         }
     return comparisons
@@ -187,6 +234,7 @@ def main() -> int:
         "baseline": args.baseline,
         "rows": rows,
         "aggregate": aggregate(rows, methods),
+        "aggregate_by_bot_race": aggregate_by_bot_race(rows, methods),
         "paired": paired(rows, methods, args.baseline),
     }
     text = json.dumps(report, ensure_ascii=False, indent=2)

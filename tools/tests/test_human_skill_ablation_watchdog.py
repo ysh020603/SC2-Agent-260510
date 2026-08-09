@@ -59,3 +59,4 @@ def test_analyzer_supports_selected_methods_and_non_full_baseline():
     comparison = module.paired([], methods, "positive_only")
     assert tuple(comparison) == ("full_v2",)
     assert comparison["full_v2"]["paired_n"] == 0
+    assert module.exact_two_sided_sign_p(1, 9) == 0.021484
