@@ -15,6 +15,7 @@ from pathlib import Path
 import mpyq
 import portpicker
 from aiohttp import ClientSession, ClientWebSocketResponse
+from aiohttp.client_exceptions import ClientConnectionError
 from loguru import logger
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
@@ -426,7 +427,7 @@ async def _host_game(
         if client.save_replay_path is not None:
             try:
                 await client.save_replay(client.save_replay_path)
-            except ConnectionAlreadyClosedError:
+            except (ConnectionAlreadyClosedError, ClientConnectionError):
                 logger.error("Connection closed before replay could be saved")
         try:
             await client.leave()
