@@ -44,6 +44,22 @@ def read_rows(prefix: str) -> list[dict[str, Any]]:
                 for item in calls
                 if item.get("event") == "sc2_protocol_watchdog_recovery"
             ]
+            try:
+                match_log = (match_path.parent / "match.log").read_text(
+                    encoding="utf-8", errors="replace"
+                )
+            except OSError:
+                match_log = ""
+            if (
+                not watchdog_events
+                and (
+                    "SC2 protocol response timed out" in match_log
+                    or "Recovered stalled SC2 protocol request" in match_log
+                )
+            ):
+                watchdog_events.append(
+                    {"event": "sc2_protocol_watchdog_recovery", "source": "match.log"}
+                )
             model_calls = [item for item in calls if item not in watchdog_events]
             metrics = metadata.get("macro_metrics") or {}
             rows.append(

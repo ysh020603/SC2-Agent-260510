@@ -64,6 +64,15 @@ def _method_for_trace(trace: dict) -> str:
 
 
 def record_has_watchdog(record_dir: Path) -> bool:
+    try:
+        match_log = (record_dir / "match.log").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        match_log = ""
+    if (
+        "SC2 protocol response timed out" in match_log
+        or "Recovered stalled SC2 protocol request" in match_log
+    ):
+        return True
     for calls_path in record_dir.glob("*.llm_calls.json"):
         try:
             payload = json.loads(calls_path.read_text(encoding="utf-8"))
