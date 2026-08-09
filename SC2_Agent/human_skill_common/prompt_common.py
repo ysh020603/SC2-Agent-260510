@@ -63,6 +63,9 @@ Inspect resource bank, income, free supply, current/ideal workers, army supply,
 production capacity, prerequisites, and active queues. Avoid supply blocks,
 keep worker growth sensible, spend persistent banks through usable production,
 and keep the queue focused on work safe before the next decision.
+If the queue contains gas-cost units, structures, or upgrades and current gas
+plus gas income cannot fund them, include your race's gas structure before the
+first gas-cost action unless an own gas structure is completed or in progress.
 
 [6. Observation Field Guide]
 {OBSERVATION_FIELD_GUIDE}
@@ -104,6 +107,9 @@ the JSON object. Keep the queue compact, normally no more than 20 names.
 
 [14. Skill Read Protocol]
 {final_instruction}
+Before the first FINAL_DECISION of a match, READ_SKILL exactly one node whose
+trigger best matches the live observation. Later reads are optional and should
+only fetch a newly relevant node; previously read nodes remain in match memory.
 READ_SKILL: {{"type":"read_skill","node_id":"N001"}}
 FINAL_DECISION: {{"type":"decision","reason":"1-3 sentence public explanation","ordered_names":["Pylon"]}}
 Output exactly one JSON object with exactly the fields shown for its type.

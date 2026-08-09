@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import re
 from typing import Any, Callable, Dict, List, Optional
 
 from API_Tools.llm_caller import call_openai_detailed
+from SC2_Agent.data_tools import (
+    action_candidates_for_entity,
+    cost_for_action,
+    race_mechanics,
+)
 
 from .navigator import SkillNavigator
 from .prompt_common import build_human_skill_messages
@@ -85,6 +91,61 @@ class HumanSkillAgent:
     def reset_match(self) -> None:
         self.memory = MatchSkillMemory(skill_id=self.skill.skill_id, method=self.skill.method)
 
+    @staticmethod
+    def _planned_gas_cost(race: str, ordered_names: List[str]) -> tuple[int, Optional[int]]:
+        """Return total gas cost and the first gas-consuming queue position."""
+        total = 0
+        first: Optional[int] = None
+        for index, name in enumerate(ordered_names):
+            try:
+                candidates = action_candidates_for_entity(race, name)
+                info = cost_for_action(candidates[0].ability_name) if candidates else {}
+                gas = int(((info.get("cost") or {}).get("gas") or 0))
+            except Exception:
+                gas = 0
+            if gas > 0:
+                total += gas
+                if first is None:
+                    first = index
+        return total, first
+
+    @classmethod
+    def _queue_resource_error(
+        cls,
+        *,
+        race: str,
+        obs_text: str,
+        ordered_names: List[str],
+    ) -> str:
+        """Reject an impossible gas queue so the LLM can repair its own decision."""
+        planned_gas, first_gas_action = cls._planned_gas_cost(race, ordered_names)
+        if not planned_gas or first_gas_action is None:
+            return ""
+        bank_match = re.search(r"\b([0-9]+)\s+vespene\b", obs_text, re.IGNORECASE)
+        gas_income_match = re.search(r"\b([0-9]+(?:\.[0-9]+)?)\s+gas/min\b", obs_text, re.IGNORECASE)
+        if bank_match is None or gas_income_match is None:
+            return ""
+        current_gas = int(bank_match.group(1)) if bank_match else 0
+        gas_income = float(gas_income_match.group(1)) if gas_income_match else 0.0
+        if current_gas >= planned_gas or gas_income > 0:
+            return ""
+        mechanics = race_mechanics(race)
+        gas_structure = mechanics.gas_structure
+        own_section = obs_text.split("[Enemy Intelligence]", 1)[0]
+        own_has_gas_structure = gas_structure.upper() in own_section.upper()
+        queued_positions = [
+            index for index, name in enumerate(ordered_names) if name == gas_structure
+        ]
+        queued_before = bool(queued_positions and queued_positions[0] < first_gas_action)
+        if own_has_gas_structure or queued_before:
+            return ""
+        return (
+            "FINAL_DECISION rejected: the queue needs "
+            f"{planned_gas} gas but current gas/income is {current_gas}/{gas_income:g} and "
+            f"no own {gas_structure} is active. Include {gas_structure} before the first "
+            "gas-consuming action, then return the complete replacement queue."
+        )
+
     def decide(
         self,
         *,
@@ -149,6 +210,41 @@ class HumanSkillAgent:
                 }
             )
             if parsed.decision is not None:
+                if not self.memory.visited_node_ids and self.skill.nodes:
+                    feedback = (
+                        "FINAL_DECISION rejected: before the first decision of this match, "
+                        "request READ_SKILL for the single node whose trigger best matches "
+                        "the live observation."
+                    )
+                    rounds.append(
+                        AgentRound(
+                            round=round_number,
+                            type="invalid",
+                            error=feedback,
+                            model_key=self.model_key,
+                            model=str(result.get("model") or ""),
+                            token_usage=self._usage(result),
+                        )
+                    )
+                    return False
+                resource_error = self._queue_resource_error(
+                    race=race,
+                    obs_text=obs_text,
+                    ordered_names=parsed.decision.ordered_names,
+                )
+                if resource_error:
+                    feedback = resource_error
+                    rounds.append(
+                        AgentRound(
+                            round=round_number,
+                            type="invalid",
+                            error=feedback,
+                            model_key=self.model_key,
+                            model=str(result.get("model") or ""),
+                            token_usage=self._usage(result),
+                        )
+                    )
+                    return False
                 decision = parsed.decision
                 rounds.append(
                     AgentRound(

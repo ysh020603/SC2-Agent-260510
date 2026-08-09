@@ -104,3 +104,42 @@ def test_invalid_responses_keep_old_queue_semantics(fixture_skill_root, api_conf
     assert result.decision is None
     assert result.error == "invalid_response_keep_old_queue"
     assert len(result.llm_calls) == 5
+
+
+def test_first_match_decision_must_read_skill_node(fixture_skill_root, api_config):
+    agent = _agent(
+        fixture_skill_root,
+        api_config,
+        [
+            '{"type":"decision","reason":"too early","ordered_names":["Pylon"]}',
+            '{"type":"read_skill","node_id":"N001"}',
+            '{"type":"decision","reason":"grounded","ordered_names":["Pylon"]}',
+        ],
+    )
+    result = agent.decide(**_kwargs())
+    assert [item.type for item in result.rounds] == ["invalid", "read_skill", "decision"]
+    assert result.skill_reads_this_cycle == ["N001"]
+    assert result.decision.reason == "grounded"
+
+
+def test_gas_cost_queue_is_repaired_by_llm_before_acceptance(fixture_skill_root, api_config):
+    agent = _agent(
+        fixture_skill_root,
+        api_config,
+        [
+            '{"type":"read_skill","node_id":"N001"}',
+            '{"type":"decision","reason":"tech","ordered_names":["Stalker"]}',
+            '{"type":"decision","reason":"fund tech","ordered_names":["Assimilator","Stalker"]}',
+        ],
+    )
+    kwargs = _kwargs()
+    kwargs["obs_text"] = (
+        "[Economy] 400 minerals, 0 vespene; income 900 mins/min, 0 gas/min.\n"
+        "[Own Forces & Infrastructure]\nCompleted: 1 GATEWAY, 1 CYBERNETICSCORE.\n"
+        "[Enemy Intelligence] 1 ASSIMILATOR."
+    )
+    kwargs["canonical_unit_names"] = ["Assimilator", "Pylon", "Stalker"]
+    result = agent.decide(**kwargs)
+    assert [item.type for item in result.rounds] == ["read_skill", "invalid", "decision"]
+    assert "no own Assimilator" in result.rounds[1].error
+    assert result.decision.ordered_names == ["Assimilator", "Stalker"]
