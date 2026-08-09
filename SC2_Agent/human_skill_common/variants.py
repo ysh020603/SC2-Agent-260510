@@ -18,6 +18,9 @@ class VariantSpec:
 
 VARIANTS = {
     "human-skill-full": VariantSpec("human-skill-full", "SC2_Agent.human_skill_full", "full_signed_graph"),
+    "human-skill-full-v2": VariantSpec(
+        "human-skill-full-v2", "SC2_Agent.human_skill_full_v2", "full_guarded_graph_v2"
+    ),
     "human-skill-single-trace": VariantSpec(
         "human-skill-single-trace", "SC2_Agent.human_skill_single_trace", "ablation_single_trace"
     ),

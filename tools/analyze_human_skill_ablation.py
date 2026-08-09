@@ -12,7 +12,15 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-METHOD_NAMES = ("full", "single_trace", "flat_adaptive", "positive_only")
+METHOD_NAMES = (
+    "full",
+    "full_v2",
+    "single_trace",
+    "static_population",
+    "flat_adaptive",
+    "positive_only",
+    "frequency_only",
+)
 OUTCOME_SCORE = {"Victory": 1.0, "Tie": 0.5, "Defeat": 0.0}
 
 
@@ -20,9 +28,9 @@ def mean(values: list[float]) -> float:
     return round(statistics.fmean(values), 4) if values else math.nan
 
 
-def read_rows(prefix: str) -> list[dict[str, Any]]:
+def read_rows(prefix: str, methods: tuple[str, ...] = METHOD_NAMES) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for method in METHOD_NAMES:
+    for method in methods:
         batch_dir = ROOT / "game_records" / f"{prefix}_{method}"
         for match_path in sorted(batch_dir.glob("*/match.json")):
             try:
@@ -55,6 +63,8 @@ def read_rows(prefix: str) -> list[dict[str, Any]]:
                 and (
                     "SC2 protocol response timed out" in match_log
                     or "Recovered stalled SC2 protocol request" in match_log
+                    or "SC2 client process exited" in match_log
+                    or "AI iteration timed out" in match_log
                 )
             ):
                 watchdog_events.append(
@@ -91,9 +101,9 @@ def read_rows(prefix: str) -> list[dict[str, Any]]:
     return rows
 
 
-def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def aggregate(rows: list[dict[str, Any]], methods: tuple[str, ...] = METHOD_NAMES) -> dict[str, Any]:
     result: dict[str, Any] = {}
-    for method in METHOD_NAMES:
+    for method in methods:
         all_group = [row for row in rows if row["method"] == method]
         group = [row for row in all_group if not row["watchdog_recovery"]]
         result[method] = {
@@ -114,37 +124,43 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return result
 
 
-def paired(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def paired(
+    rows: list[dict[str, Any]],
+    methods: tuple[str, ...] = METHOD_NAMES,
+    baseline: str = "full",
+) -> dict[str, Any]:
     by_method = {
         method: {
             row["skill_id"]: row
             for row in rows
             if row["method"] == method and not row["watchdog_recovery"]
         }
-        for method in METHOD_NAMES
+        for method in methods
     }
     comparisons: dict[str, Any] = {}
-    full = by_method["full"]
-    for method in METHOD_NAMES[1:]:
+    full = by_method[baseline]
+    for method in methods:
+        if method == baseline:
+            continue
         keys = sorted(set(full) & set(by_method[method]))
         comparisons[method] = {
             "paired_n": len(keys),
-            "full_minus_ablation_outcome": mean(
+            "baseline_minus_method_outcome": mean(
                 [full[key]["outcome_score"] - by_method[method][key]["outcome_score"] for key in keys]
             ),
-            "full_minus_ablation_consume": mean(
+            "baseline_minus_method_consume": mean(
                 [full[key]["rur_consume_per_min"] - by_method[method][key]["rur_consume_per_min"] for key in keys]
             ),
-            "ablation_minus_full_bank": mean(
+            "method_minus_baseline_bank": mean(
                 [by_method[method][key]["rur_float_avg_bank"] - full[key]["rur_float_avg_bank"] for key in keys]
             ),
-            "full_better_outcome": sum(
+            "baseline_better_outcome": sum(
                 full[key]["outcome_score"] > by_method[method][key]["outcome_score"] for key in keys
             ),
             "same_outcome": sum(
                 full[key]["outcome_score"] == by_method[method][key]["outcome_score"] for key in keys
             ),
-            "ablation_better_outcome": sum(
+            "method_better_outcome": sum(
                 full[key]["outcome_score"] < by_method[method][key]["outcome_score"] for key in keys
             ),
         }
@@ -155,9 +171,24 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch-prefix", required=True)
     parser.add_argument("--output", default="")
+    parser.add_argument("--methods", default=",".join(METHOD_NAMES))
+    parser.add_argument("--baseline", default="full")
     args = parser.parse_args()
-    rows = read_rows(args.batch_prefix)
-    report = {"batch_prefix": args.batch_prefix, "rows": rows, "aggregate": aggregate(rows), "paired": paired(rows)}
+    methods = tuple(item.strip() for item in args.methods.split(",") if item.strip())
+    unknown = set(methods) - set(METHOD_NAMES)
+    if not methods or unknown:
+        raise ValueError(f"unknown/empty methods selection: {sorted(unknown)}")
+    if args.baseline not in methods:
+        raise ValueError("baseline must be included in --methods")
+    rows = read_rows(args.batch_prefix, methods)
+    report = {
+        "batch_prefix": args.batch_prefix,
+        "methods": list(methods),
+        "baseline": args.baseline,
+        "rows": rows,
+        "aggregate": aggregate(rows, methods),
+        "paired": paired(rows, methods, args.baseline),
+    }
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.output:
         Path(args.output).write_text(text, encoding="utf-8")

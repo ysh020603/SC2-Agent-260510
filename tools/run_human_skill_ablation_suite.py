@@ -24,9 +24,12 @@ PYTHON = Path("/home/wyq/miniconda3/envs/SC2_0615/bin/python")
 
 METHODS = {
     "full": "human-skill-full",
+    "full_v2": "human-skill-full-v2",
     "single_trace": "human-skill-single-trace",
+    "static_population": "human-skill-static-population",
     "flat_adaptive": "human-skill-flat-adaptive",
     "positive_only": "human-skill-positive-only",
+    "frequency_only": "human-skill-frequency-only",
 }
 
 
@@ -71,6 +74,8 @@ def record_has_watchdog(record_dir: Path) -> bool:
     if (
         "SC2 protocol response timed out" in match_log
         or "Recovered stalled SC2 protocol request" in match_log
+        or "SC2 client process exited" in match_log
+        or "AI iteration timed out" in match_log
     ):
         return True
     for calls_path in record_dir.glob("*.llm_calls.json"):
@@ -139,11 +144,25 @@ def selected_indices(value: str) -> set[int]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--phase", choices=("full", "ablations", "all"), default="full")
+    parser.add_argument(
+        "--method",
+        choices=tuple(METHODS),
+        default=None,
+        help="Run only one method; useful for synchronized per-ablation batches.",
+    )
     parser.add_argument("--difficulty", default="mediumhard")
     parser.add_argument("--map-name", default="KairosJunctionLE")
     parser.add_argument("--game-time-limit", type=int, default=1200)
     parser.add_argument("--decision-interval", type=float, default=60.0)
-    parser.add_argument("--concurrency", type=int, default=5)
+    parser.add_argument("--concurrency", type=int, default=3)
+    parser.add_argument(
+        "--retry-concurrency",
+        type=int,
+        default=2,
+        help="Lower-concurrency retry pool used after watchdog/client failures.",
+    )
+    parser.add_argument("--max-attempts", type=int, default=3)
+    parser.add_argument("--retry-backoff", type=float, default=15.0)
     parser.add_argument("--wall-timeout", type=int, default=3000)
     parser.add_argument("--protocol-response-timeout", type=float, default=90.0)
     parser.add_argument("--ai-step-timeout", type=float, default=180.0)
@@ -153,8 +172,10 @@ def main() -> int:
     parser.add_argument("--model", default="DeepSeek-V4-flash")
     parser.add_argument("--indices", default="0-14")
     args = parser.parse_args()
-    if args.concurrency < 1:
-        raise ValueError("concurrency must be positive")
+    if args.concurrency < 1 or args.retry_concurrency < 1:
+        raise ValueError("concurrency values must be positive")
+    if args.max_attempts < 1 or args.retry_backoff < 0:
+        raise ValueError("retry controls are invalid")
     if Path(args.manifest_name).name != args.manifest_name or not args.manifest_name.endswith(".json"):
         raise ValueError("manifest-name must be a plain .json file name")
     if (
@@ -166,6 +187,8 @@ def main() -> int:
         raise ValueError("timeouts must be positive")
 
     methods = list(selected_methods(args.phase))
+    if args.method is not None:
+        methods = [(args.method, METHODS[args.method])]
     indices = selected_indices(args.indices)
     conditions = tuple(item for item in CONDITIONS if item.index in indices)
     state_root = ROOT / "game_records" / "_human_skill_ablation"
@@ -174,17 +197,23 @@ def main() -> int:
     manifest_path = log_root / args.manifest_name
     manifest_lock = threading.Lock()
     manifest = {
-        "schema_version": 2,
+        "schema_version": 3,
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "phase": args.phase,
         "difficulty": args.difficulty,
         "map_name": args.map_name,
         "game_time_limit": args.game_time_limit,
         "decision_interval": args.decision_interval,
+        "concurrency": args.concurrency,
         "wall_timeout": args.wall_timeout,
         "protocol_response_timeout": args.protocol_response_timeout,
         "ai_step_timeout": args.ai_step_timeout,
         "launch_stagger": args.launch_stagger,
+        "retry_concurrency": args.retry_concurrency,
+        "max_attempts": args.max_attempts,
+        "retry_backoff": args.retry_backoff,
+        "runtime_failure_policy": "exclude_invalid_artifact_and_retry_at_lower_concurrency",
+        "global_wineserver_kill_allowed": False,
         "model": args.model,
         "conditions": [asdict(item) for item in conditions],
         "methods": dict(methods),
@@ -213,7 +242,7 @@ def main() -> int:
     launch_lock = threading.Lock()
     last_launch = [0.0]
 
-    def run_job(job: tuple[str, str, Condition, str, Path]) -> dict:
+    def run_job(job: tuple[str, str, Condition, str, Path], attempt: int) -> dict:
         method_name, agent, condition, batch_name, log_path = job
         with launch_lock:
             delay = args.launch_stagger - (time.monotonic() - last_launch[0])
@@ -263,42 +292,92 @@ def main() -> int:
                 "SC2_STARTUP_TIMEOUT": "240",
                 "SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS": str(args.protocol_response_timeout),
                 "SC2_AI_STEP_TIMEOUT_SECONDS": str(args.ai_step_timeout),
+                "SC2_ALLOW_GLOBAL_WINESERVER_KILL": "0",
                 "PYTHONUNBUFFERED": "1",
             }
         )
         started = time.time()
-        with log_path.open("w", encoding="utf-8") as log:
+        attempt_log_path = log_path.with_suffix(f".attempt{attempt}.log")
+        with attempt_log_path.open("w", encoding="utf-8") as log:
             process = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
         artifact_complete = condition.skill_id in completed_skill_ids(ROOT / "game_records" / batch_name)
+        complete = process.returncode == 0 and artifact_complete
         return {
             "method": method_name,
             "agent": agent,
             "condition": asdict(condition),
             "batch_name": batch_name,
-            "log_path": str(log_path.relative_to(ROOT)),
-            "status": "complete" if process.returncode == 0 and artifact_complete else "failed",
+            "attempt": attempt,
+            "log_path": str(attempt_log_path.relative_to(ROOT)),
+            "status": "complete" if complete else "retryable_failure",
             "returncode": process.returncode,
             "artifact_complete": artifact_complete,
+            "failure_reason": (
+                "" if complete else "nonzero_exit" if process.returncode else "invalid_or_watchdog_artifact"
+            ),
             "wall_seconds": round(time.time() - started, 2),
         }
 
-    failures = 0
-    with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
-        futures = {pool.submit(run_job, job): job for job in jobs}
-        for future in as_completed(futures):
-            result = future.result()
-            failures += int(result["status"] != "complete")
-            with manifest_lock:
-                manifest["jobs"].append(result)
-                save_manifest()
+    pending = list(jobs)
+    attempt_failure_count = 0
+    for attempt in range(1, args.max_attempts + 1):
+        if not pending:
+            break
+        if attempt > 1 and args.retry_backoff:
             print(
-                f"[{len(manifest['jobs'])}/{len(jobs)}] {result['method']} "
-                f"{result['condition']['skill_id']} {result['status']} "
-                f"wall={result['wall_seconds']}s",
+                f"retry wave {attempt}/{args.max_attempts} pending={len(pending)} "
+                f"backoff={args.retry_backoff}s",
                 flush=True,
             )
+            time.sleep(args.retry_backoff)
+        workers = args.concurrency if attempt == 1 else args.retry_concurrency
+        workers = min(workers, len(pending))
+        next_pending: list[tuple[str, str, Condition, str, Path]] = []
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {pool.submit(run_job, job, attempt): job for job in pending}
+            for future in as_completed(futures):
+                job = futures[future]
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    method_name, agent, condition, batch_name, log_path = job
+                    result = {
+                        "method": method_name,
+                        "agent": agent,
+                        "condition": asdict(condition),
+                        "batch_name": batch_name,
+                        "attempt": attempt,
+                        "log_path": str(log_path.relative_to(ROOT)),
+                        "status": "retryable_failure",
+                        "returncode": None,
+                        "artifact_complete": False,
+                        "failure_reason": f"runner_exception:{exc!r}",
+                        "wall_seconds": 0.0,
+                    }
+                if result["status"] != "complete":
+                    attempt_failure_count += 1
+                    next_pending.append(job)
+                with manifest_lock:
+                    manifest["jobs"].append(result)
+                    save_manifest()
+                print(
+                    f"[attempt {attempt}] {result['method']} "
+                    f"{result['condition']['skill_id']} {result['status']} "
+                    f"wall={result['wall_seconds']}s",
+                    flush=True,
+                )
+        pending = next_pending
+
+    failures = len(pending)
+    if failures:
+        failed_keys = {
+            f"{method_name}:{condition.skill_id}"
+            for method_name, _agent, condition, _batch_name, _log_path in pending
+        }
+        manifest["terminal_failures"] = sorted(failed_keys)
     manifest["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     manifest["failure_count"] = failures
+    manifest["attempt_failure_count"] = attempt_failure_count
     save_manifest()
     print(f"suite complete failures={failures} manifest={manifest_path}", flush=True)
     return 1 if failures else 0

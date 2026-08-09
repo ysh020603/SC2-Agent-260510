@@ -30,19 +30,44 @@ class ProtocolResponseTimeoutError(ProtocolError):
     pass
 
 
+class SC2ProcessExitedError(ConnectionAlreadyClosedError):
+    """The websocket failed because the owned SC2 client process exited."""
+
+    pass
+
+
 class Protocol:
-    def __init__(self, ws: ClientWebSocketResponse) -> None:
+    def __init__(self, ws: ClientWebSocketResponse, process=None) -> None:
         """
         A class for communicating with an SCII application.
         :param ws: the websocket (type: aiohttp.ClientWebSocketResponse) used to communicate with a specific SCII app
         """
         assert ws
         self._ws: ClientWebSocketResponse = ws
+        self._sc2_process = process
         # pyre-fixme[11]
         self._status: Status | None = None
 
+    def _process_diagnostics(self):
+        process = self._sc2_process
+        if process is None or not hasattr(process, "diagnostic_snapshot"):
+            return None
+        try:
+            return process.diagnostic_snapshot()
+        except Exception as exc:  # Diagnostics must never mask the protocol error.
+            return {"diagnostic_error": repr(exc)}
+
+    def _raise_if_process_exited(self) -> None:
+        diagnostics = self._process_diagnostics()
+        if diagnostics is not None and diagnostics.get("returncode") is not None:
+            logger.error("SC2 client process exited: {}", diagnostics)
+            raise SC2ProcessExitedError(
+                f"SC2 client process exited: {diagnostics}"
+            )
+
     async def __request(self, request):
         logger.debug(f"Sending request: {request!r}")
+        self._raise_if_process_exited()
         try:
             await self._ws.send_bytes(request.SerializeToString())
         except TypeError as exc:
@@ -65,16 +90,31 @@ class Protocol:
                     self._ws.receive_bytes(), timeout=timeout_seconds
                 )
         except asyncio.TimeoutError as exc:
+            diagnostics = self._process_diagnostics()
+            if diagnostics is not None and diagnostics.get("returncode") is not None:
+                logger.error("SC2 client exited while awaiting response: {}", diagnostics)
+                raise SC2ProcessExitedError(
+                    f"SC2 client exited while awaiting response: {diagnostics}"
+                ) from exc
             logger.error(
-                "SC2 protocol response timed out after %.1f seconds", timeout_seconds
+                "SC2 protocol response timed out after {:.1f} seconds; process={}",
+                timeout_seconds,
+                diagnostics,
             )
             raise ProtocolResponseTimeoutError(
-                f"SC2 protocol response timed out after {timeout_seconds:.1f} seconds"
+                f"SC2 protocol response timed out after {timeout_seconds:.1f} seconds; "
+                f"process={diagnostics}"
             ) from exc
         except TypeError as exc:
             if self._status == Status.ended:
                 logger.info("Cannot receive: Game has already ended.")
                 raise ConnectionAlreadyClosedError("Game has already ended") from exc
+            diagnostics = self._process_diagnostics()
+            if diagnostics is not None and diagnostics.get("returncode") is not None:
+                logger.error("SC2 client connection closed after process exit: {}", diagnostics)
+                raise SC2ProcessExitedError(
+                    f"SC2 client connection closed after process exit: {diagnostics}"
+                ) from exc
             logger.error("Cannot receive: Connection already closed.")
             raise ConnectionAlreadyClosedError("Connection already closed.") from exc
         except asyncio.CancelledError:

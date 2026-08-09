@@ -26,6 +26,36 @@ from sc2.paths import Paths
 from sc2.versions import VERSIONS
 
 
+def allow_global_wineserver_kill() -> bool:
+    """Whether cleanup may terminate every Wine client owned by this user.
+
+    This is deliberately opt-in.  ``wineserver -k`` is process-global, not
+    match-local, and used to cascade one match cleanup into SIGTERM for every
+    concurrent SC2 experiment.
+    """
+
+    return os.environ.get("SC2_ALLOW_GLOBAL_WINESERVER_KILL", "").strip() == "1"
+
+
+def terminate_owned_process(process: subprocess.Popen, timeout_seconds: float = 10.0) -> bool:
+    """Terminate only the SC2 process owned by this match.
+
+    Returns true when termination was requested.  A stuck process is escalated
+    to ``kill`` after a bounded wait; no process-name or Wine-global operation
+    is used.
+    """
+
+    if process.poll() is not None:
+        return False
+    process.terminate()
+    try:
+        process.wait(timeout=max(0.1, float(timeout_seconds)))
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+    return True
+
+
 class KillSwitch:
     _to_kill: list[Any] = []
 
@@ -92,6 +122,8 @@ class SC2Process:
         self._used_portpicker = bool(port is None)
         self._tmp_dir = tempfile.mkdtemp(prefix="SC2_")
         self._process: subprocess.Popen | None = None
+        self._stderr_path = Path(self._tmp_dir) / "SC2.stderr.log"
+        self._stderr_handle = None
         self._session = None
         self._ws = None
         self._sc2_version = sc2_version
@@ -207,13 +239,39 @@ class SC2Process:
         if paths.PF in {"WSL1", "WSL2"}:
             return wsl.run(args, sc2_cwd)
 
+        # Keep the client diagnostics until cleanup.  The previous DEVNULL
+        # redirection made mid-game client exits impossible to distinguish
+        # from a slow websocket response.
+        self._stderr_handle = self._stderr_path.open("wb")
         return subprocess.Popen(
             args,
             cwd=sc2_cwd,
-            # Suppress Wine error messages
-            stderr=subprocess.DEVNULL,
+            stderr=self._stderr_handle,
             # , env=run_config.env
         )
+
+    def diagnostic_snapshot(self, tail_bytes: int = 8192) -> dict[str, Any]:
+        """Return bounded process diagnostics safe to copy into match logs."""
+
+        return_code = self._process.poll() if self._process is not None else None
+        stderr_tail = ""
+        try:
+            if self._stderr_handle is not None:
+                self._stderr_handle.flush()
+            if self._stderr_path.is_file():
+                with self._stderr_path.open("rb") as handle:
+                    handle.seek(0, os.SEEK_END)
+                    size = handle.tell()
+                    handle.seek(max(0, size - max(1, int(tail_bytes))))
+                    stderr_tail = handle.read().decode("utf-8", errors="replace")
+        except OSError as exc:
+            stderr_tail = f"<stderr unavailable: {exc}>"
+        return {
+            "pid": self._process.pid if self._process is not None else None,
+            "port": self._port,
+            "returncode": return_code,
+            "stderr_tail": stderr_tail[-tail_bytes:],
+        }
 
     async def _connect(self) -> ClientWebSocketResponse:
         # How long to wait for SC2 to publish its websocket endpoint.  Keep
@@ -278,6 +336,7 @@ class SC2Process:
 
         if self._process is not None:
             assert isinstance(self._process, subprocess.Popen)
+            diagnostics = self.diagnostic_snapshot()
             if paths.PF in {"WSL1", "WSL2"}:
                 if wsl.kill(self._process):
                     logger.error("KILLED")
@@ -287,15 +346,27 @@ class SC2Process:
                     time.sleep(0.5)
                     if not self._process or self._process.poll() is not None:
                         break
+                if self._process.poll() is None:
+                    self._process.kill()
+                    self._process.wait()
             else:
-                self._process.kill()
-                self._process.wait()
-                logger.error("KILLED")
-            # Try to kill wineserver on linux
-            if paths.PF in {"Linux", "WineLinux"}:
-                # Command wineserver not detected
+                if diagnostics["returncode"] not in {None, 0}:
+                    logger.error("SC2 process exited unexpectedly: {}", diagnostics)
+                if terminate_owned_process(self._process):
+                    logger.info("Terminated owned SC2 process pid={}", self._process.pid)
+            # Never kill the user's global Wine server during ordinary match
+            # cleanup.  Concurrent SC2 clients share it, so doing so sends
+            # SIGTERM to unrelated matches.  Retain an explicit emergency
+            # escape hatch for isolated debugging only.
+            if paths.PF in {"Linux", "WineLinux"} and allow_global_wineserver_kill():
+                logger.warning("Opt-in global wineserver shutdown requested")
                 with suppress(FileNotFoundError), subprocess.Popen(["wineserver", "-k"]) as p:
                     p.wait()
+
+        if self._stderr_handle is not None:
+            with suppress(OSError):
+                self._stderr_handle.close()
+            self._stderr_handle = None
 
         if Path(self._tmp_dir).exists():
             shutil.rmtree(self._tmp_dir)

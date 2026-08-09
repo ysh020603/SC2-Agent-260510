@@ -27,11 +27,11 @@ from sc2.units import Units
 
 
 class Client(Protocol):
-    def __init__(self, ws, save_replay_path: str = None) -> None:
+    def __init__(self, ws, save_replay_path: str = None, process=None) -> None:
         """
         :param ws:
         """
-        super().__init__(ws)
+        super().__init__(ws, process=process)
         # How many frames will be waited between iterations before the next one is called
         self.game_step: int = 4
         self.save_replay_path: str | None = save_replay_path

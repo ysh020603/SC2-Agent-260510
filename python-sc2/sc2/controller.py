@@ -12,7 +12,7 @@ from sc2.protocol import Protocol
 
 class Controller(Protocol):
     def __init__(self, ws, process) -> None:
-        super().__init__(ws)
+        super().__init__(ws, process=process)
         self._process = process
 
     @property

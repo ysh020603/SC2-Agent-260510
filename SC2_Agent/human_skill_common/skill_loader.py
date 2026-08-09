@@ -18,6 +18,7 @@ from .validation import (
 _SAFE_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 _METHODS = {
     "full_signed_graph",
+    "full_guarded_graph_v2",
     "ablation_single_trace",
     "ablation_static_population",
     "ablation_flat_adaptive",

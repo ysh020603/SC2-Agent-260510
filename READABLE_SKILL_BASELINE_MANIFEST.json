@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "baseline_repo": "/data2/shy_2608/SC2trace2nl/SC2-Agent-knowlegde",
   "baseline_branch": "SC2-Agent-trace2skill",
   "baseline_commit": "d36994583665036d9a0d40bbc6a52bd0a80f2f72",
@@ -14,6 +14,7 @@
   "strategy_automation": {
     "profile": "universal_tactical_controller_v1",
     "shared_across_all_six_variants": true,
+    "shared_across_all_current_variants": true,
     "shared_across_all_races": true,
     "skill_specific_attack_thresholds": false,
     "config_file": "UNIVERSAL_TACTICS_V1_CONFIG.json",
@@ -21,10 +22,19 @@
   },
   "agent_variants": {
     "human-skill-full": "full_signed_graph",
+    "human-skill-full-v2": "full_guarded_graph_v2",
     "human-skill-single-trace": "ablation_single_trace",
     "human-skill-static-population": "ablation_static_population",
     "human-skill-flat-adaptive": "ablation_flat_adaptive",
     "human-skill-positive-only": "ablation_positive_only",
     "human-skill-frequency-only": "ablation_frequency_only"
+  },
+  "full_v2_design": {
+    "public_graph_base": "ablation_positive_only",
+    "private_counterevidence_source": "full_signed_graph",
+    "agent_visible_counterevidence_nodes": false,
+    "public_node_types": ["positive", "default"],
+    "annotation_model": "DeepSeek-V4-flash",
+    "annotation_model_is_reasoning": false
   }
 }

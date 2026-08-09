@@ -5,9 +5,9 @@ from SC2_Agent.human_skill_common.validation import HumanSkillValidationError, r
 from SC2_Agent.human_skill_common.variants import VARIANTS, load_variant_package
 
 
-def test_all_six_packages_are_pinned_and_load_fixture(fixture_skill_root, api_config):
+def test_all_packages_are_pinned_and_load_fixture(fixture_skill_root, api_config):
     loader = ReadableSkillLoader(str(fixture_skill_root))
-    assert len(VARIANTS) == 6
+    assert len(VARIANTS) == 7
     for name, spec in VARIANTS.items():
         loaded_spec, package, agent_class = load_variant_package(name)
         assert loaded_spec == spec

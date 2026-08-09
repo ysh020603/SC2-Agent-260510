@@ -31,6 +31,7 @@ from sc2.protocol import (
     ConnectionAlreadyClosedError,
     ProtocolError,
     ProtocolResponseTimeoutError,
+    SC2ProcessExitedError,
 )
 from sc2.proxy import Proxy
 from sc2.sc2process import KillSwitch, SC2Process
@@ -38,6 +39,12 @@ from sc2.sc2process import KillSwitch, SC2Process
 # Set the global logging level
 logger.remove()
 logger.add(sys.stdout, level="INFO")
+
+
+class AIIterationTimeoutError(RuntimeError):
+    """The bot decision step exceeded its explicit wall-clock budget."""
+
+    pass
 
 
 @dataclass
@@ -201,7 +208,7 @@ async def _play_game_ai(
             "last_game_time": round(float(gs.game_loop / 22.4), 2) if gs else None,
         }
         setattr(ai, "_sc2_protocol_watchdog", marker)
-        logger.error("Recovered stalled SC2 protocol request: %s", marker)
+        logger.error("Recovered stalled SC2 protocol request: {}", marker)
         await ai.on_end(recovered)
         return recovered
 
@@ -221,7 +228,9 @@ async def _play_game_ai(
         else:
             try:
                 state = await client.observation()
-            except (ProtocolResponseTimeoutError, ConnectionAlreadyClosedError):
+            except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
+                raise
+            except ConnectionAlreadyClosedError:
                 return await recover_from_protocol_timeout("observation")
 
         # check game result every time we get the observation
@@ -237,7 +246,9 @@ async def _play_game_ai(
             return Result.Tie
         try:
             proto_game_info = await client._execute(game_info=sc_pb.RequestGameInfo())
-        except (ProtocolResponseTimeoutError, ConnectionAlreadyClosedError):
+        except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
+            raise
+        except ConnectionAlreadyClosedError:
             return await recover_from_protocol_timeout("game_info")
         ai._prepare_step(gs, proto_game_info)
 
@@ -253,7 +264,14 @@ async def _play_game_ai(
             else:
                 await run_bot_iteration(iteration)
         except asyncio.TimeoutError:
-            return await recover_from_protocol_timeout("ai_iteration")
+            marker = {
+                "operation": "ai_iteration",
+                "timeout_seconds": ai_step_timeout,
+                "last_game_time": round(float(gs.game_loop / 22.4), 2) if gs else None,
+            }
+            setattr(ai, "_sc2_ai_iteration_timeout", marker)
+            logger.error("AI iteration timed out: {}", marker)
+            raise AIIterationTimeoutError(f"AI iteration timed out: {marker}")
 
         if not realtime:
             if not client.in_game:  # Client left (resigned) the game
@@ -265,7 +283,9 @@ async def _play_game_ai(
             # TODO: In bot vs bot, if the other bot ends the game, this bot gets stuck in requesting an observation when using main.py:run_multiple_games
             try:
                 await client.step()
-            except (ProtocolResponseTimeoutError, ConnectionAlreadyClosedError):
+            except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
+                raise
+            except ConnectionAlreadyClosedError:
                 return await recover_from_protocol_timeout("step")
     return Result.Undecided
 
@@ -392,7 +412,7 @@ async def _setup_host_game(
         logger.critical(err)
         raise RuntimeError(err)
 
-    return Client(server._ws, save_replay_as)
+    return Client(server._ws, save_replay_as, process=server._process)
 
 
 async def _host_game(
@@ -491,7 +511,7 @@ async def _join_game(
     async with SC2Process(fullscreen=players[1].fullscreen, sc2_version=sc2_version) as server:
         await server.ping()
 
-        client = Client(server._ws)
+        client = Client(server._ws, process=server._process)
         # Bot can decide if it wants to launch with 'raw_affects_selection=True'
         if not isinstance(players[1], Human) and getattr(players[1].ai, "raw_affects_selection", None) is not None:
             client.raw_affects_selection = players[1].ai.raw_affects_selection
@@ -510,7 +530,7 @@ async def _join_game(
 
 async def _setup_replay(server, replay_path, realtime, observed_id):
     await server.start_replay(replay_path, realtime, observed_id)
-    return Client(server._ws)
+    return Client(server._ws, process=server._process)
 
 
 async def _host_replay(replay_path, ai, realtime, _portconfig, base_build, data_version, observed_id):
