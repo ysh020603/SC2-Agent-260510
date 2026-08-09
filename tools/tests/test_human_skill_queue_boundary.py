@@ -168,3 +168,63 @@ def test_idle_production_overbuild_is_repaired_by_llm(fixture_skill_root, api_co
     assert [item.type for item in result.rounds] == ["read_skill", "invalid", "decision"]
     assert "already exist or are in progress" in result.rounds[1].error
     assert result.decision.ordered_names == ["Stalker", "Stalker"]
+
+
+def test_supply_provider_after_blocked_unit_is_reordered_by_llm(fixture_skill_root, api_config):
+    agent = _agent(
+        fixture_skill_root,
+        api_config,
+        [
+            '{"type":"read_skill","node_id":"N001"}',
+            '{"type":"decision","reason":"units first","ordered_names":["Stalker","Pylon"]}',
+            '{"type":"decision","reason":"supply first","ordered_names":["Pylon","Stalker"]}',
+        ],
+    )
+    kwargs = _kwargs()
+    kwargs["obs_text"] = (
+        "[Economy] 500 minerals, 200 vespene; income 900 mins/min, 300 gas/min. "
+        "Supply: 14/15 (workers 12/16 current/ideal, army 2).\n"
+        "[Own Forces & Infrastructure]\nCompleted: 1 GATEWAY, 1 CYBERNETICSCORE.\n"
+        "Under Construction: none.\nWorkers En Route: none.\nActive Queues: none.\n"
+        "[Enemy Intelligence] nothing scouted."
+    )
+    result = agent.decide(**kwargs)
+    assert [item.type for item in result.rounds] == ["read_skill", "invalid", "decision"]
+    assert "actions after a blocked unit are never reached" in result.rounds[1].error
+    assert result.decision.ordered_names == ["Pylon", "Stalker"]
+
+
+def test_zerg_larva_morph_supply_is_not_hidden_by_generic_morph_cost(fixture_skill_root, api_config):
+    agent = _agent(fixture_skill_root, api_config, [])
+    blocked = agent._queue_supply_error(
+        race="zerg",
+        obs_text="[Economy] Supply: 13/14 (workers 12, army 0).",
+        ordered_names=["Drone", "Drone", "Overlord"],
+    )
+    executable = agent._queue_supply_error(
+        race="zerg",
+        obs_text="[Economy] Supply: 13/14 (workers 12, army 0).",
+        ordered_names=["Overlord", "Drone", "Drone"],
+    )
+    assert "Move Overlord before Drone" in blocked
+    assert executable == ""
+
+
+def test_graph_agent_must_refresh_node_at_midgame_phase(fixture_skill_root, api_config):
+    agent = _agent(
+        fixture_skill_root,
+        api_config,
+        [
+            '{"type":"read_skill","node_id":"N001"}',
+            '{"type":"decision","reason":"early","ordered_names":[]}',
+            '{"type":"decision","reason":"stale","ordered_names":[]}',
+            '{"type":"read_skill","node_id":"N002"}',
+            '{"type":"decision","reason":"midgame grounded","ordered_names":[]}',
+        ],
+    )
+    agent.decide(**_kwargs(1))
+    result = agent.decide(**_kwargs(6))
+    assert [item.type for item in result.rounds] == ["invalid", "read_skill", "decision"]
+    assert "entered midgame" in result.rounds[0].error
+    assert result.skill_reads_this_cycle == ["N002"]
+    assert result.decision.reason == "midgame grounded"

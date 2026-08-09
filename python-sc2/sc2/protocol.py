@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from contextlib import suppress
 
@@ -20,6 +21,12 @@ class ProtocolError(Exception):
 
 
 class ConnectionAlreadyClosedError(ProtocolError):
+    pass
+
+
+class ProtocolResponseTimeoutError(ProtocolError):
+    """The SC2 websocket accepted a request but never returned a response."""
+
     pass
 
 
@@ -45,7 +52,25 @@ class Protocol:
 
         response = sc_pb.Response()
         try:
-            response_bytes = await self._ws.receive_bytes()
+            try:
+                timeout_seconds = float(
+                    os.environ.get("SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS", "90")
+                )
+            except (TypeError, ValueError):
+                timeout_seconds = 90.0
+            if timeout_seconds <= 0:
+                response_bytes = await self._ws.receive_bytes()
+            else:
+                response_bytes = await asyncio.wait_for(
+                    self._ws.receive_bytes(), timeout=timeout_seconds
+                )
+        except asyncio.TimeoutError as exc:
+            logger.error(
+                "SC2 protocol response timed out after %.1f seconds", timeout_seconds
+            )
+            raise ProtocolResponseTimeoutError(
+                f"SC2 protocol response timed out after {timeout_seconds:.1f} seconds"
+            ) from exc
         except TypeError as exc:
             if self._status == Status.ended:
                 logger.info("Cannot receive: Game has already ended.")

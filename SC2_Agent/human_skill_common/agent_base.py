@@ -12,6 +12,7 @@ from SC2_Agent.data_tools import (
     cost_for_action,
     race_mechanics,
 )
+from SC2_Agent.data_tools.sc2_data_common import build_entity_indexes, load_database
 
 from .navigator import SkillNavigator
 from .prompt_common import build_human_skill_messages
@@ -41,6 +42,7 @@ class HumanSkillAgent:
 
     MAX_SKILL_READS_PER_DECISION = 3
     MAX_AGENT_ROUNDS_PER_DECISION = 4
+    GRAPH_PHASE_START_SECONDS = (0.0, 360.0, 720.0)
 
     def __init__(
         self,
@@ -90,6 +92,36 @@ class HumanSkillAgent:
 
     def reset_match(self) -> None:
         self.memory = MatchSkillMemory(skill_id=self.skill.skill_id, method=self.skill.method)
+
+    def _graph_phase_refresh_error(self, game_time_seconds: float) -> str:
+        """Require graph-capable variants to actually navigate as the match evolves."""
+
+        if not self.allow_graph_navigation or len(self.skill.nodes) < 2:
+            return ""
+        phase_start = max(
+            threshold
+            for threshold in self.GRAPH_PHASE_START_SECONDS
+            if game_time_seconds >= threshold
+        )
+        if phase_start <= 0:
+            return ""
+        unread = [node_id for node_id in self.skill.nodes if node_id not in self.memory.visited_node_ids]
+        if not unread:
+            return ""
+        refreshed = any(
+            float(stats.get("first_read_game_time") or 0) >= phase_start
+            for stats in self.memory.read_stats.values()
+        )
+        if refreshed:
+            return ""
+        phase_name = "midgame" if phase_start == 360.0 else "late-game"
+        return (
+            f"FINAL_DECISION rejected: the match entered {phase_name} at "
+            f"{phase_start:g}s, but this graph agent has not refreshed its skill node for "
+            "the new phase. Request READ_SKILL for one unread node whose trigger best "
+            "matches the live economy, army, technology, and enemy cues, then decide from "
+            "that node."
+        )
 
     @staticmethod
     def _planned_gas_cost(race: str, ordered_names: List[str]) -> tuple[int, Optional[int]]:
@@ -225,6 +257,75 @@ class HumanSkillAgent:
                 )
         return ""
 
+    @staticmethod
+    def _queue_supply_error(
+        *,
+        race: str,
+        obs_text: str,
+        ordered_names: List[str],
+    ) -> str:
+        """Reject a sequential queue that blocks before reaching its supply provider."""
+
+        supply_match = re.search(
+            r"\bSupply:\s*([0-9]+(?:\.[0-9]+)?)\s*/\s*([0-9]+(?:\.[0-9]+)?)",
+            obs_text,
+            re.IGNORECASE,
+        )
+        if supply_match is None:
+            return ""
+        projected_used = float(supply_match.group(1))
+        projected_cap = float(supply_match.group(2))
+        mechanics = race_mechanics(race)
+        deltas: List[float] = []
+        for entity_name in ordered_names:
+            try:
+                candidates = list(action_candidates_for_entity(race, entity_name))
+                candidate = candidates[0] if candidates else None
+                info = cost_for_action(candidate.ability_name) if candidate else {}
+                delta = float(((info.get("cost") or {}).get("supply") or 0))
+                # ``cost_for_action`` intentionally normalizes generic Morph
+                # supply to zero for townhall morphs. Larva morphs are actual
+                # unit production, so recover their raw result supply here.
+                if (
+                    candidate is not None
+                    and candidate.target_kind in {"Morph", "MorphPlace"}
+                    and "Larva" in candidate.executors
+                ):
+                    units, _ = build_entity_indexes(load_database())
+                    raw_unit = units.get(candidate.target_result) or {}
+                    delta = float(raw_unit.get("supply") or 0)
+                if delta > 0 and candidate is not None:
+                    delta *= max(1, int(candidate.output_count))
+            except Exception:
+                delta = 0.0
+            deltas.append(delta)
+
+        for index, (entity_name, delta) in enumerate(zip(ordered_names, deltas)):
+            if delta < 0:
+                projected_cap = min(200.0, projected_cap - delta)
+                continue
+            if delta <= 0:
+                continue
+            if projected_used + delta <= projected_cap + 1e-6:
+                projected_used += delta
+                continue
+            later_provider = next(
+                (ordered_names[j] for j in range(index + 1, len(deltas)) if deltas[j] < 0),
+                "",
+            )
+            instruction = (
+                f"Move {later_provider} before {entity_name}"
+                if later_provider
+                else f"Include {mechanics.supply_provider} before {entity_name}"
+            )
+            return (
+                "FINAL_DECISION rejected: the sequential queue reaches a supply block at "
+                f"{entity_name} (projected {projected_used:g}/{projected_cap:g}). "
+                f"{instruction}; actions after a blocked unit are never reached. Return the "
+                "complete replacement queue in executable order."
+            )
+        return ""
+
     def decide(
         self,
         *,
@@ -306,6 +407,20 @@ class HumanSkillAgent:
                         )
                     )
                     return False
+                phase_refresh_error = self._graph_phase_refresh_error(game_time_seconds)
+                if phase_refresh_error:
+                    feedback = phase_refresh_error
+                    rounds.append(
+                        AgentRound(
+                            round=round_number,
+                            type="invalid",
+                            error=feedback,
+                            model_key=self.model_key,
+                            model=str(result.get("model") or ""),
+                            token_usage=self._usage(result),
+                        )
+                    )
+                    return False
                 resource_error = self._queue_resource_error(
                     race=race,
                     obs_text=obs_text,
@@ -313,6 +428,24 @@ class HumanSkillAgent:
                 )
                 if resource_error:
                     feedback = resource_error
+                    rounds.append(
+                        AgentRound(
+                            round=round_number,
+                            type="invalid",
+                            error=feedback,
+                            model_key=self.model_key,
+                            model=str(result.get("model") or ""),
+                            token_usage=self._usage(result),
+                        )
+                    )
+                    return False
+                supply_error = self._queue_supply_error(
+                    race=race,
+                    obs_text=obs_text,
+                    ordered_names=parsed.decision.ordered_names,
+                )
+                if supply_error:
+                    feedback = supply_error
                     rounds.append(
                         AgentRound(
                             round=round_number,

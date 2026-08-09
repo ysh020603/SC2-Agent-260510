@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import platform
 import signal
 import sys
@@ -25,7 +26,11 @@ from sc2.game_state import GameState
 from sc2.maps import Map
 from sc2.player import AbstractPlayer, Bot, BotProcess, Human
 from sc2.portconfig import Portconfig
-from sc2.protocol import ConnectionAlreadyClosedError, ProtocolError
+from sc2.protocol import (
+    ConnectionAlreadyClosedError,
+    ProtocolError,
+    ProtocolResponseTimeoutError,
+)
 from sc2.proxy import Proxy
 from sc2.sc2process import KillSwitch, SC2Process
 
@@ -160,6 +165,45 @@ async def _play_game_ai(
         await ai._after_step()
         logger.debug("Running AI step: done")
 
+    async def recover_from_protocol_timeout(operation: str) -> Result:
+        """End cleanly when SC2 stops answering after the game has effectively ended.
+
+        The bundled runtime has a known deadlock where the final observation is
+        never returned after the opponent/game process ends.  Preserve a clear
+        audit marker and use the last prepared own-state only to distinguish an
+        eliminated bot from a surviving one; ambiguous states remain a Tie.
+        """
+
+        if client._game_result and player_id in client._game_result:
+            recovered = client._game_result[player_id]
+            basis = "client_game_result"
+        else:
+            try:
+                has_townhall = bool(ai.townhalls)
+                has_structures = bool(ai.structures)
+                has_units = bool(ai.units)
+            except (AttributeError, TypeError):
+                has_townhall = has_structures = has_units = False
+            if not (has_townhall or has_structures or has_units):
+                recovered = Result.Defeat
+                basis = "last_state_no_own_assets"
+            elif has_townhall and (has_structures or has_units):
+                recovered = Result.Victory
+                basis = "last_state_surviving_force"
+            else:
+                recovered = Result.Tie
+                basis = "last_state_ambiguous"
+        marker = {
+            "operation": operation,
+            "result": recovered.name,
+            "basis": basis,
+            "last_game_time": round(float(gs.game_loop / 22.4), 2) if gs else None,
+        }
+        setattr(ai, "_sc2_protocol_watchdog", marker)
+        logger.error("Recovered stalled SC2 protocol request: %s", marker)
+        await ai.on_end(recovered)
+        return recovered
+
     # Only used in realtime=True
     previous_state_observation = None
     for iteration in range(10**10):
@@ -174,7 +218,10 @@ async def _play_game_ai(
                     previous_state_observation = state.observation
                     state = await client.observation(state.observation.observation.game_loop + 1)
         else:
-            state = await client.observation()
+            try:
+                state = await client.observation()
+            except (ProtocolResponseTimeoutError, ConnectionAlreadyClosedError):
+                return await recover_from_protocol_timeout("observation")
 
         # check game result every time we get the observation
         if client._game_result:
@@ -187,18 +234,38 @@ async def _play_game_ai(
         if game_time_limit and gs.game_loop / 22.4 > game_time_limit:
             await ai.on_end(Result.Tie)
             return Result.Tie
-        proto_game_info = await client._execute(game_info=sc_pb.RequestGameInfo())
+        try:
+            proto_game_info = await client._execute(game_info=sc_pb.RequestGameInfo())
+        except (ProtocolResponseTimeoutError, ConnectionAlreadyClosedError):
+            return await recover_from_protocol_timeout("game_info")
         ai._prepare_step(gs, proto_game_info)
 
-        await run_bot_iteration(iteration)  # Main bot loop
+        try:
+            ai_step_timeout = float(os.environ.get("SC2_AI_STEP_TIMEOUT_SECONDS", "180"))
+        except (TypeError, ValueError):
+            ai_step_timeout = 180.0
+        try:
+            if ai_step_timeout > 0:
+                await asyncio.wait_for(
+                    run_bot_iteration(iteration), timeout=ai_step_timeout
+                )
+            else:
+                await run_bot_iteration(iteration)
+        except asyncio.TimeoutError:
+            return await recover_from_protocol_timeout("ai_iteration")
 
         if not realtime:
             if not client.in_game:  # Client left (resigned) the game
-                await ai.on_end(client._game_result[player_id])
-                return client._game_result[player_id]
+                if client._game_result and player_id in client._game_result:
+                    await ai.on_end(client._game_result[player_id])
+                    return client._game_result[player_id]
+                return await recover_from_protocol_timeout("client_left")
 
             # TODO: In bot vs bot, if the other bot ends the game, this bot gets stuck in requesting an observation when using main.py:run_multiple_games
-            await client.step()
+            try:
+                await client.step()
+            except (ProtocolResponseTimeoutError, ConnectionAlreadyClosedError):
+                return await recover_from_protocol_timeout("step")
     return Result.Undecided
 
 
@@ -357,7 +424,10 @@ async def _host_game(
 
         result = await _play_game(players[0], client, realtime, portconfig, game_time_limit, rgb_render_config)
         if client.save_replay_path is not None:
-            await client.save_replay(client.save_replay_path)
+            try:
+                await client.save_replay(client.save_replay_path)
+            except ConnectionAlreadyClosedError:
+                logger.error("Connection closed before replay could be saved")
         try:
             await client.leave()
         except ConnectionAlreadyClosedError:

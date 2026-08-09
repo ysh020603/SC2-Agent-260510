@@ -114,6 +114,16 @@ class UniversalLLMHumanSkillBot(UniversalLLMBot):
         )
 
     async def on_end(self, game_result):
+        watchdog = getattr(self, "_sc2_protocol_watchdog", None)
+        if watchdog:
+            self._record_llm_interaction(
+                {
+                    "schema_version": 5,
+                    "event": "sc2_protocol_watchdog_recovery",
+                    "game_time": round(float(getattr(self, "time", 0.0)), 2),
+                    "watchdog": dict(watchdog),
+                }
+            )
         if self._human_agent is not None and self._human_trace is not None:
             try:
                 self._human_trace.flush(self._human_agent.memory)
@@ -232,6 +242,17 @@ class UniversalLLMHumanSkillBot(UniversalLLMBot):
         finally:
             record["wall_elapsed_seconds"] = round(_wall_time.monotonic() - started, 3)
             self._record_llm_interaction(record)
+            # Long SC2 games can be terminated by an external wall-clock guard
+            # before python-sc2 delivers on_end (for example after a built-in
+            # AI stalls while searching for the last structure). Persist the
+            # auditable LLM and readable-skill state after every decision so a
+            # timed-out match is still diagnosable and safely resumable.
+            self._flush_llm_call_log()
+            if self._human_trace is not None:
+                try:
+                    self._human_trace.flush(self._human_agent.memory)
+                except Exception as exc:
+                    logger.warning("failed to checkpoint human-skill trace: %s", exc)
 
 
 __all__ = ["UniversalLLMHumanSkillBot"]
