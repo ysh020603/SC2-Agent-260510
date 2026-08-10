@@ -386,6 +386,26 @@ class SC2Process:
                     and paths.PF not in {"WSL1", "WSL2"}
                 ):
                     kill_owned_stalled_process(self._process)
+        elif (
+            self._process is not None
+            and self._process.poll() is None
+            and (self._protocol_request_in_flight or self._protocol_request_timed_out)
+            and paths.PF not in {"WSL1", "WSL2"}
+        ):
+            # The game Client and the startup Controller share a websocket but
+            # are distinct Protocol objects. A match request can therefore be
+            # pending even when Controller.has_pending_response is false. The
+            # process-level callbacks are the authoritative cross-Protocol
+            # signal; kill the exact owned client before aiohttp ws.close(),
+            # which otherwise busy-spins while the Client receive is pending.
+            logger.warning(
+                "Force-killing owned SC2 before transport close: pid={} "
+                "request_type={} timed_out={}",
+                self._process.pid,
+                self._protocol_request_type,
+                self._protocol_request_timed_out,
+            )
+            kill_owned_stalled_process(self._process)
 
         if self._ws is not None:
             try:

@@ -2,7 +2,9 @@ import asyncio
 import subprocess
 import sys
 
+import pytest
 import sc2.sc2process as sc2process_module
+from sc2.protocol import Protocol, ProtocolResponseTimeoutError
 from sc2.sc2process import (
     SC2Process,
     allow_global_wineserver_kill,
@@ -23,6 +25,7 @@ def test_global_wineserver_kill_requires_explicit_opt_in(monkeypatch):
 
 class FakeProcess:
     def __init__(self, *, running=True, timeout=False):
+        self.pid = 123
         self.running = running
         self.timeout = timeout
         self.terminated = 0
@@ -109,6 +112,93 @@ def test_pending_response_is_killed_before_transport_close(monkeypatch):
 
     asyncio.run(sc2_process._close_connection())
     assert events == ["drain", "kill", "transport_close"]
+
+
+def test_client_pending_state_is_killed_before_controller_transport_close(monkeypatch):
+    events = []
+
+    class StartupController:
+        has_pending_response = False
+
+    class Transport:
+        async def close(self):
+            events.append("transport_close")
+
+    process = FakeProcess()
+
+    def kill_owned(owned):
+        assert owned is process
+        events.append("kill")
+        owned.running = False
+        return True
+
+    monkeypatch.setattr(sc2process_module, "kill_owned_stalled_process", kill_owned)
+    sc2_process = object.__new__(SC2Process)
+    sc2_process._port = 12345
+    sc2_process._controller = StartupController()
+    sc2_process._process = process
+    sc2_process._ws = Transport()
+    sc2_process._session = None
+    sc2_process._protocol_request_in_flight = True
+    sc2_process._protocol_request_timed_out = True
+    sc2_process._protocol_request_type = "observation"
+
+    asyncio.run(sc2_process._close_connection())
+    assert events == ["kill", "transport_close"]
+
+
+def test_match_protocol_timeout_propagates_to_process_cleanup(monkeypatch):
+    events = []
+
+    class StartupController:
+        has_pending_response = False
+
+    class SharedTransport:
+        def __init__(self):
+            self.release = asyncio.Event()
+
+        async def send_bytes(self, _payload):
+            return None
+
+        async def receive_bytes(self):
+            await self.release.wait()
+            return b""
+
+        async def close(self):
+            events.append("transport_close")
+            self.release.set()
+
+    process = FakeProcess()
+
+    def kill_owned(owned):
+        assert owned is process
+        events.append("kill")
+        owned.running = False
+        return True
+
+    monkeypatch.setenv("SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS", "0.01")
+    monkeypatch.setattr(sc2process_module, "kill_owned_stalled_process", kill_owned)
+    transport = SharedTransport()
+    sc2_process = object.__new__(SC2Process)
+    sc2_process._port = 12345
+    sc2_process._controller = StartupController()
+    sc2_process._process = process
+    sc2_process._ws = transport
+    sc2_process._session = None
+    sc2_process._protocol_request_in_flight = False
+    sc2_process._protocol_request_timed_out = False
+    sc2_process._protocol_request_type = None
+    match_client = Protocol(transport, process=sc2_process)
+
+    async def run_timeout_and_cleanup():
+        with pytest.raises(ProtocolResponseTimeoutError):
+            await match_client.ping()
+        assert sc2_process._protocol_request_timed_out is True
+        assert sc2_process._protocol_request_type == "ping"
+        await sc2_process._close_connection()
+
+    asyncio.run(run_timeout_and_cleanup())
+    assert events == ["kill", "transport_close"]
 
 
 def test_owned_process_cleanup_does_not_touch_peer_process():
