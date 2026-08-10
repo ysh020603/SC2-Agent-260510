@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import weakref
 from contextlib import suppress
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,46 @@ from sc2 import paths, wsl
 from sc2.controller import Controller
 from sc2.paths import Paths
 from sc2.versions import VERSIONS
+
+
+def allow_global_wineserver_kill() -> bool:
+    """Whether cleanup may terminate every Wine client owned by this user.
+
+    This is deliberately opt-in.  ``wineserver -k`` is process-global, not
+    match-local, and used to cascade one match cleanup into SIGTERM for every
+    concurrent SC2 experiment.
+    """
+
+    return os.environ.get("SC2_ALLOW_GLOBAL_WINESERVER_KILL", "").strip() == "1"
+
+
+def terminate_owned_process(process: subprocess.Popen, timeout_seconds: float = 10.0) -> bool:
+    """Terminate only the SC2 process owned by this match.
+
+    Returns true when termination was requested.  A stuck process is escalated
+    to ``kill`` after a bounded wait; no process-name or Wine-global operation
+    is used.
+    """
+
+    if process.poll() is not None:
+        return False
+    process.terminate()
+    try:
+        process.wait(timeout=max(0.1, float(timeout_seconds)))
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+    return True
+
+
+def kill_owned_stalled_process(process: subprocess.Popen) -> bool:
+    """Kill one owned process without invoking SC2's broken pending-response handler."""
+
+    if process.poll() is not None:
+        return False
+    process.kill()
+    process.wait()
+    return True
 
 
 class KillSwitch:
@@ -92,8 +133,15 @@ class SC2Process:
         self._used_portpicker = bool(port is None)
         self._tmp_dir = tempfile.mkdtemp(prefix="SC2_")
         self._process: subprocess.Popen | None = None
+        self._stderr_path = Path(self._tmp_dir) / "SC2.stderr.log"
+        self._stderr_handle = None
         self._session = None
         self._ws = None
+        self._controller = None
+        self._protocols = weakref.WeakSet()
+        self._protocol_request_in_flight = False
+        self._protocol_request_timed_out = False
+        self._protocol_request_type: str | None = None
         self._sc2_version = sc2_version
         self._base_build = base_build
         self._data_hash = data_hash
@@ -116,12 +164,55 @@ class SC2Process:
             self._clean()
             raise
 
-        return Controller(self._ws, self)
+        self._controller = Controller(self._ws, self)
+        return self._controller
 
     async def __aexit__(self, *args) -> None:
         await self._close_connection()
         KillSwitch.kill_all()
         signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    def protocol_request_started(self, request_type: str) -> None:
+        self._protocol_request_in_flight = True
+        self._protocol_request_timed_out = False
+        self._protocol_request_type = request_type
+
+    def protocol_request_finished(self, request_type: str | None = None) -> None:
+        if request_type is None or request_type == self._protocol_request_type:
+            self._protocol_request_in_flight = False
+
+    def protocol_request_timed_out(self, request_type: str) -> None:
+        self._protocol_request_in_flight = True
+        self._protocol_request_timed_out = True
+        self._protocol_request_type = request_type
+
+    def register_protocol(self, protocol) -> None:
+        """Track startup and match Protocol objects sharing this transport."""
+
+        self._protocols.add(protocol)
+
+    async def abort_protocol_request(self, request_type: str) -> None:
+        """Kill only this match's client immediately after a response timeout."""
+
+        self.protocol_request_timed_out(request_type)
+        if (
+            self._process is not None
+            and self._process.poll() is None
+            and paths.PF not in {"WSL1", "WSL2"}
+        ):
+            logger.error(
+                "Aborting timed-out owned SC2 process immediately: pid={} "
+                "request_type={}",
+                self._process.pid,
+                request_type,
+            )
+            await asyncio.to_thread(kill_owned_stalled_process, self._process)
+
+    async def _cancel_registered_protocol_receivers(self) -> None:
+        for protocol in list(self._protocols):
+            cancel = getattr(protocol, "cancel_pending_response", None)
+            if cancel is not None:
+                await cancel()
 
     @property
     def ws_url(self) -> str:
@@ -199,21 +290,53 @@ class SC2Process:
         if self._render:
             args.extend(["-eglpath", "libEGL.so"])
 
-        # if logger.getEffectiveLevel() <= logging.DEBUG:
-        args.append("-verbose")
+        # The pinned Linux client can emit hundreds of megabytes per minute in
+        # verbose mode after a protocol fault. Keep fatal stderr diagnostics,
+        # but make the firehose an explicit troubleshooting opt-in.
+        if os.environ.get("SC2_VERBOSE_LOG", "").strip() == "1":
+            args.append("-verbose")
 
         sc2_cwd = str(Paths.CWD) if Paths.CWD else None
 
         if paths.PF in {"WSL1", "WSL2"}:
             return wsl.run(args, sc2_cwd)
 
+        # Keep the client diagnostics until cleanup.  The previous DEVNULL
+        # redirection made mid-game client exits impossible to distinguish
+        # from a slow websocket response.
+        self._stderr_handle = self._stderr_path.open("wb")
         return subprocess.Popen(
             args,
             cwd=sc2_cwd,
-            # Suppress Wine error messages
-            stderr=subprocess.DEVNULL,
+            stderr=self._stderr_handle,
             # , env=run_config.env
         )
+
+    def diagnostic_snapshot(self, tail_bytes: int = 4096) -> dict[str, Any]:
+        """Return bounded process diagnostics safe to copy into match logs."""
+
+        return_code = self._process.poll() if self._process is not None else None
+        stderr_tail = ""
+        try:
+            if self._stderr_handle is not None:
+                self._stderr_handle.flush()
+            if self._stderr_path.is_file():
+                with self._stderr_path.open("rb") as handle:
+                    handle.seek(0, os.SEEK_END)
+                    size = handle.tell()
+                    handle.seek(max(0, size - max(1, int(tail_bytes))))
+                    stderr_tail = handle.read().decode("utf-8", errors="replace")
+        except OSError as exc:
+            stderr_tail = f"<stderr unavailable: {exc}>"
+        return {
+            "pid": self._process.pid if self._process is not None else None,
+            "port": self._port,
+            "returncode": return_code,
+            "protocol_request_in_flight": self._protocol_request_in_flight,
+            "protocol_request_timed_out": self._protocol_request_timed_out,
+            "protocol_request_type": self._protocol_request_type,
+            "stderr_tail": stderr_tail[-tail_bytes:],
+        }
 
     async def _connect(self) -> ClientWebSocketResponse:
         # How long to wait for SC2 to publish its websocket endpoint.  Keep
@@ -266,8 +389,64 @@ class SC2Process:
     async def _close_connection(self) -> None:
         logger.info(f"Closing connection at {self._port}...")
 
+        if self._controller is not None and self._controller.has_pending_response:
+            try:
+                drain_timeout = max(
+                    0.0,
+                    float(os.environ.get("SC2_PROTOCOL_DRAIN_TIMEOUT_SECONDS", "10")),
+                )
+            except (TypeError, ValueError):
+                drain_timeout = 10.0
+            drained = await self._controller.drain_pending_response(drain_timeout)
+            if not drained:
+                logger.error(
+                    "SC2 response still pending during cleanup: request_type={} "
+                    "drain_timeout_seconds={}",
+                    self._controller.pending_request_type,
+                    drain_timeout,
+                )
+                # Closing the websocket first makes the legacy Linux client
+                # enter the same broken pending-response shutdown path as
+                # SIGTERM. Kill this exact owned client before closing the
+                # transport; sibling clients and the shared Wine server are
+                # deliberately untouched.
+                if (
+                    self._process is not None
+                    and self._process.poll() is None
+                    and paths.PF not in {"WSL1", "WSL2"}
+                ):
+                    kill_owned_stalled_process(self._process)
+        elif (
+            self._process is not None
+            and self._process.poll() is None
+            and (self._protocol_request_in_flight or self._protocol_request_timed_out)
+            and paths.PF not in {"WSL1", "WSL2"}
+        ):
+            # The game Client and the startup Controller share a websocket but
+            # are distinct Protocol objects. A match request can therefore be
+            # pending even when Controller.has_pending_response is false. The
+            # process-level callbacks are the authoritative cross-Protocol
+            # signal; kill the exact owned client before aiohttp ws.close(),
+            # which otherwise busy-spins while the Client receive is pending.
+            logger.warning(
+                "Force-killing owned SC2 before transport close: pid={} "
+                "request_type={} timed_out={}",
+                self._process.pid,
+                self._protocol_request_type,
+                self._protocol_request_timed_out,
+            )
+            kill_owned_stalled_process(self._process)
+
         if self._ws is not None:
-            await self._ws.close()
+            # A match Client and the startup Controller are separate Protocol
+            # instances over the same websocket.  Once the owned client is
+            # dead, reap receivers from both before closing aiohttp.
+            if self._process is None or self._process.poll() is not None:
+                await self._cancel_registered_protocol_receivers()
+            try:
+                await asyncio.wait_for(self._ws.close(), timeout=5.0)
+            except (asyncio.TimeoutError, RuntimeError):
+                logger.warning("Timed out closing SC2 websocket at {}", self._port)
 
         if self._session is not None:
             await self._session.close()
@@ -278,30 +457,63 @@ class SC2Process:
 
         if self._process is not None:
             assert isinstance(self._process, subprocess.Popen)
+            diagnostics = self.diagnostic_snapshot()
             if paths.PF in {"WSL1", "WSL2"}:
                 if wsl.kill(self._process):
                     logger.error("KILLED")
+            elif self._process.poll() is None and (
+                self._protocol_request_in_flight or self._protocol_request_timed_out
+            ):
+                # SIGTERM enters the legacy SC2 shutdown handler. If a response
+                # is pending that handler crashes with signal 11. A direct,
+                # match-local SIGKILL avoids the broken native cleanup path and
+                # never affects sibling SC2 clients.
+                logger.warning(
+                    "Force-killing owned stalled SC2 process pid={} "
+                    "request_type={} timed_out={}",
+                    self._process.pid,
+                    self._protocol_request_type,
+                    self._protocol_request_timed_out,
+                )
+                kill_owned_stalled_process(self._process)
             elif self._process.poll() is None:
                 for _ in range(3):
                     self._process.terminate()
                     time.sleep(0.5)
                     if not self._process or self._process.poll() is not None:
                         break
+                if self._process.poll() is None:
+                    self._process.kill()
+                    self._process.wait()
             else:
-                self._process.kill()
-                self._process.wait()
-                logger.error("KILLED")
-            # Try to kill wineserver on linux
-            if paths.PF in {"Linux", "WineLinux"}:
-                # Command wineserver not detected
+                if diagnostics["returncode"] not in {None, 0}:
+                    logger.error("SC2 process exited unexpectedly: {}", diagnostics)
+                if terminate_owned_process(self._process):
+                    logger.info("Terminated owned SC2 process pid={}", self._process.pid)
+            # Never kill the user's global Wine server during ordinary match
+            # cleanup.  Concurrent SC2 clients share it, so doing so sends
+            # SIGTERM to unrelated matches.  Retain an explicit emergency
+            # escape hatch for isolated debugging only.
+            if paths.PF in {"Linux", "WineLinux"} and allow_global_wineserver_kill():
+                logger.warning("Opt-in global wineserver shutdown requested")
                 with suppress(FileNotFoundError), subprocess.Popen(["wineserver", "-k"]) as p:
                     p.wait()
+
+        if self._stderr_handle is not None:
+            with suppress(OSError):
+                self._stderr_handle.close()
+            self._stderr_handle = None
 
         if Path(self._tmp_dir).exists():
             shutil.rmtree(self._tmp_dir)
 
         self._process = None
         self._ws = None
+        self._controller = None
+        self._protocols.clear()
+        self._protocol_request_in_flight = False
+        self._protocol_request_timed_out = False
+        self._protocol_request_type = None
         if self._used_portpicker and self._port is not None:
             portpicker.return_port(self._port)
             self._port = None

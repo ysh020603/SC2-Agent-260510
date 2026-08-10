@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import platform
 import signal
 import sys
@@ -14,6 +15,7 @@ from pathlib import Path
 import mpyq
 import portpicker
 from aiohttp import ClientSession, ClientWebSocketResponse
+from aiohttp.client_exceptions import ClientConnectionError
 from loguru import logger
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
@@ -25,13 +27,40 @@ from sc2.game_state import GameState
 from sc2.maps import Map
 from sc2.player import AbstractPlayer, Bot, BotProcess, Human
 from sc2.portconfig import Portconfig
-from sc2.protocol import ConnectionAlreadyClosedError, ProtocolError
+from sc2.protocol import (
+    ConnectionAlreadyClosedError,
+    ProtocolError,
+    ProtocolResponseTimeoutError,
+    SC2ProcessExitedError,
+)
 from sc2.proxy import Proxy
 from sc2.sc2process import KillSwitch, SC2Process
 
 # Set the global logging level
 logger.remove()
 logger.add(sys.stdout, level="INFO")
+
+
+class AIIterationTimeoutError(RuntimeError):
+    """The bot decision step exceeded its explicit wall-clock budget."""
+
+    pass
+
+
+def _game_info_refresh_due(
+    *, current_game_loop: int, last_refresh_game_loop: int, interval_game_loops: int
+) -> bool:
+    """Return whether the dynamic pathing grid should be refreshed.
+
+    RequestGameInfo is substantially heavier than an observation on the pinned
+    Linux SC2 build and can wedge its native response queue in long matches.
+    Zero disables periodic refresh; a positive value explicitly opts into a
+    refresh interval. The initial game-info request is always retained.
+    """
+
+    return interval_game_loops > 0 and (
+        current_game_loop - last_refresh_game_loop >= interval_game_loops
+    )
 
 
 @dataclass
@@ -106,9 +135,10 @@ async def _play_game_ai(
     client: Client, player_id: int, ai: BotAI, realtime: bool, game_time_limit: int | None
 ) -> Result:
     gs: GameState | None = None
+    proto_game_info = None
 
     async def initialize_first_step() -> Result | None:
-        nonlocal gs
+        nonlocal gs, proto_game_info
         ai._initialize_variables()
 
         game_data = await client.get_game_data()
@@ -143,6 +173,15 @@ async def _play_game_ai(
     if result is not None:
         return result
 
+    try:
+        game_info_refresh_game_loops = int(
+            os.environ.get("SC2_GAME_INFO_REFRESH_GAME_LOOPS", "0")
+        )
+    except (TypeError, ValueError):
+        game_info_refresh_game_loops = 0
+    game_info_refresh_game_loops = max(0, game_info_refresh_game_loops)
+    last_game_info_refresh_loop = int(gs.game_loop)
+
     async def run_bot_iteration(iteration: int):
         nonlocal gs
         logger.debug(f"Running AI step, it={iteration} {gs.game_loop / 22.4:.2f}s")
@@ -160,6 +199,24 @@ async def _play_game_ai(
         await ai._after_step()
         logger.debug("Running AI step: done")
 
+    async def finish_known_result_or_raise(operation: str) -> Result:
+        """Return only an engine-reported result; never infer one from stale state."""
+        if client._game_result and player_id in client._game_result:
+            result = client._game_result[player_id]
+            await ai.on_end(result)
+            return result
+        marker = {
+            "operation": operation,
+            "result": None,
+            "basis": "no_engine_reported_result",
+            "last_game_time": round(float(gs.game_loop / 22.4), 2) if gs else None,
+        }
+        setattr(ai, "_sc2_transport_failure", marker)
+        logger.error("SC2 transport closed without an engine result: {}", marker)
+        raise ConnectionAlreadyClosedError(
+            f"SC2 transport closed without an engine result: {marker}"
+        )
+
     # Only used in realtime=True
     previous_state_observation = None
     for iteration in range(10**10):
@@ -174,7 +231,12 @@ async def _play_game_ai(
                     previous_state_observation = state.observation
                     state = await client.observation(state.observation.observation.game_loop + 1)
         else:
-            state = await client.observation()
+            try:
+                state = await client.observation()
+            except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
+                raise
+            except ConnectionAlreadyClosedError:
+                return await finish_known_result_or_raise("observation")
 
         # check game result every time we get the observation
         if client._game_result:
@@ -187,18 +249,56 @@ async def _play_game_ai(
         if game_time_limit and gs.game_loop / 22.4 > game_time_limit:
             await ai.on_end(Result.Tie)
             return Result.Tie
-        proto_game_info = await client._execute(game_info=sc_pb.RequestGameInfo())
+        if _game_info_refresh_due(
+            current_game_loop=int(gs.game_loop),
+            last_refresh_game_loop=last_game_info_refresh_loop,
+            interval_game_loops=game_info_refresh_game_loops,
+        ):
+            try:
+                proto_game_info = await client._execute(game_info=sc_pb.RequestGameInfo())
+            except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
+                raise
+            except ConnectionAlreadyClosedError:
+                return await finish_known_result_or_raise("game_info")
+            last_game_info_refresh_loop = int(gs.game_loop)
+        assert proto_game_info is not None
         ai._prepare_step(gs, proto_game_info)
 
-        await run_bot_iteration(iteration)  # Main bot loop
+        try:
+            ai_step_timeout = float(os.environ.get("SC2_AI_STEP_TIMEOUT_SECONDS", "180"))
+        except (TypeError, ValueError):
+            ai_step_timeout = 180.0
+        try:
+            if ai_step_timeout > 0:
+                await asyncio.wait_for(
+                    run_bot_iteration(iteration), timeout=ai_step_timeout
+                )
+            else:
+                await run_bot_iteration(iteration)
+        except asyncio.TimeoutError:
+            marker = {
+                "operation": "ai_iteration",
+                "timeout_seconds": ai_step_timeout,
+                "last_game_time": round(float(gs.game_loop / 22.4), 2) if gs else None,
+            }
+            setattr(ai, "_sc2_ai_iteration_timeout", marker)
+            logger.error("AI iteration timed out: {}", marker)
+            raise AIIterationTimeoutError(f"AI iteration timed out: {marker}")
 
         if not realtime:
             if not client.in_game:  # Client left (resigned) the game
-                await ai.on_end(client._game_result[player_id])
-                return client._game_result[player_id]
+                if client._game_result and player_id in client._game_result:
+                    await ai.on_end(client._game_result[player_id])
+                    return client._game_result[player_id]
+                return await finish_known_result_or_raise("client_left")
 
             # TODO: In bot vs bot, if the other bot ends the game, this bot gets stuck in requesting an observation when using main.py:run_multiple_games
-            await client.step()
+            try:
+                await client.step()
+            except (SC2ProcessExitedError, ProtocolResponseTimeoutError):
+                raise
+            except ConnectionAlreadyClosedError:
+                return await finish_known_result_or_raise("step")
     return Result.Undecided
 
 
@@ -324,7 +424,7 @@ async def _setup_host_game(
         logger.critical(err)
         raise RuntimeError(err)
 
-    return Client(server._ws, save_replay_as)
+    return Client(server._ws, save_replay_as, process=server._process)
 
 
 async def _host_game(
@@ -357,7 +457,10 @@ async def _host_game(
 
         result = await _play_game(players[0], client, realtime, portconfig, game_time_limit, rgb_render_config)
         if client.save_replay_path is not None:
-            await client.save_replay(client.save_replay_path)
+            try:
+                await client.save_replay(client.save_replay_path)
+            except (ConnectionAlreadyClosedError, ClientConnectionError):
+                logger.error("Connection closed before replay could be saved")
         try:
             await client.leave()
         except ConnectionAlreadyClosedError:
@@ -420,7 +523,7 @@ async def _join_game(
     async with SC2Process(fullscreen=players[1].fullscreen, sc2_version=sc2_version) as server:
         await server.ping()
 
-        client = Client(server._ws)
+        client = Client(server._ws, process=server._process)
         # Bot can decide if it wants to launch with 'raw_affects_selection=True'
         if not isinstance(players[1], Human) and getattr(players[1].ai, "raw_affects_selection", None) is not None:
             client.raw_affects_selection = players[1].ai.raw_affects_selection
@@ -439,7 +542,7 @@ async def _join_game(
 
 async def _setup_replay(server, replay_path, realtime, observed_id):
     await server.start_replay(replay_path, realtime, observed_id)
-    return Client(server._ws)
+    return Client(server._ws, process=server._process)
 
 
 async def _host_replay(replay_path, ai, realtime, _portconfig, base_build, data_version, observed_id):

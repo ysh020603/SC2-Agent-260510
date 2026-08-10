@@ -191,6 +191,7 @@ def _empty_call_result(
         "is_reasoning": None if is_reasoning is _MISSING else is_reasoning,
         "raw_message": {},
         "raw_message_keys": [],
+        "usage": {},
         "error": error,
     }
 
@@ -402,6 +403,19 @@ def call_openai_detailed(
 
     extraction = extract_reasoning(completion, mode=final_reasoning_extract_mode)
     raw_message = _message_to_dict(message)
+    raw_usage = getattr(completion, "usage", None)
+    usage: Dict[str, Any] = {}
+    if isinstance(raw_usage, dict):
+        usage = dict(raw_usage)
+    elif raw_usage is not None:
+        for method_name in ("model_dump", "dict"):
+            method = getattr(raw_usage, method_name, None)
+            if callable(method):
+                try:
+                    usage = dict(method())
+                    break
+                except Exception:
+                    pass
     content = extraction.get("final_content", "") or ""
     if not content and final_reasoning_extract_mode == REASONING_NONE:
         content = strip_think_tags(extraction.get("raw_content", "") or "")
@@ -416,6 +430,7 @@ def call_openai_detailed(
         "is_reasoning": None if final_is_reasoning is _MISSING else final_is_reasoning,
         "raw_message": raw_message,
         "raw_message_keys": sorted(raw_message.keys()),
+        "usage": usage,
         "error": "",
     }
 

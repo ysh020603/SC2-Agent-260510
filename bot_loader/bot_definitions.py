@@ -12,6 +12,7 @@ from dummies.debug import *
 from sc2.player import Human, Bot, Computer, AbstractPlayer
 
 from dummies.generic.universal_llm_bot import UniversalLLMBot
+from dummies.generic.universal_llm_human_skill_bot import UniversalLLMHumanSkillBot
 
 races = {
     "protoss": Race.Protoss,
@@ -341,6 +342,16 @@ class BotDefinitions:
             return Bot(race, UniversalLLMBot(race_name=race_str))
 
         bot_dict["universal_llm"] = (_make_universal_llm, None)
+
+        def _make_universal_llm_human_skill(params):
+            race_str = BotDefinitions.index_check(params, 0, "protoss")
+            race = races.get(race_str, Race.Protoss)
+            return Bot(race, UniversalLLMHumanSkillBot(race_name=race_str))
+
+        bot_dict["universal_llm_human_skill"] = (
+            _make_universal_llm_human_skill,
+            None,
+        )
 
         not_buildable = {
             "lingflood": (lambda params: Bot(Race.Zerg, LingFlood(False))),

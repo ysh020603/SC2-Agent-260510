@@ -41,9 +41,12 @@ from SC2_Agent.decision_agent import (
     parse_decision_response,
 )
 from SC2_Agent.execution.scheduler import ExecutionScheduler
-from SC2_Agent.prompt_context import StrategyAutomationProfile
 from SC2_Agent.strategy_registry import require_enabled_strategy
 from SC2_Agent.top_agent import parse_strategy_summary
+from SC2_Agent.universal_tactics import (
+    UNIVERSAL_TACTICAL_PROFILE,
+    create_universal_tactical_plan,
+)
 
 logger = logging.getLogger("UniversalLLMBot")
 
@@ -215,21 +218,9 @@ class UniversalLLMBot(KnowledgeBot):
             summary = parse_strategy_summary(handle.read())
         if not summary:
             raise ValueError(f"Strategy summary is empty: {path}")
-        module_path = f"SKILL.{self.race_name}.{name}.strategy_tools"
-        module = importlib.import_module(module_path)
-        profile = getattr(module, "AUTOMATION_PROFILE", None)
-        if not isinstance(profile, StrategyAutomationProfile):
-            raise ValueError(
-                f"Enabled strategy must export AUTOMATION_PROFILE: {module_path}"
-            )
-        if profile.race != self.race_name or profile.strategy != name:
-            raise ValueError(
-                f"Automation profile identity mismatch in {module_path}: "
-                f"{profile.race}/{profile.strategy}"
-            )
         self.selected_strategy = name
         self.strategy_summary = summary
-        self.strategy_automation_context = profile.render()
+        self.strategy_automation_context = UNIVERSAL_TACTICAL_PROFILE
         self.strategy_enemy_race = enemy_race
         self._llm_infer_emit(
             f">>> STRATEGY: forced '{name}' vs {enemy_race} from {filename} "
@@ -826,30 +817,34 @@ class UniversalLLMBot(KnowledgeBot):
         return BuildOrder(
             [
                 self.scheduler,
-                self._load_strategy_tools(),
+                self._load_universal_tactical_tools(),
             ]
         )
 
-    def _load_strategy_tools(self) -> BuildOrder:
-        if not self.selected_strategy:
-            raise RuntimeError("Strategy tools requested before strategy selection.")
-        module_path = f"SKILL.{self.race_name}.{self.selected_strategy}.strategy_tools"
-        tactics = self._instantiate_tactics_from_module(module_path)
-        if tactics is None:
-            raise RuntimeError(
-                f"Enabled strategy tools failed to load: {module_path}"
-            )
-        self._llm_infer_emit(f"    [StrategyTools] loaded from {module_path}")
-        return tactics
+    def _load_universal_tactical_tools(self) -> BuildOrder:
+        race = {
+            "terran": Race.Terran,
+            "protoss": Race.Protoss,
+            "zerg": Race.Zerg,
+        }.get(self.race_name)
+        if race is None:
+            raise RuntimeError("Universal tactics require a concrete race.")
+        self._llm_infer_emit("    [UniversalTacticsV1] shared state-driven controller loaded")
+        return create_universal_tactical_plan(
+            race,
+            trace_directory=self.record_dir,
+            trace_skill_id=self.selected_strategy,
+        )
 
     @staticmethod
     def _instantiate_tactics_from_module(module_path: str) -> Optional[BuildOrder]:
+        """Legacy baseline inspection hook; the live Human Skill Bot never calls it."""
         try:
             module = importlib.import_module(module_path)
         except ImportError:
             return None
         except Exception as exc:
-            logger.warning("Error importing tactics module %s: %s", module_path, exc)
+            logger.warning("Error importing legacy tactics module %s: %s", module_path, exc)
             return None
         factory = getattr(module, "create_strategy_tools", None)
         if callable(factory):
@@ -858,7 +853,7 @@ class UniversalLLMBot(KnowledgeBot):
                 if isinstance(result, BuildOrder):
                     return result
             except Exception as exc:
-                logger.warning("Failed to call strategy tools factory in %s: %s", module_path, exc)
+                logger.warning("Failed to call legacy tactics factory in %s: %s", module_path, exc)
                 return None
         for name in dir(module):
             value = getattr(module, name)
@@ -875,7 +870,7 @@ class UniversalLLMBot(KnowledgeBot):
                 try:
                     return value(20)
                 except Exception as exc:
-                    logger.warning("Failed to instantiate %s: %s", name, exc)
+                    logger.warning("Failed to instantiate legacy %s: %s", name, exc)
         return None
 
 

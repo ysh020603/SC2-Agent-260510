@@ -1,0 +1,616 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-09T05:17:32.212279+00:00",
+  "baseline_commit": "d36994583665036d9a0d40bbc6a52bd0a80f2f72",
+  "branch": "codex/universal-tactics-v1",
+  "strategy_tools_count": 41,
+  "migration_policy": "legacy files retained; Human Skill Agent loading disabled",
+  "records": [
+    {
+      "path": "SKILL/protoss/adept_allin/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "adept_allin",
+      "declared_attack_thresholds": [
+        "8"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/dark_templar_rush/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "dark_templar_rush",
+      "declared_attack_thresholds": [
+        "12"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/disruptor/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "disruptor",
+      "declared_attack_thresholds": [
+        "18"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/four_gate/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "four_gate",
+      "declared_attack_thresholds": [
+        "10"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/macro_stalkers/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "macro_stalkers",
+      "declared_attack_thresholds": [
+        "18"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/one_base_tempests/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "one_base_tempests",
+      "declared_attack_thresholds": [
+        "6"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/protoss_silver/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "protoss_silver",
+      "declared_attack_thresholds": [
+        "24"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/robo/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "robo",
+      "declared_attack_thresholds": [
+        "20"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/protoss/voidray/strategy_tools.py",
+      "race": "protoss",
+      "strategy": "voidray",
+      "declared_attack_thresholds": [
+        "12"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/terran/banshees/strategy_tools.py",
+      "race": "terran",
+      "strategy": "banshees",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "BansheesStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/battle_cruisers/strategy_tools.py",
+      "race": "terran",
+      "strategy": "battle_cruisers",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [
+        "TacticalJump"
+      ],
+      "classes": [
+        "TacticalJumpIn",
+        "BattleCruisersStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/bio/strategy_tools.py",
+      "race": "terran",
+      "strategy": "bio",
+      "declared_attack_thresholds": [
+        "26"
+      ],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "BioStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/bio_mine_macro/strategy_tools.py",
+      "race": "terran",
+      "strategy": "bio_mine_macro",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "TechReady",
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "BioMineMacroStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/blueflame_locks/strategy_tools.py",
+      "race": "terran",
+      "strategy": "blueflame_locks",
+      "declared_attack_thresholds": [
+        "50"
+      ],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "TechReady",
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "BlueflameLocksStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/cyclones/strategy_tools.py",
+      "race": "terran",
+      "strategy": "cyclones",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "TechReady",
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "CyclonesStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/marine_rush/strategy_tools.py",
+      "race": "terran",
+      "strategy": "marine_rush",
+      "declared_attack_thresholds": [
+        "3"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [
+        "DodgeRamp"
+      ],
+      "classes": [
+        "DodgeRampAttack",
+        "MarineRushStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/old_rusty_anvil/strategy_tools.py",
+      "race": "terran",
+      "strategy": "old_rusty_anvil",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "OldRustyAnvilStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/one_base_turtle/strategy_tools.py",
+      "race": "terran",
+      "strategy": "one_base_turtle",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "OneBaseTurtleStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/raven_liberator_tank/strategy_tools.py",
+      "race": "terran",
+      "strategy": "raven_liberator_tank",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "RavenLiberatorTankStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/raven_screams/strategy_tools.py",
+      "race": "terran",
+      "strategy": "raven_screams",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "RavenScreamsStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/rusty/strategy_tools.py",
+      "race": "terran",
+      "strategy": "rusty",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "RustyStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/rusty_bio_mines/strategy_tools.py",
+      "race": "terran",
+      "strategy": "rusty_bio_mines",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "RustyBioMinesStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/safe_211_mine/strategy_tools.py",
+      "race": "terran",
+      "strategy": "safe_211_mine",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "TechReady",
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "Safe211MineStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/safe_tvt_raven/strategy_tools.py",
+      "race": "terran",
+      "strategy": "safe_tvt_raven",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "TechReady"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "SafeTvTRavenStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/stim_rush_relay/strategy_tools.py",
+      "race": "terran",
+      "strategy": "stim_rush_relay",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "50"
+      ],
+      "attack_gate_markers": [
+        "TechReady",
+        "UnitExists"
+      ],
+      "special_behavior_markers": [
+        "DodgeRamp"
+      ],
+      "classes": [
+        "DodgeRampAttack",
+        "StimRushRelayStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/tank_thor_mech/strategy_tools.py",
+      "race": "terran",
+      "strategy": "tank_thor_mech",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "TankThorMechStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/terran_silver_bio/strategy_tools.py",
+      "race": "terran",
+      "strategy": "terran_silver_bio",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": [
+        "TerranSilverBioStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/three_rax_stim/strategy_tools.py",
+      "race": "terran",
+      "strategy": "three_rax_stim",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "TechReady",
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "ThreeRaxStimStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/two_base_matrix_tanks/strategy_tools.py",
+      "race": "terran",
+      "strategy": "two_base_matrix_tanks",
+      "declared_attack_thresholds": [
+        "60"
+      ],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "TechReady",
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "TwoBaseMatrixTanksStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/two_base_tanks/strategy_tools.py",
+      "race": "terran",
+      "strategy": "two_base_tanks",
+      "declared_attack_thresholds": [],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [],
+      "classes": [
+        "TwoBaseTanksStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/terran/yamato_rust_fleet/strategy_tools.py",
+      "race": "terran",
+      "strategy": "yamato_rust_fleet",
+      "declared_attack_thresholds": [
+        "50"
+      ],
+      "plan_zone_attack_arguments": [
+        "attack_value"
+      ],
+      "attack_gate_markers": [
+        "UnitExists"
+      ],
+      "special_behavior_markers": [
+        "TacticalJump"
+      ],
+      "classes": [
+        "TacticalJumpIn",
+        "YamatoRustFleetStrategyTools"
+      ]
+    },
+    {
+      "path": "SKILL/zerg/lings/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "lings",
+      "declared_attack_thresholds": [
+        "14"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/lurkers/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "lurkers",
+      "declared_attack_thresholds": [
+        "45"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [
+        "UnitReady",
+        "attack_requirement"
+      ],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/macro_roach/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "macro_roach",
+      "declared_attack_thresholds": [
+        "32"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/macro_zerg/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "macro_zerg",
+      "declared_attack_thresholds": [
+        "36"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/mutalisk/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "mutalisk",
+      "declared_attack_thresholds": [
+        "24"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/roach_burrow/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "roach_burrow",
+      "declared_attack_thresholds": [
+        "20"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/roach_hydra/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "roach_hydra",
+      "declared_attack_thresholds": [
+        "28"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/twelve_pool/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "twelve_pool",
+      "declared_attack_thresholds": [
+        "2"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/worker_rush/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "worker_rush",
+      "declared_attack_thresholds": [
+        "2"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    },
+    {
+      "path": "SKILL/zerg/zerg_silver/strategy_tools.py",
+      "race": "zerg",
+      "strategy": "zerg_silver",
+      "declared_attack_thresholds": [
+        "34"
+      ],
+      "plan_zone_attack_arguments": [],
+      "attack_gate_markers": [],
+      "special_behavior_markers": [],
+      "classes": []
+    }
+  ]
+}

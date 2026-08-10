@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 
 TERRAN_ADDON_CLEARANCE_RADIUS = 2.05
+ADDON_BLOCKED_ABANDON_SECONDS = 30.0
 
 
 class BuildAddon(ActBase):
@@ -28,6 +29,7 @@ class BuildAddon(ActBase):
 
         self.tried_to_build_dict: Dict[int, float] = {}
         self.issued_this_frame = False
+        self.blocked_since = None
 
         super().__init__()
 
@@ -52,6 +54,7 @@ class BuildAddon(ActBase):
             return False
 
         builder: Unit
+        found_blocked_builder = False
         for builder in self.cache.own(self.unit_from_type).ready.idle:
             if (
                 builder.add_on_tag == 0
@@ -76,7 +79,19 @@ class BuildAddon(ActBase):
                     self.issued_this_frame = True
                     return False
                 else:
+                    found_blocked_builder = True
                     self.print("no space")
+        if found_blocked_builder:
+            if self.blocked_since is None:
+                self.blocked_since = self.ai.time
+            elif self.ai.time - self.blocked_since >= ADDON_BLOCKED_ABANDON_SECONDS:
+                self.print(
+                    f"ABANDONED blocked {self.unit_type}: no add-on clearance for "
+                    f"{ADDON_BLOCKED_ABANDON_SECONDS:g}s"
+                )
+                return True
+        else:
+            self.blocked_since = None
         return False
 
     async def _can_build_addon_here(self, builder: Unit, center: Point2) -> bool:

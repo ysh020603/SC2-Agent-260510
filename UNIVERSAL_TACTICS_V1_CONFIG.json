@@ -1,0 +1,19 @@
+{
+  "block_attack_without_detection": true,
+  "clear_advantage_attack": true,
+  "cohesion_link_distance": 12.0,
+  "debug_logging": false,
+  "enemy_air_fraction_gate": 0.35,
+  "enemy_ground_fraction_gate": 0.5,
+  "global_min_attack_power": 12.0,
+  "max_supply_attack": true,
+  "max_supply_trigger": 190.0,
+  "meaningful_zone_threat_power": 0.5,
+  "min_anti_air_coverage_ratio": 0.8,
+  "min_anti_ground_coverage_ratio": 0.8,
+  "min_attack_commit_seconds": 15.0,
+  "min_cohesion_to_attack": 0.72,
+  "min_gather_commit_seconds": 8.0,
+  "reattack_cooldown_after_retreat": 12.0,
+  "timing_window_attack": true
+}

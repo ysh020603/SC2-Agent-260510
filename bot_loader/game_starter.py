@@ -178,6 +178,34 @@ Builds:
             help="Strategy folder name under SKILL/<race>/ for UniversalLLMBot.",
             default="",
         )
+        parser.add_argument(
+            "--human-skill-agent",
+            choices=(
+                "human-skill-full-v2",
+                "human-skill-full",
+                "human-skill-single-trace",
+                "human-skill-static-population",
+                "human-skill-flat-adaptive",
+                "human-skill-positive-only",
+                "human-skill-frequency-only",
+            ),
+            default="human-skill-full",
+        )
+        parser.add_argument(
+            "--force-human-skill",
+            help="Pinned readable opening id, for example PvP_O01.",
+            default="",
+        )
+        parser.add_argument(
+            "--human-skill-root",
+            help="Override the SKILL_MINING_V2_READABLE root.",
+            default="",
+        )
+        parser.add_argument(
+            "--human-skill-api-config",
+            help="Override API_config/config.json (must define a non-reasoning model).",
+            default="",
+        )
 
         args = parser.parse_args()
 
@@ -315,6 +343,18 @@ Builds:
             if hasattr(my_bot, "force_strategy"):
                 fs = (getattr(args, "force_strategy", "") or "").strip()
                 my_bot.force_strategy = fs if fs and fs.lower() != "none" else None
+            if hasattr(my_bot, "human_skill_agent"):
+                my_bot.human_skill_agent = args.human_skill_agent
+            if hasattr(my_bot, "force_human_skill"):
+                hs = (getattr(args, "force_human_skill", "") or "").strip()
+                my_bot.force_human_skill = hs or None
+                my_bot.force_strategy = hs or None
+            if hasattr(my_bot, "human_skill_root"):
+                my_bot.human_skill_root = (getattr(args, "human_skill_root", "") or "").strip()
+            if hasattr(my_bot, "api_config_path"):
+                my_bot.api_config_path = (
+                    getattr(args, "human_skill_api_config", "") or ""
+                ).strip()
             if args.release:
                 my_bot.config = get_config(False)
 
