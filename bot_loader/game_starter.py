@@ -181,6 +181,7 @@ Builds:
         parser.add_argument(
             "--human-skill-agent",
             choices=(
+                "human-skill-full-v2",
                 "human-skill-full",
                 "human-skill-single-trace",
                 "human-skill-static-population",
