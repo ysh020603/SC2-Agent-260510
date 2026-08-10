@@ -1,131 +1,46 @@
-"""启动与内置 AI 的自定义对战（可单独运行，也可由批处理脚本调用）。
-
-**首选改法**：编辑本文件 **「运行配置」** 区的 ``DEFAULT_*`` 常量后执行
-``python run_vs_ai.py``；无需记一长串 CLI 参数。
-
-固定策略（绕过 t=0 Top Agent 的 LLM 选策略）
-------------------------------------------------
-使用 ``--force-strategy <文件夹名>``，或调用 ``play_vs_ai(force_strategy="...")``。
-策略名对应 ``SKILL/<种族>/<文件夹名>/``（如人族 ``marine_rush`` → ``SKILL/terran/marine_rush/``）。
-须保证 ``--bot-race`` 与策略目录种族一致，且 ``--my-bot-name`` 为 ``universal_llm``（默认）。
-
-CLI 示例::
-
-    python run_vs_ai.py --bot-race terran --force-strategy marine_rush
-
-代码示例::
-
-    play_vs_ai(bot_race="terran", force_strategy="marine_rush")
-
-所有默认值集中在文件内 **「运行配置」** 常量区（``DEFAULT_*``），
-直接 ``python run_vs_ai.py`` 即生效；CLI 显式传参会覆盖对应项。
-取消固定策略请传 ``--force-strategy none``。
-
-批量脚本可通过环境变量 ``FORCE_STRATEGY`` 传入（见 ``run_vs_ai_batch.sh``）。
-
-各层是否启用 SKILL（两段式 Skill 路由 / 消融实验）
---------------------------------------------------
-优先级：``--disable-all-skills`` > ``--enable-skill-layers``。
-
-``--disable-all-skills``
-    完全关闭 Skill：Top/Mid 均不做 Phase 1 筛选，Phase 2 不注入 Skill（基线）。
-
-``--enable-skill-layers {all,top_only,mid_only,none}``  （默认 ``all``）
-    * ``all``      — Top(t≈60) 与 Mid 均启用 Skill 路由
-    * ``top_only`` — 仅 Top 层启用
-    * ``mid_only`` — 仅 Mid 层启用
-    * ``none``     — 两层均不启用 Skill 路由
-
-``--disable-specific-skills-layers {all,top,mid,none}``  （默认 ``none``）
-    在已启用 Skill 的层上，强制只用 ``generic`` 目录下的通用 Skill，不用策略专属 Skill：
-    * ``top`` / ``mid`` — 仅禁用对应层的 Specific Skill
-    * ``all``           — 两层均只用 Generic
-    * ``none``          — 不限制（Specific + Generic 均可）
-
-CLI 示例（仅 Top 启用 Skill，且 Top 只用 Generic；同时锁定 marine_rush）::
-
-    python run_vs_ai.py \\
-        --enable-skill-layers top_only \\
-        --disable-specific-skills-layers top \\
-        --force-strategy marine_rush
-
-批量脚本对应环境变量：``DISABLE_ALL_SKILLS``、``ENABLE_SKILL_LAYERS``、
-``DISABLE_SPECIFIC_SKILLS_LAYERS``、``FORCE_STRATEGY``（见 ``start_experiments.sh``）。
-"""
+"""Run the summary-guided SC2 macro agent against the built-in AI."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import sys
 from datetime import datetime
 from typing import List, Optional, Sequence
 
-sys.path.insert(1, "python-sc2")
+from sc2_runtime import ensure_bundled_python_sc2
 
-from bot_loader import GameStarter, BotDefinitions
+ensure_bundled_python_sc2()
+
+from bot_loader import BotDefinitions, GameStarter
 from version import update_version_txt
-
-# =============================================================================
-# 运行配置 — 改这里即可；``python run_vs_ai.py`` 与 ``play_vs_ai()`` 均以此为准
-# CLI 显式传参会覆盖对应项。布尔项支持 ``--flag`` / ``--no-flag`` 覆盖文件默认。
-# =============================================================================
 
 OUTPUT_BASE_DIR = "./game_records"
 
-# --- 对战：我方 ---
-DEFAULT_MY_BOT_NAME = "universal_llm"  # universal_llm 时自动拼接种族：universal_llm.terran
-DEFAULT_BOT_RACE = "terran"  # protoss | terran | zerg
-DEFAULT_BOT_INSTRUCT = "打一波 以 大和为主的攻击"  # 自然语言战术指令（传给 Top/Mid Agent）
+DEFAULT_MY_BOT_NAME = "universal_llm"
+DEFAULT_BOT_RACE = "terran"
 DEFAULT_MAP_NAME = "KairosJunctionLE"
-DEFAULT_REAL_TIME = False  # True：实时模式，便于人类观战
+DEFAULT_REAL_TIME = False
 
-# --- 对战：内置 AI 对手 ---
 DEFAULT_ENEMY_RACE = "terran"
-DEFAULT_ENEMY_DIFFICULTY = "hard"  # 如 easy / medium / hard / veryhard
-DEFAULT_ENEMY_BUILD = "macro"  # 内置 AI 风格，如 macro / rush 等
+DEFAULT_ENEMY_DIFFICULTY = "medium"
+DEFAULT_ENEMY_BUILD = "random"
 
-# --- LLM 模型（model_key，见项目模型配置）---
-DEFAULT_TOP_MODEL = "DeepSeek-V4-pro"
-DEFAULT_MID_MODEL = "DeepSeek-V4-pro"
-DEFAULT_DOWN_MODEL = "Kimi-k2.5_base"
-
-# --- 固定 t=0 策略（绕过 Top Agent 开局选策略的 LLM）---
-# 填 SKILL/<种族>/ 下的文件夹名，如 safe_tvt_raven → SKILL/terran/safe_tvt_raven/
-# 须与 DEFAULT_BOT_RACE 一致。空字符串 "" 表示不强制；CLI 可用 --force-strategy none 取消。
-DEFAULT_FORCE_STRATEGY = "cyclones"
-
-# --- 旧版整文 Prompt 注入（Skill 路由关闭时的兜底；一般保持 False）---
-DEFAULT_USE_TOP_60_PROMPT = False  # t≈60 注入 Top_agent_60.md 全文
-DEFAULT_USE_MID_PROMPT = False  # Mid 规划注入 mid_agent.md 全文
-
-# --- Skill 两段式路由 / 消融实验 ---
-# 优先级：disable_all_skills > enable_skill_layers
-DEFAULT_DISABLE_ALL_SKILLS = True  # True：完全关闭 Skill（基线）
-DEFAULT_ENABLE_SKILL_LAYERS = "all"  # all | top_only | mid_only | none
-DEFAULT_DISABLE_SPECIFIC_SKILLS_LAYERS = "none"  # all | top | mid | none（仅用 generic Skill）
-
-# --- 其它 ---
-DEFAULT_SKIP_VERSION_UPDATE = False  # True：跳过 version.txt 更新（批量并发时防 IO 锁）
-
-
-def _resolve_force_strategy(explicit: Optional[str]) -> Optional[str]:
-    """解析 force_strategy。
-
-    * ``explicit is None`` — 未在 CLI/调用方指定，使用 ``DEFAULT_FORCE_STRATEGY``
-    * ``''`` / ``'none'`` — 显式取消强制
-    * 其它非空字符串 — 策略文件夹名
-    """
-    if explicit is None:
-        explicit = DEFAULT_FORCE_STRATEGY
-    s = str(explicit or "").strip()
-    if not s or s.lower() == "none":
-        return None
-    return s
+DEFAULT_DECISION_MODEL = "Kimi-k2.5"
+DEFAULT_DATA_SUBAGENT_MODEL = "Kimi-k2.5"
+DEFAULT_DECISION_AGENT_MODE = "data-v2.2"
+DEFAULT_DECISION_INTERVAL = 60.0
+DEFAULT_FORCE_STRATEGY = "marine_rush"
+DEFAULT_SKIP_VERSION_UPDATE = False
 
 
 def _safe_match_part(value: str) -> str:
-    return "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in str(value))
+    return "".join(
+        char if char.isalnum() or char in ("-", "_") else "_"
+        for char in str(value)
+    )
+
 
 def build_match_id(
     *,
@@ -136,28 +51,49 @@ def build_match_id(
     enemy_build: str,
     map_name: str,
     bot_race: str,
-    top_model: str,
-    mid_model: str,
-    down_model: str,
+    decision_model: str,
+    data_subagent_model: str = DEFAULT_DATA_SUBAGENT_MODEL,
+    decision_agent_mode: str = DEFAULT_DECISION_AGENT_MODE,
+    decision_interval: float,
     run_index: Optional[int],
 ) -> str:
-    parts: Sequence[str] = (
-        timestamp,
-        my_bot_name,
-        bot_race,
-        "vs",
-        enemy_race,
-        enemy_difficulty,
-        enemy_build,
-        map_name,
-        _safe_match_part(top_model or "no_top"),
-        _safe_match_part(mid_model or "no_mid"),
-        _safe_match_part(down_model or "no_down"),
+    # The directory remains human-readable while a digest keeps every omitted
+    # parameter part of the identity.  A bounded id is essential on Windows:
+    # the record directory and artifact filename used to repeat the same long
+    # id and could exceed MAX_PATH before SC2 started.
+    identity = "|".join(
+        str(value)
+        for value in (
+            timestamp,
+            my_bot_name,
+            bot_race,
+            enemy_race,
+            enemy_difficulty,
+            enemy_build,
+            map_name,
+            decision_model,
+            data_subagent_model,
+            decision_agent_mode,
+            float(decision_interval),
+            run_index,
+        )
     )
-    match_str = "_".join(_safe_match_part(p) for p in parts)
-    if run_index is not None:
-        match_str = f"{match_str}_run{run_index}"
-    return match_str
+    digest = hashlib.sha1(identity.encode("utf-8")).hexdigest()[:10]
+    matchup = (
+        f"{_safe_match_part(bot_race)[:1].lower()}"
+        f"v{_safe_match_part(enemy_race)[:1].lower()}"
+    )
+    value = "_".join(
+        (
+            _safe_match_part(timestamp)[:15],
+            matchup,
+            _safe_match_part(map_name)[:12],
+            _safe_match_part(enemy_difficulty)[:6],
+            digest,
+        )
+    )
+    return f"{value}_run{run_index}" if run_index is not None else value
+
 
 def play_vs_ai(
     *,
@@ -167,33 +103,34 @@ def play_vs_ai(
     enemy_race: str = DEFAULT_ENEMY_RACE,
     enemy_difficulty: str = DEFAULT_ENEMY_DIFFICULTY,
     enemy_build: str = DEFAULT_ENEMY_BUILD,
-    bot_instruct: str = DEFAULT_BOT_INSTRUCT,
     bot_race: str = DEFAULT_BOT_RACE,
-    top_model: str = DEFAULT_TOP_MODEL,
-    mid_model: str = DEFAULT_MID_MODEL,
-    down_model: str = DEFAULT_DOWN_MODEL,
+    decision_model: str = DEFAULT_DECISION_MODEL,
+    data_subagent_model: str = DEFAULT_DATA_SUBAGENT_MODEL,
+    decision_agent_mode: str = DEFAULT_DECISION_AGENT_MODE,
+    decision_interval: float = DEFAULT_DECISION_INTERVAL,
     batch_name: Optional[str] = None,
     run_index: Optional[int] = None,
     output_base_dir: str = OUTPUT_BASE_DIR,
     skip_version_update: bool = DEFAULT_SKIP_VERSION_UPDATE,
-    use_top_60_prompt: bool = DEFAULT_USE_TOP_60_PROMPT,
-    use_mid_prompt: bool = DEFAULT_USE_MID_PROMPT,
-    disable_all_skills: bool = DEFAULT_DISABLE_ALL_SKILLS,
-    enable_skill_layers: str = DEFAULT_ENABLE_SKILL_LAYERS,
-    disable_specific_skills_layers: str = DEFAULT_DISABLE_SPECIFIC_SKILLS_LAYERS,
     force_strategy: Optional[str] = None,
 ) -> None:
-    force_strategy = _resolve_force_strategy(force_strategy)
+    strategy = (force_strategy or DEFAULT_FORCE_STRATEGY).strip()
+    if not strategy or strategy.lower() == "none":
+        raise ValueError("A fixed strategy folder is required.")
+    if float(decision_interval) <= 0:
+        raise ValueError("decision_interval must be greater than zero.")
 
     root_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(root_dir)
-
     if not skip_version_update:
         update_version_txt()
 
-    p2_string = f"ai.{enemy_race}.{enemy_difficulty}.{enemy_build}"
-    p1_string = f"{my_bot_name}.{bot_race}" if my_bot_name == "universal_llm" else my_bot_name
-
+    player_two = f"ai.{enemy_race}.{enemy_difficulty}.{enemy_build}"
+    player_one = (
+        f"{my_bot_name}.{bot_race}"
+        if my_bot_name == "universal_llm"
+        else my_bot_name
+    )
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     match_id = build_match_id(
         timestamp=timestamp,
@@ -203,183 +140,141 @@ def play_vs_ai(
         enemy_build=enemy_build,
         map_name=map_name,
         bot_race=bot_race,
-        top_model=top_model,
-        mid_model=mid_model,
-        down_model=down_model,
+        decision_model=decision_model,
+        data_subagent_model=data_subagent_model,
+        decision_agent_mode=decision_agent_mode,
+        decision_interval=decision_interval,
         run_index=run_index,
     )
-
     base = os.path.abspath(output_base_dir)
-    # 如果指定了 batch_name，则归档到单独的批次文件夹下面
-    if batch_name:
-        batch_slug = _safe_match_part(batch_name)
-        record_dir = os.path.join(base, batch_slug, match_id)
-    else:
-        record_dir = os.path.join(base, match_id)
-        
+    record_dir = (
+        os.path.join(base, _safe_match_part(batch_name), match_id)
+        if batch_name
+        else os.path.join(base, match_id)
+    )
     os.makedirs(record_dir, exist_ok=True)
 
     args: List[str] = [
         "run_custom.py",
-        "-m", map_name,
-        "-p1", p1_string,
-        "-p2", p2_string,
-        "--record-dir", record_dir,
-        "--match-id", match_id,
+        "-m",
+        map_name,
+        "-p1",
+        player_one,
+        "-p2",
+        player_two,
+        "--record-dir",
+        record_dir,
+        "--match-id",
+        match_id,
+        "--decision-model",
+        decision_model,
+        "--data-subagent-model",
+        data_subagent_model,
+        "--decision-agent-mode",
+        decision_agent_mode,
+        "--decision-interval",
+        str(float(decision_interval)),
+        "--force-strategy",
+        strategy,
     ]
-    
     if real_time:
         args.append("-rt")
-    if bot_instruct:
-        args.extend(["--instruct", bot_instruct])
-    if top_model:
-        args.extend(["--top-model", top_model])
-    if mid_model:
-        args.extend(["--mid-model", mid_model])
-    if down_model:
-        args.extend(["--down-model", down_model])
-    if use_top_60_prompt:
-        args.append("--use-top-60-prompt")
-    if use_mid_prompt:
-        args.append("--use-mid-prompt")
-    if disable_all_skills:
-        args.append("--disable-all-skills")
-    if enable_skill_layers and enable_skill_layers != "all":
-        args.extend(["--enable-skill-layers", enable_skill_layers])
-    if disable_specific_skills_layers and disable_specific_skills_layers != "none":
-        args.extend(["--disable-specific-skills-layers", disable_specific_skills_layers])
-    if force_strategy:
-        args.extend(["--force-strategy", force_strategy])
-
     sys.argv = args
 
     print("==================================================")
     print(" 正在启动 SC2 Agent 对战...")
     print(f" ▷ 我方阵营 : {my_bot_name} ({bot_race})")
-    print(f" ▷ 对手 AI  : {enemy_race.upper()} | 难度: {enemy_difficulty} | 风格: {enemy_build}")
+    print(
+        f" ▷ 对手 AI  : {enemy_race.upper()} | "
+        f"难度: {enemy_difficulty} | 风格: {enemy_build}"
+    )
     print(f" ▷ 比赛地图 : {map_name}")
-    print(f" ▷ 战术指令 : {bot_instruct}")
-    print(f" ▷ 大模型簇 : Top=[{top_model}], Mid=[{mid_model}], Down=[{down_model}]")
-    print(
-        f" ▷ Prompt 开关 : use_top_60_prompt={use_top_60_prompt}, "
-        f"use_mid_prompt={use_mid_prompt}"
-    )
-    print(
-        f" ▷ Skill 开关 : disable_all_skills={disable_all_skills}, "
-        f"enable_skill_layers={enable_skill_layers}, "
-        f"disable_specific_skills_layers={disable_specific_skills_layers}, "
-        f"force_strategy={force_strategy or 'None'}"
-    )
-    if batch_name:
-        print(f" ▷ 批次名称 : {batch_name} (任务序号: {run_index})")
+    print(f" ▷ MainAgent 模型: {decision_model}")
+    print(f" ▷ DataSubAgent 模型: {data_subagent_model}")
+    print(f" ▷ 决策 Agent: {decision_agent_mode}")
+    print(f" ▷ 决策周期 : {float(decision_interval):g} 游戏秒")
+    print(f" ▷ 固定策略 : {strategy}")
     print(f" ▷ 记录目录 : {record_dir}")
     print("==================================================")
 
-    ladder_bots_path = os.path.join(root_dir, "Bots")
-    definitions: BotDefinitions = BotDefinitions(ladder_bots_path)
+    definitions = BotDefinitions(os.path.join(root_dir, "Bots"))
+    GameStarter(definitions).play()
 
-    starter = GameStarter(definitions)
-    starter.play()
 
 def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(
-        description="与 SC2 内置 AI 对战。支持单跑或被批处理脚本调用。",
+    parser = argparse.ArgumentParser(
+        description="Run the summary-guided SC2 macro agent.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("--my-bot-name", default=DEFAULT_MY_BOT_NAME, help="Bot 名称")
-    p.add_argument("--map-name", default=DEFAULT_MAP_NAME, help="地图名")
-    p.add_argument(
+    parser.add_argument("--my-bot-name", default=DEFAULT_MY_BOT_NAME)
+    parser.add_argument("--map-name", default=DEFAULT_MAP_NAME)
+    parser.add_argument(
         "--real-time",
         action=argparse.BooleanOptionalAction,
         default=DEFAULT_REAL_TIME,
-        help="实时模式(人类观测)",
     )
-    p.add_argument("--enemy-race", default=DEFAULT_ENEMY_RACE, help="对手种族")
-    p.add_argument("--enemy-difficulty", default=DEFAULT_ENEMY_DIFFICULTY, help="对手难度")
-    p.add_argument("--enemy-build", default=DEFAULT_ENEMY_BUILD, help="对手 AI 风格")
-    p.add_argument("--bot-instruct", default=DEFAULT_BOT_INSTRUCT, help="战术指令")
-    p.add_argument("--bot-race", default=DEFAULT_BOT_RACE, help="我方种族")
-    p.add_argument("--top-model", default=DEFAULT_TOP_MODEL, help="Top Agent")
-    p.add_argument("--mid-model", default=DEFAULT_MID_MODEL, help="Mid Agent")
-    p.add_argument("--down-model", default=DEFAULT_DOWN_MODEL, help="Down Agent")
-    p.add_argument("--batch-name", default="", help="记录写入 game_records/<batch-name>/ 归档")
-    p.add_argument("--run-index", type=int, default=None, help="批处理序号以防并发冲突")
-    p.add_argument("--output-base-dir", default=OUTPUT_BASE_DIR, help="记录根目录")
-    p.add_argument(
+    parser.add_argument("--enemy-race", default=DEFAULT_ENEMY_RACE)
+    parser.add_argument("--enemy-difficulty", default=DEFAULT_ENEMY_DIFFICULTY)
+    parser.add_argument("--enemy-build", default=DEFAULT_ENEMY_BUILD)
+    parser.add_argument("--bot-race", default=DEFAULT_BOT_RACE)
+    parser.add_argument("--decision-model", default=DEFAULT_DECISION_MODEL)
+    parser.add_argument("--data-subagent-model", default=DEFAULT_DATA_SUBAGENT_MODEL)
+    parser.add_argument(
+        "--decision-agent-mode",
+        choices=(
+            "data-v2.3",
+            "data-v2.3-no-knowledge",
+            "data-v2.2-v2-no-knowledge",
+            "data-v2.2-v2",
+            "data-v2.2",
+            "naive",
+            "plan-execute",
+            "self-refine",
+            "suntzu",
+            "hima",
+            "cos",
+        ),
+        default=DEFAULT_DECISION_AGENT_MODE,
+    )
+    parser.add_argument(
+        "--decision-interval",
+        type=float,
+        default=DEFAULT_DECISION_INTERVAL,
+        help="Macro replanning interval in in-game seconds.",
+    )
+    parser.add_argument("--force-strategy", default=DEFAULT_FORCE_STRATEGY)
+    parser.add_argument("--batch-name", default="")
+    parser.add_argument("--run-index", type=int, default=None)
+    parser.add_argument("--output-base-dir", default=OUTPUT_BASE_DIR)
+    parser.add_argument(
         "--skip-version-update",
         action=argparse.BooleanOptionalAction,
         default=DEFAULT_SKIP_VERSION_UPDATE,
-        help="跳过版本更新防止 IO 锁",
     )
-    p.add_argument(
-        "--use-top-60-prompt",
-        action=argparse.BooleanOptionalAction,
-        default=DEFAULT_USE_TOP_60_PROMPT,
-        help="开启 t=60 阶段评估的 [Phase Guidance] 注入（读取 Top_agent_60.md）",
-    )
-    p.add_argument(
-        "--use-mid-prompt",
-        action=argparse.BooleanOptionalAction,
-        default=DEFAULT_USE_MID_PROMPT,
-        help="开启 Mid Agent 规划的 [Execution Guidance] 注入（读取 mid_agent.md）",
-    )
-    # ---- Ablation switches (Module 3) ---------------------------------
-    p.add_argument(
-        "--disable-all-skills",
-        action=argparse.BooleanOptionalAction,
-        default=DEFAULT_DISABLE_ALL_SKILLS,
-        help="禁用两段式 Skill 系统（Top 60 + Mid 均跳过 Phase 1 筛选，Phase 2 无 Skill 注入）。",
-    )
-    p.add_argument(
-        "--enable-skill-layers",
-        choices=["all", "top_only", "mid_only", "none"],
-        default=DEFAULT_ENABLE_SKILL_LAYERS,
-        help="指定哪一层启用两段式 Skill 路由。",
-    )
-    p.add_argument(
-        "--disable-specific-skills-layers",
-        choices=["all", "top", "mid", "none"],
-        default=DEFAULT_DISABLE_SPECIFIC_SKILLS_LAYERS,
-        help="指定哪一层禁用 Specific Skill（仅使用 Generic）。",
-    )
-    p.add_argument(
-        "--force-strategy",
-        default=None,
-        metavar="NAME",
-        help=(
-            f"强制锁定 t=0 策略（SKILL/<race>/<name> 文件夹名）；"
-            f"未指定时默认 {DEFAULT_FORCE_STRATEGY!r}（见 DEFAULT_FORCE_STRATEGY）；"
-            f"传 none 取消强制。"
-        ),
-    )
+    return parser.parse_args(argv)
 
-    return p.parse_args(argv)
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
-    ns = _parse_args(argv)
+    args = _parse_args(argv)
     play_vs_ai(
-        my_bot_name=ns.my_bot_name,
-        map_name=ns.map_name,
-        real_time=ns.real_time,
-        enemy_race=ns.enemy_race,
-        enemy_difficulty=ns.enemy_difficulty,
-        enemy_build=ns.enemy_build,
-        bot_instruct=ns.bot_instruct,
-        bot_race=ns.bot_race,
-        top_model=ns.top_model,
-        mid_model=ns.mid_model,
-        down_model=ns.down_model,
-        batch_name=ns.batch_name or None,
-        run_index=ns.run_index,
-        output_base_dir=ns.output_base_dir,
-        skip_version_update=ns.skip_version_update,
-        use_top_60_prompt=ns.use_top_60_prompt,
-        use_mid_prompt=ns.use_mid_prompt,
-        disable_all_skills=ns.disable_all_skills,
-        enable_skill_layers=ns.enable_skill_layers,
-        disable_specific_skills_layers=ns.disable_specific_skills_layers,
-        force_strategy=ns.force_strategy,
+        my_bot_name=args.my_bot_name,
+        map_name=args.map_name,
+        real_time=args.real_time,
+        enemy_race=args.enemy_race,
+        enemy_difficulty=args.enemy_difficulty,
+        enemy_build=args.enemy_build,
+        bot_race=args.bot_race,
+        decision_model=args.decision_model,
+        data_subagent_model=args.data_subagent_model,
+        decision_agent_mode=args.decision_agent_mode,
+        decision_interval=args.decision_interval,
+        batch_name=args.batch_name or None,
+        run_index=args.run_index,
+        output_base_dir=args.output_base_dir,
+        skip_version_update=args.skip_version_update,
+        force_strategy=args.force_strategy,
     )
+
 
 if __name__ == "__main__":
     main()

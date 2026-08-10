@@ -1,0 +1,20 @@
+{
+  "schema_version": "sc2-data-v2.2-vendor-manifest-v1",
+  "source_commit": "dd981f58bdb7ab5b0828a3cd100f868fbdad71f7",
+  "dataset_release": "data_sc2_260701",
+  "dataset_generated_at": "2026-07-01T04:10:43.932155Z",
+  "dataset_counts": {
+    "Ability": 683,
+    "Unit": 204,
+    "Upgrade": 124,
+    "SubOntology": 109,
+    "relations": 6503,
+    "markdown_evidence": 116
+  },
+  "checksums": {
+    "data_sc2_260701/BUILD_MANIFEST.json": "2831801c5edb91dbaf2530c076cb0e27babb1b0d82f64c09c4b4205a0484055d",
+    "data_sc2_260701/data_base_sc2_260701.json": "303ea623ec75ac440037a2ec1896367b872db98e5185f58936255527abaf49e3",
+    "data_sc2_260701/relations/entity_expanded_relations.json": "efce5dcc4fd1a35702c4153e0237cfbc3140bb55b65f71c88460b37221614e9b",
+    "data_sc2_260701/relations/README.md": "e19f9d5fb77949c67f53b34446908e248fc3b47335a0a33f679f3462ef408662"
+  }
+}

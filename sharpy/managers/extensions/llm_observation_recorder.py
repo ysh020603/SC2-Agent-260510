@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 
 
 DEFAULT_INTERVAL_SECONDS: float = 20.0
-DEFAULT_OUTPUT_FOLDER: str = "games"
+DEFAULT_OUTPUT_FOLDER: str = "game_records"
 DEFAULT_FILENAME_PREFIX: str = "Replay"
 
 # Short race tags used inside the auto-generated file name (PvT, ZvP, ...).
@@ -68,6 +68,45 @@ _VESPENE_GEYSER_TYPES: Set[UnitTypeId] = {
     UnitTypeId.PURIFIERVESPENEGEYSER,
     UnitTypeId.SHAKURASVESPENEGEYSER,
 }
+
+# Tactical modes and morph cocoons are engine implementation types, not
+# production choices the decision model can issue.  Exposing names such as
+# LIBERATORAG or SUPPLYDEPOTLOWERED in the prompt causes the model to copy
+# them into its next queue, where they are correctly rejected as unknown.
+# Preserve genuinely distinct macro entities (for example race-specific
+# Terran add-ons and OverlordTransport), and only fold non-buildable forms.
+_LLM_VISIBLE_UNIT_TYPE: Dict[UnitTypeId, UnitTypeId] = {
+    # Terran modes.
+    UnitTypeId.SIEGETANKSIEGED: UnitTypeId.SIEGETANK,
+    UnitTypeId.VIKINGASSAULT: UnitTypeId.VIKINGFIGHTER,
+    UnitTypeId.THORAP: UnitTypeId.THOR,
+    UnitTypeId.LIBERATORAG: UnitTypeId.LIBERATOR,
+    UnitTypeId.WIDOWMINEBURROWED: UnitTypeId.WIDOWMINE,
+    UnitTypeId.SUPPLYDEPOTLOWERED: UnitTypeId.SUPPLYDEPOT,
+    # Protoss modes.
+    UnitTypeId.WARPPRISMPHASING: UnitTypeId.WARPPRISM,
+    UnitTypeId.OBSERVERSIEGEMODE: UnitTypeId.OBSERVER,
+    # Zerg burrowed/mobile modes and in-progress morph shells.
+    UnitTypeId.DRONEBURROWED: UnitTypeId.DRONE,
+    UnitTypeId.ZERGLINGBURROWED: UnitTypeId.ZERGLING,
+    UnitTypeId.BANELINGBURROWED: UnitTypeId.BANELING,
+    UnitTypeId.BANELINGCOCOON: UnitTypeId.BANELING,
+    UnitTypeId.ROACHBURROWED: UnitTypeId.ROACH,
+    UnitTypeId.HYDRALISKBURROWED: UnitTypeId.HYDRALISK,
+    UnitTypeId.ULTRALISKBURROWED: UnitTypeId.ULTRALISK,
+    UnitTypeId.OVERLORDCOCOON: UnitTypeId.OVERLORDTRANSPORT,
+    UnitTypeId.RAVAGERCOCOON: UnitTypeId.RAVAGER,
+    UnitTypeId.LURKERMPBURROWED: UnitTypeId.LURKERMP,
+    UnitTypeId.QUEENBURROWED: UnitTypeId.QUEEN,
+    UnitTypeId.INFESTORBURROWED: UnitTypeId.INFESTOR,
+    UnitTypeId.SPINECRAWLERUPROOTED: UnitTypeId.SPINECRAWLER,
+    UnitTypeId.SPORECRAWLERUPROOTED: UnitTypeId.SPORECRAWLER,
+}
+
+
+def llm_visible_unit_name(unit_type: UnitTypeId) -> str:
+    """Return the buildable/canonical-facing name for a live engine type."""
+    return _LLM_VISIBLE_UNIT_TYPE.get(unit_type, unit_type).name
 
 
 class LLMObservationRecorder(ManagerBase):
@@ -307,7 +346,7 @@ class LLMObservationRecorder(ManagerBase):
 
         ideal_worker_count = self._calculate_ideal_worker_count()
 
-        return {
+        state = {
             "minerals": int(self.ai.minerals),
             "vespene": int(self.ai.vespene),
             "supply_used": int(self.ai.supply_used),
@@ -322,6 +361,28 @@ class LLMObservationRecorder(ManagerBase):
             # "I'm at 22/22 ideal -> stop, build more bases / cut workers".
             "ideal_worker_count": ideal_worker_count,
         }
+
+        # v4 (2026-07-22): cumulative resource accounting from the SC2 score
+        # interface, used offline to compute macro evaluation metrics
+        # (RUR consume / float). ``spent_*`` is the total resources actually
+        # turned into units / structures / upgrades so far; ``collected_*`` is
+        # the total gathered. Both degrade to 0 if the score proto is missing.
+        spent_minerals = spent_vespene = 0
+        collected_minerals = collected_vespene = 0
+        try:
+            score = self.ai.state.score
+            spent_minerals = int(score.spent_minerals)
+            spent_vespene = int(score.spent_vespene)
+            collected_minerals = int(score.collected_minerals)
+            collected_vespene = int(score.collected_vespene)
+        except Exception:
+            pass
+        state["spent_minerals"] = spent_minerals
+        state["spent_vespene"] = spent_vespene
+        state["collected_minerals"] = collected_minerals
+        state["collected_vespene"] = collected_vespene
+
+        return state
 
     def _calculate_ideal_worker_count(self) -> int:
         """Sum ``ideal_harvesters`` across all ready townhalls and gas buildings.
@@ -390,21 +451,24 @@ class LLMObservationRecorder(ManagerBase):
             for unit in units:
                 if unit.is_structure:
                     if unit.is_ready:
-                        completed[unit_type.name] = completed.get(unit_type.name, 0) + 1
+                        name = llm_visible_unit_name(unit_type)
+                        completed[name] = completed.get(name, 0) + 1
                     else:
                         # 0 < build_progress < 1: the foundation has been laid.
-                        under_construction[unit_type.name] = (
-                            under_construction.get(unit_type.name, 0) + 1
+                        name = llm_visible_unit_name(unit_type)
+                        under_construction[name] = (
+                            under_construction.get(name, 0) + 1
                         )
                         partial_positions.setdefault(unit_type, []).append(unit.position)
                 else:
                     if unit.is_ready:
-                        completed[unit_type.name] = completed.get(unit_type.name, 0) + 1
+                        name = llm_visible_unit_name(unit_type)
+                        completed[name] = completed.get(name, 0) + 1
                     else:
                         # Non-structure with build_progress < 1: a Zerg unit
                         # currently morphing inside an egg / cocoon. Surface
                         # this as part of the active production queue.
-                        key = f"Training {unit_type.name}"
+                        key = f"Training {llm_visible_unit_name(unit_type)}"
                         active_queues[key] = active_queues.get(key, 0) + 1
 
         # Workers en route: a worker counts as "en route" only if its BUILD_X
@@ -466,8 +530,9 @@ class LLMObservationRecorder(ManagerBase):
                 if any(self._positions_match(target_pos, p) for p in candidates):
                     continue
 
-                workers_en_route[struct_type.name] = (
-                    workers_en_route.get(struct_type.name, 0) + 1
+                struct_name = llm_visible_unit_name(struct_type)
+                workers_en_route[struct_name] = (
+                    workers_en_route.get(struct_name, 0) + 1
                 )
 
         # Active queues from completed production / research buildings. Each
@@ -483,7 +548,7 @@ class LLMObservationRecorder(ManagerBase):
 
                     produced_unit = self._train_ability_to_unit.get(ability_id)
                     if produced_unit is not None:
-                        key = f"Training {produced_unit.name}"
+                        key = f"Training {llm_visible_unit_name(produced_unit)}"
                         active_queues[key] = active_queues.get(key, 0) + 1
                         continue
 
@@ -945,7 +1010,129 @@ class LLMObservationRecorder(ManagerBase):
             "interval_seconds": self.interval_seconds,
             "record_count": len(self.record_history),
             "llm_interaction_count": len(self.llm_interactions),
+            # v4 (2026-07-22): macro evaluation metrics computed at game end.
+            "macro_metrics": self._compute_macro_metrics(),
         }
+
+    # ------------------------------------------------------------------
+    # Macro evaluation metrics (computed once at game end)
+    # ------------------------------------------------------------------
+
+    def _compute_macro_metrics(self) -> Dict:
+        """Compute end-of-game macro evaluation metrics.
+
+        Three metrics, all derived from data the recorder already tracks:
+
+        * ``rur_consume_per_min`` - Resource Utilization Ratio (consume side).
+          ``(spent_minerals + spent_vespene) / game_duration * 60``. Higher is
+          generally better: resources are actually turned into units / tech
+          instead of sitting in the bank.
+        * ``rur_float_avg_bank`` - Resource Utilization Ratio (float side).
+          Time-weighted average of the unspent bank ``minerals + vespene`` over
+          the game. Higher is generally worse: resources pile up unused, which
+          signals weak macro.
+        * ``apu_ratio`` - Average Population Utilization. Time-weighted average
+          of ``supply_used / supply_cap`` (0..1). Higher is better: the
+          available supply cap is being used more fully.
+
+        ``rur_float`` / ``apu`` use the regularly-sampled ``record_history``
+        (populated every ``interval_seconds`` regardless of LLM mode). The
+        method is defensive: any failure degrades that metric to ``None``
+        rather than breaking JSON persistence.
+        """
+        duration = 0.0
+        try:
+            duration = float(self.ai.time)
+        except Exception:
+            duration = 0.0
+
+        metrics: Dict = {
+            "rur_consume_per_min": None,
+            "rur_float_avg_bank": None,
+            "apu_ratio": None,
+            "sample_count": len(self.record_history),
+            "definition": (
+                "rur_consume_per_min=(spent_minerals+spent_vespene)/duration*60 "
+                "(higher=better); "
+                "rur_float_avg_bank=time-weighted avg of unspent (minerals+vespene) "
+                "(higher=worse); "
+                "apu_ratio=time-weighted avg of supply_used/supply_cap in [0,1] "
+                "(higher=better)."
+            ),
+        }
+
+        # --- RUR consume: exact, from the score interface at game end. -----
+        try:
+            score = self.ai.state.score
+            total_spent = int(score.spent_minerals) + int(score.spent_vespene)
+            if duration > 0:
+                metrics["rur_consume_per_min"] = round(total_spent / duration * 60.0, 1)
+        except Exception:
+            pass
+
+        # --- RUR float + APU: time-weighted over regular snapshots. --------
+        samples: List[Dict] = []
+        for record in self.record_history:
+            try:
+                t = float(record.get("game_time_seconds"))
+            except Exception:
+                continue
+            econ = (record.get("structured_state") or {}).get("economy") or {}
+            samples.append({"t": t, "economy": econ})
+        samples.sort(key=lambda s: s["t"])
+
+        metrics["rur_float_avg_bank"] = self._time_weighted_average(
+            samples,
+            lambda e: float(e.get("minerals", 0)) + float(e.get("vespene", 0)),
+        )
+
+        def _apu_value(e: Dict) -> Optional[float]:
+            cap = float(e.get("supply_cap", 0) or 0)
+            if cap <= 0:
+                return None
+            return float(e.get("supply_used", 0)) / cap
+
+        apu = self._time_weighted_average(samples, _apu_value)
+        metrics["apu_ratio"] = None if apu is None else round(apu, 4)
+        if metrics["rur_float_avg_bank"] is not None:
+            metrics["rur_float_avg_bank"] = round(metrics["rur_float_avg_bank"], 1)
+
+        return metrics
+
+    @staticmethod
+    def _time_weighted_average(samples, value_fn) -> Optional[float]:
+        """Left-value time-weighted average of ``value_fn`` over ``samples``.
+
+        ``samples`` is a list of ``{"t": <seconds>, "economy": <dict>}`` sorted
+        by time. Each interval ``[t_i, t_{i+1})`` contributes ``value(s_i) *
+        (t_{i+1} - t_i)``. Samples whose ``value_fn`` returns ``None`` are
+        skipped (their interval carries no weight). Falls back to the plain
+        mean of valid values when there are too few samples or zero elapsed
+        span, and returns ``None`` when nothing is usable.
+        """
+        if not samples:
+            return None
+
+        weighted_sum = 0.0
+        total_weight = 0.0
+        for i in range(len(samples) - 1):
+            value = value_fn(samples[i]["economy"])
+            if value is None:
+                continue
+            dt = samples[i + 1]["t"] - samples[i]["t"]
+            if dt <= 0:
+                continue
+            weighted_sum += value * dt
+            total_weight += dt
+
+        if total_weight > 0:
+            return weighted_sum / total_weight
+
+        # Fallback: plain mean of valid values (e.g. <2 samples or no span).
+        valid = [v for v in (value_fn(s["economy"]) for s in samples) if v is not None]
+        if not valid:
+            return None
+        return sum(valid) / len(valid)
 
     def _resolve_output_path(self) -> str:
         """Resolve the JSON output path with three-tier precedence.

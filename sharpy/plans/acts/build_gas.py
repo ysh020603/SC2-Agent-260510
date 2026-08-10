@@ -26,6 +26,7 @@ class BuildGas(ActBase):
         self.all_types = ALL_GAS
         self.unit_type: UnitTypeId = None
         self.builder_tag: Optional[int] = None
+        self.issued_this_frame = False
 
     async def start(self, knowledge: Knowledge):
         await super().start(knowledge)
@@ -51,12 +52,16 @@ class BuildGas(ActBase):
         harvesters.extend(self.cache.own(self.all_types))
         harvesters.extend(self.cache.enemy(self.all_types))
 
+        reserved_tags = self._reserved_geyser_tags()
+
         for townhall in self.ai.townhalls:  # type: Unit
             if not townhall.is_ready or townhall.build_progress < 0.9:
                 # Only build gas for bases that are almost finished
                 continue
 
             for geyser in self.ai.vespene_geyser.closer_than(15, townhall):  # type: Unit
+                if geyser.tag in reserved_tags:
+                    continue
                 exists = False
                 for harvester in harvesters:  # type: Unit
                     if harvester.position.distance_to(geyser.position) <= 1:
@@ -71,6 +76,7 @@ class BuildGas(ActBase):
                         self.best_gas = geyser
 
     async def execute(self) -> bool:
+        self.issued_this_frame = False
         active_harvester_count = self.active_harvester_count
         pending_count = self.pending_build(self.unit_type)
 
@@ -109,7 +115,14 @@ class BuildGas(ActBase):
 
             self.builder_tag = worker.tag
 
+            # Separate BuildGas Acts are intentionally allowed to execute in
+            # one scheduler frame. The engine observation does not reflect
+            # the first worker order until the next frame, so reserve this
+            # geyser locally before issuing to keep sibling Acts from choosing
+            # the same target.
+            self._reserve_geyser(target.tag)
             worker.build_gas(target, queue=self.has_build_order(worker))
+            self.issued_this_frame = True
 
             if self.ai.race == Race.Protoss:
                 # Protoss only do something else after starting gas
@@ -118,6 +131,28 @@ class BuildGas(ActBase):
 
             self.print(f"Building {self.unit_type.name} to {target.position}")
         return False
+
+    def _reserved_geyser_tags(self) -> set[int]:
+        """Targets reserved while SC2 has not yet published a worker order."""
+        now = float(getattr(self.ai, "time", 0.0))
+        reservations = getattr(self.ai, "_sharpy_gas_reservations", None)
+        if reservations is None:
+            reservations = {}
+            self.ai._sharpy_gas_reservations = reservations
+        # A successful order will shortly be represented by a gas structure
+        # or worker order and excluded by normal discovery. Keep the local tag
+        # across several game loops to bridge that observation delay; expire
+        # it quickly so a rejected/dead-worker command can retry.
+        for tag, issue_time in list(reservations.items()):
+            if now - float(issue_time) > 2.0:
+                reservations.pop(tag, None)
+        return set(reservations)
+
+    def _reserve_geyser(self, tag: int) -> None:
+        self._reserved_geyser_tags()
+        self.ai._sharpy_gas_reservations[int(tag)] = float(
+            getattr(self.ai, "time", 0.0)
+        )
 
     def set_worker(self, worker: Optional[Unit]) -> bool:
         if worker:

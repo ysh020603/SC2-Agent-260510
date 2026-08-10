@@ -448,25 +448,27 @@ class BuildingSolver(ManagerBase, IBuildingSolver):
             self.grid.fill_rect(padding, fill_padding)
 
     def terran_grid(self, pos):
-        rect = Rectangle(pos.x, pos.y, 6, 5)
-        padding = Rectangle(pos.x, pos.y, 7, 5)
+        rect = Rectangle(pos.x, pos.y, 5, 6)
+        padding = Rectangle(pos.x - 1, pos.y, 7, 6)
 
         if self.grid.query_rect(rect, is_empty):
-            depots = [pos + Point2((1, 4)), pos + Point2((1 + 2, 4)), pos + Point2((1 + 4, 4))]
             raxes = [
                 pos + Point2((1.5, 1.5)),
+                pos + Point2((1.5, 4.5)),
             ]
-            for depot_pos in depots:
-                self.fill_and_save(depot_pos, BlockerType.Building2x2, BuildArea.Pylon)
-
             for rax_pos in raxes:
                 self.fill_and_save(rax_pos, BlockerType.Building3x3, BuildArea.Building)
+                self.fill_and_save(
+                    rax_pos.offset(Point2((2.5, -0.5))),
+                    BlockerType.Building2x2,
+                    BuildArea.BuildingPadding,
+                )
 
             self.grid.fill_rect(padding, fill_padding)
 
     def terran_massive_grid(self, pos):
         rect = Rectangle(pos.x, pos.y, 7, 8)
-        # padding = Rectangle(pos.x, pos.y - 2, 7, 8)
+        padding = Rectangle(pos.x - 1, pos.y, 9, 8)
 
         if self.grid.query_rect(rect, is_empty):
             pylons = [pos + Point2((1, 3)), pos + Point2((6, 4)), pos + Point2((6, 6))]
@@ -480,7 +482,7 @@ class BuildingSolver(ManagerBase, IBuildingSolver):
             for gate_pos in gates:
                 self.fill_and_save(gate_pos, BlockerType.Building3x3, BuildArea.Building)
 
-            self.grid.fill_rect(rect, fill_padding)
+            self.grid.fill_rect(padding, fill_padding)
 
     def pylon_pair_normal(self, pos):
         rect_pylon = Rectangle(pos.x, pos.y, 2, 2)

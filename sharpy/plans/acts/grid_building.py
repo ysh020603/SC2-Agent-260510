@@ -1,5 +1,6 @@
+from collections import deque
 from math import floor
-from typing import Optional, Set
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from sc2.data import Race
 from sc2.ids.ability_id import AbilityId
@@ -17,6 +18,55 @@ from sharpy.interfaces import IBuildingSolver, IIncomeCalculator
 from sharpy.managers.core import PathingManager
 
 worker_trainers = {AbilityId.NEXUSTRAIN_PROBE, AbilityId.COMMANDCENTERTRAIN_SCV}
+
+# 同一坐标连续失败超过该阈值后进入黑名单，强制遍历下一个备选格
+INVALID_POSITION_THRESHOLD = 20
+
+TERRAN_PRODUCTION_BUILDINGS = {
+    UnitTypeId.BARRACKS,
+    UnitTypeId.FACTORY,
+    UnitTypeId.STARPORT,
+}
+
+TERRAN_PRODUCTION_TO_FLYING = {
+    UnitTypeId.BARRACKS: UnitTypeId.BARRACKSFLYING,
+    UnitTypeId.FACTORY: UnitTypeId.FACTORYFLYING,
+    UnitTypeId.STARPORT: UnitTypeId.STARPORTFLYING,
+}
+
+TERRAN_FLYING_TO_PRODUCTION = {
+    UnitTypeId.BARRACKSFLYING: UnitTypeId.BARRACKS,
+    UnitTypeId.FACTORYFLYING: UnitTypeId.FACTORY,
+    UnitTypeId.STARPORTFLYING: UnitTypeId.STARPORT,
+}
+
+TERRAN_ADDONS = {
+    UnitTypeId.TECHLAB,
+    UnitTypeId.REACTOR,
+    UnitTypeId.BARRACKSTECHLAB,
+    UnitTypeId.BARRACKSREACTOR,
+    UnitTypeId.FACTORYTECHLAB,
+    UnitTypeId.FACTORYREACTOR,
+    UnitTypeId.STARPORTTECHLAB,
+    UnitTypeId.STARPORTREACTOR,
+}
+
+TERRAN_ADDON_CLEARANCE_RADIUS = 2.05
+TERRAN_TRAFFIC_CHECK_TYPES = {
+    UnitTypeId.SUPPLYDEPOT,
+    UnitTypeId.BARRACKS,
+    UnitTypeId.ENGINEERINGBAY,
+    UnitTypeId.FACTORY,
+    UnitTypeId.ARMORY,
+    UnitTypeId.BUNKER,
+    UnitTypeId.SENSORTOWER,
+    UnitTypeId.GHOSTACADEMY,
+    UnitTypeId.STARPORT,
+    UnitTypeId.FUSIONCORE,
+}
+TERRAN_PASSABLE_STRUCTURES = {
+    UnitTypeId.SUPPLYDEPOTLOWERED,
+}
 
 
 class WorkerStuckStatus:
@@ -75,6 +125,7 @@ class GridBuilding(ActBuilding):
         priority: bool = False,
         allow_wall: bool = True,
         consider_worker_production: bool = True,
+        auto_pylon: bool = True,
     ):
         super().__init__(unit_type, to_count)
         self.allow_wall = allow_wall
@@ -82,24 +133,37 @@ class GridBuilding(ActBuilding):
         self.priority = priority
         self.only_roles = [UnitTask.Idle, UnitTask.Building, UnitTask.Gathering]
         self.builder_tag: Optional[int] = None
+        # ??????????? DONE ?? WARN ??????7.4 / ?11.8?
+        self.actual_placements: int = 0
         self.iterator: Optional[int] = iterator
         self.consider_worker_production = consider_worker_production
+        self.auto_pylon = bool(auto_pylon)
         self.building_solver: IBuildingSolver = None
         self.make_pylon = None
         self.last_iteration_moved = -10
         self.worker_stuck: WorkerStuckStatus = WorkerStuckStatus()
+        # 动态容错黑名单：记录各建造点连续失败/被选中的帧数
+        self.invalid_positions: Dict[Point2, int] = {}
 
     async def start(self, knowledge: "Knowledge"):
         await super().start(knowledge)
         self.building_solver = self.knowledge.get_required_manager(IBuildingSolver)
         self.pather = self.knowledge.get_manager(PathingManager)
         self.income_calculator = self.knowledge.get_required_manager(IIncomeCalculator)
-        if self.unit_type != UnitTypeId.PYLON:
+        # 只有神族需要水晶塔供能；人族/虫族建筑找不到落点时不应去造 Pylon，
+        # 否则会陷入「反复尝试造 Pylon」的空转（人族根本无法建造）。
+        if (
+            self.auto_pylon
+            and self.knowledge.my_race == Race.Protoss
+            and self.unit_type != UnitTypeId.PYLON
+        ):
             self.make_pylon: Optional[GridBuilding] = GridBuilding(UnitTypeId.PYLON, 0, 2)
             await self.make_pylon.start(knowledge)
 
     async def execute(self) -> bool:
-        count = self.get_count(self.unit_type, include_pending=False, include_not_ready=True)
+        count = self._get_terran_equivalent_count() if self.unit_type in TERRAN_PRODUCTION_BUILDINGS else self.get_count(
+            self.unit_type, include_pending=False, include_not_ready=True
+        )
 
         if count >= self.to_count:
             if self.builder_tag is not None:
@@ -107,23 +171,37 @@ class GridBuilding(ActBuilding):
 
             return True  # Step is done
 
-        if (
-            count + (self.pending_build(self.unit_type) - self.cache.own(self.unit_type).not_ready.amount)
-            >= self.to_count
-        ):
+        # ???????SCV ???????????/?????
+        # ????? count + pending_build ??????? worker-order ???
+        # ? scheduler ??????????? 15.6??
+        en_route = 0
+        try:
+            creation_ability_id = self.ai._game_data.units[self.unit_type.value].creation_ability.id
+            for worker in self.ai.workers:
+                for order in worker.orders:
+                    if order.ability.id == creation_ability_id:
+                        # ????????????????????? double-count
+                        target = Point2.from_proto(order.target)
+                        if not self.ai.structures.closer_than(1.0, target).exists:
+                            en_route += 1
+                        break
+        except Exception:
+            pass
+
+        if count + en_route >= self.to_count:
             if self.builder_tag is not None:
                 worker = self.cache.by_tag(self.builder_tag)
                 if worker is not None:
                     self.set_worker(worker)
                     await self.debug_draw()
-            return True  # Building is ordered
+            return True  # Building is ordered / done
 
         if self.knowledge.my_race == Race.Protoss:
-            position = self.position_protoss(count)
+            position = await self.position_protoss(count)
         elif self.knowledge.my_race == Race.Terran:
-            position = self.position_terran(count)
+            position = await self.position_terran(count)
         else:
-            position = self.position_zerg(count)
+            position = await self.position_zerg(count)
 
         if position is None:
             if self.make_pylon is not None:
@@ -167,6 +245,8 @@ class GridBuilding(ActBuilding):
                 self.set_worker(worker)
                 if worker.tag not in self.ai.unit_tags_received_action and not self.has_build_order(worker):
                     # No duplicate builds
+                    pos_formatted = f"({position.x:.1f}, {position.y:.1f})"
+                    self.print(f"{self.unit_type.name} at {pos_formatted}")
                     if self.knowledge.my_race == Race.Protoss:
                         await self.build_protoss(worker, count, position)
                     elif self.knowledge.my_race == Race.Terran:
@@ -253,51 +333,550 @@ class GridBuilding(ActBuilding):
             self.roles.clear_task(self.builder_tag)
             self.builder_tag = None
 
-    def position_protoss(self, count) -> Optional[Point2]:
+    async def position_protoss(self, count) -> Optional[Point2]:
         is_pylon = self.unit_type == UnitTypeId.PYLON
         buildings = self.ai.structures
         matrix = self.ai.state.psionic_matrix
-        future_position = None
+        en_route_positions = self._en_route_build_positions()
 
         iterator = self.get_iterator(is_pylon, count)
 
         if is_pylon:
             for point in self.building_solver.buildings2x2[::iterator]:
-                if not buildings.closer_than(1, point):
+                if (
+                    not buildings.closer_than(1, point)
+                    and not any(point.distance_to(target) < 1 for target in en_route_positions)
+                    and not self._position_reserved_this_frame(point)
+                    and await self.ai.can_place_single(self.unit_type, point)
+                ):
                     return point
         else:
-            pylons = self.cache.own(UnitTypeId.PYLON).not_ready
             for point in self.building_solver.buildings3x3[::iterator]:
                 if not self.allow_wall:
                     if point in self.building_solver.wall3x3:
                         continue
-                if not buildings.closer_than(1, point) and matrix.covers(point):
+                if (
+                    not buildings.closer_than(1, point)
+                    and not any(point.distance_to(target) < 1 for target in en_route_positions)
+                    and not self._position_reserved_this_frame(point)
+                    and matrix.covers(point)
+                    and await self.ai.can_place_single(self.unit_type, point)
+                ):
                     return point
 
-                if future_position is None and pylons and point.distance_to_closest(pylons) <= 7:
-                    future_position = point
+        # The static solver intentionally covers only the first three zones.
+        # Long macro games can consume those slots.  Search the live SC2
+        # placement grid around completed bases/Pylons so later production is
+        # placed at actually owned, powered expansions instead of becoming a
+        # permanently stuck action.
+        if is_pylon:
+            anchors = list(self.ai.townhalls.ready) + list(
+                self.cache.own(UnitTypeId.PYLON).ready
+            )
+            for anchor in sorted(anchors, key=lambda unit: unit.tag):
+                position = await self.ai.find_placement(
+                    self.unit_type,
+                    anchor.position,
+                    max_distance=14,
+                    random_alternative=False,
+                    placement_step=1,
+                )
+                if (
+                    position is not None
+                    and not self._position_reserved_this_frame(position)
+                    and not any(
+                        position.distance_to(target) < 1
+                        for target in en_route_positions
+                    )
+                ):
+                    return position
+        else:
+            pylons = sorted(
+                self.cache.own(UnitTypeId.PYLON).ready,
+                key=lambda unit: unit.tag,
+            )
+            for pylon in pylons:
+                position = await self.ai.find_placement(
+                    self.unit_type,
+                    pylon.position,
+                    max_distance=7,
+                    random_alternative=False,
+                    placement_step=1,
+                )
+                if (
+                    position is not None
+                    and matrix.covers(position)
+                    and not self._position_reserved_this_frame(position)
+                    and not any(
+                        position.distance_to(target) < 1
+                        for target in en_route_positions
+                    )
+                ):
+                    return position
 
-        return future_position
+        return None
 
-    def position_zerg(self, count) -> Optional[Point2]:
+    def _en_route_build_positions(self) -> List[Point2]:
+        try:
+            creation_ability_id = self.ai._game_data.units[
+                self.unit_type.value
+            ].creation_ability.id
+        except Exception:
+            return []
+
+        positions: List[Point2] = []
+        for worker in self.ai.workers:
+            for order in worker.orders:
+                if order.ability.id != creation_ability_id:
+                    continue
+                if isinstance(order.target, int):
+                    break
+                try:
+                    positions.append(Point2.from_proto(order.target))
+                except Exception:
+                    pass
+                break
+        return positions
+
+    async def position_zerg(self, count) -> Optional[Point2]:
         buildings = self.ai.structures
         creep = self.ai.state.creep
         future_position = None
 
         for point in self.building_solver.buildings3x3:
-            if not buildings.closer_than(1, point) and self.is_on_creep(creep, point):
+            if (
+                not buildings.closer_than(1, point)
+                and not self._position_reserved_this_frame(point)
+                and self.is_on_creep(creep, point)
+                and await self.ai.can_place_single(self.unit_type, point)
+            ):
                 return point
+
+        # The static solver covers only a bounded set of early zones. Long
+        # Zerg games can consume every listed creep slot even though later
+        # Hatcheries have ample legal space. Ask SC2 for a deterministic live
+        # placement around each ready base after the static candidates are
+        # exhausted.
+        try:
+            anchors = sorted(self.ai.townhalls.ready, key=lambda unit: unit.tag)
+        except Exception:
+            anchors = []
+        for anchor in anchors:
+            try:
+                position = await self.ai.find_placement(
+                    self.unit_type,
+                    anchor.position,
+                    max_distance=14,
+                    random_alternative=False,
+                    placement_step=1,
+                )
+            except Exception:
+                position = None
+            if (
+                position is not None
+                and not self._position_reserved_this_frame(position)
+                and self.is_on_creep(creep, position)
+                and await self.ai.can_place_single(self.unit_type, position)
+            ):
+                return position
 
         return future_position
 
-    def position_terran(self, count) -> Optional[Point2]:
+    def _is_position_blacklisted(self, point: Point2) -> bool:
+        return self.invalid_positions.get(point, 0) >= INVALID_POSITION_THRESHOLD
+
+    def _bump_invalid_position(self, point: Point2) -> None:
+        self.invalid_positions[point] = self.invalid_positions.get(point, 0) + 1
+
+    def _get_terran_equivalent_count(self) -> int:
+        flying_type = TERRAN_PRODUCTION_TO_FLYING.get(self.unit_type)
+        if flying_type is None:
+            return self.get_count(self.unit_type, include_pending=False, include_not_ready=True)
+        grounded = self.get_count(self.unit_type, include_pending=False, include_not_ready=True)
+        flying = self.cache.own(flying_type).amount
+        return grounded + flying
+
+    async def _validate_terran_point(
+        self,
+        point: Point2,
+        buildings,
+        blocking_units,
+        creation_ability: AbilityId,
+        collision_radius: float,
+    ) -> bool:
+        """
+        三步协同校验：黑名单 -> 建筑/单位碰撞 -> SC2 内核 can_place。
+        任一失败则累加失败计数，便于后续帧拉黑并尝试列表中的下一个格子。
+        """
+        if self._is_position_blacklisted(point):
+            return False
+        if self._position_reserved_this_frame(point):
+            return False
+
+        if buildings.closer_than(1, point):
+            self._bump_invalid_position(point)
+            return False
+
+        if blocking_units.closer_than(collision_radius, point).exists:
+            self._bump_invalid_position(point)
+            return False
+
+        building_half_size = 1.0 if self.unit_type == UnitTypeId.SUPPLYDEPOT else 1.5
+        if self._blocks_reserved_terran_production_body(point, building_half_size):
+            self._bump_invalid_position(point)
+            return False
+
+        if self._blocks_reserved_terran_addon_slot(point, building_half_size):
+            self._bump_invalid_position(point)
+            return False
+
+        if self.unit_type in TERRAN_PRODUCTION_BUILDINGS:
+            if not await self._has_free_terran_addon_slot(point, buildings, blocking_units):
+                self._bump_invalid_position(point)
+                return False
+            if not await self.ai.find_placement(self.unit_type, point, 0, False, addon_place=True):
+                self._bump_invalid_position(point)
+                return False
+        elif not (await self.ai.can_place(creation_ability, [point]))[0]:
+            self._bump_invalid_position(point)
+            return False
+
+        if not self._preserves_terran_ground_paths(point):
+            self._bump_invalid_position(point)
+            return False
+
+        if self.unit_type in TERRAN_PRODUCTION_BUILDINGS and not self._has_reachable_terran_production_exit(point):
+            self._bump_invalid_position(point)
+            return False
+
+        return True
+
+    def _preserves_terran_ground_paths(self, point: Point2) -> bool:
+        if self.unit_type not in TERRAN_TRAFFIC_CHECK_TYPES:
+            return True
+        pairs = self._main_traffic_pairs()
+        if not pairs:
+            return True
+
+        baseline = self._build_terran_walk_grid()
+        candidate = self._build_terran_walk_grid((point, self.unit_type))
+
+        for start, end in pairs:
+            if self._path_exists_on_grid(baseline, start, end, clearance=1):
+                if not self._path_exists_on_grid(candidate, start, end, clearance=1):
+                    return False
+            elif self._path_exists_on_grid(baseline, start, end, clearance=0):
+                if not self._path_exists_on_grid(candidate, start, end, clearance=0):
+                    return False
+        return True
+
+    def _has_reachable_terran_production_exit(self, point: Point2) -> bool:
+        pairs = self._main_traffic_pairs()
+        if not pairs:
+            return True
+
+        target = pairs[0][1]
+        grid = self._build_terran_walk_grid((point, self.unit_type), include_candidate_addon=True)
+        for exit_point in self._terran_production_exit_points(point):
+            if self._path_exists_on_grid(grid, exit_point, target, clearance=0, start_radius=2):
+                return True
+        return False
+
+    def _main_traffic_pairs(self) -> List[Tuple[Point2, Point2]]:
+        try:
+            main = self.zone_manager.own_main_zone
+            natural = self.zone_manager.expansion_zones[1] if len(self.zone_manager.expansion_zones) > 1 else None
+        except Exception:
+            return []
+
+        if main is None:
+            return []
+
+        ramp = getattr(main, "ramp", None)
+        if ramp is not None:
+            exit_point = ramp.bottom_center
+            inner_point = ramp.top_center.towards(main.center_location, 4)
+        elif natural is not None:
+            exit_point = natural.center_location
+            inner_point = main.center_location.towards(natural.center_location, 5)
+        else:
+            exit_point = main.center_location.towards(self.ai.game_info.map_center, 12)
+            inner_point = main.center_location.towards(exit_point, 5)
+
+        pairs = [(inner_point, exit_point)]
+        if getattr(main, "behind_mineral_position_center", None):
+            pairs.append((main.behind_mineral_position_center.towards(main.center_location, 3), exit_point))
+        return pairs
+
+    def _build_terran_walk_grid(
+        self,
+        candidate: Optional[Tuple[Point2, UnitTypeId]] = None,
+        *,
+        include_candidate_addon: bool = False,
+    ):
+        grid = self.ai.game_info.pathing_grid.data_numpy.T.copy().astype(bool)
+
+        for mineral in self.ai.mineral_field:
+            self._block_walk_grid(grid, mineral.position, (2, 1))
+        for geyser in self.ai.vespene_geyser:
+            self._block_walk_grid(grid, geyser.position, (3, 3))
+        for structure in self.ai.structures:
+            if structure.is_flying or structure.type_id in TERRAN_PASSABLE_STRUCTURES:
+                continue
+            size = self._terran_structure_block_size(structure.type_id)
+            if size is not None:
+                self._block_walk_grid(grid, structure.position, size)
+
+        for reserved in self._reserved_terran_production_positions():
+            self._block_walk_grid(grid, reserved, (3, 3))
+        for reserved_addon in self._reserved_terran_addon_positions():
+            self._block_walk_grid(grid, reserved_addon, (2, 2))
+
+        if candidate is not None:
+            position, unit_type = candidate
+            size = self._terran_structure_block_size(unit_type)
+            if size is not None:
+                self._block_walk_grid(grid, position, size)
+            if include_candidate_addon and unit_type in TERRAN_PRODUCTION_BUILDINGS:
+                self._block_walk_grid(grid, position.offset(Point2((2.5, -0.5))), (2, 2))
+
+        return grid
+
+    def _terran_structure_block_size(self, unit_type: UnitTypeId) -> Optional[Tuple[int, int]]:
+        if unit_type in TERRAN_ADDONS or unit_type in {
+            UnitTypeId.SUPPLYDEPOT,
+            UnitTypeId.SUPPLYDEPOTDROP,
+            UnitTypeId.MISSILETURRET,
+        }:
+            return (2, 2)
+        if unit_type in {
+            UnitTypeId.BARRACKS,
+            UnitTypeId.ENGINEERINGBAY,
+            UnitTypeId.FACTORY,
+            UnitTypeId.ARMORY,
+            UnitTypeId.BUNKER,
+            UnitTypeId.SENSORTOWER,
+            UnitTypeId.GHOSTACADEMY,
+            UnitTypeId.STARPORT,
+            UnitTypeId.FUSIONCORE,
+        }:
+            return (3, 3)
+        if unit_type in {
+            UnitTypeId.COMMANDCENTER,
+            UnitTypeId.ORBITALCOMMAND,
+            UnitTypeId.PLANETARYFORTRESS,
+        }:
+            return (5, 5)
+        return None
+
+    @staticmethod
+    def _block_walk_grid(grid, center: Point2, size: Tuple[int, int]) -> None:
+        width, height = size
+        start_x = int(round(center.x - width / 2))
+        start_y = int(round(center.y - height / 2))
+        end_x = start_x + width
+        end_y = start_y + height
+        max_x, max_y = grid.shape
+        for x in range(max(0, start_x), min(max_x, end_x)):
+            for y in range(max(0, start_y), min(max_y, end_y)):
+                grid[x, y] = False
+
+    def _path_exists_on_grid(
+        self,
+        grid,
+        start: Point2,
+        end: Point2,
+        *,
+        clearance: int,
+        start_radius: int = 8,
+        end_radius: int = 8,
+    ) -> bool:
+        start_cell = self._nearest_open_cell(grid, start, clearance, radius=start_radius)
+        end_cell = self._nearest_open_cell(grid, end, clearance, radius=end_radius)
+        if start_cell is None or end_cell is None:
+            return False
+        if start_cell == end_cell:
+            return True
+
+        margin = 28
+        min_x = max(0, min(start_cell[0], end_cell[0]) - margin)
+        max_x = min(grid.shape[0] - 1, max(start_cell[0], end_cell[0]) + margin)
+        min_y = max(0, min(start_cell[1], end_cell[1]) - margin)
+        max_y = min(grid.shape[1] - 1, max(start_cell[1], end_cell[1]) + margin)
+
+        queue = deque([start_cell])
+        visited = {start_cell}
+        while queue:
+            x, y = queue.popleft()
+            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if nx < min_x or nx > max_x or ny < min_y or ny > max_y:
+                    continue
+                cell = (nx, ny)
+                if cell in visited:
+                    continue
+                if not self._grid_cell_open(grid, nx, ny, clearance):
+                    continue
+                if cell == end_cell:
+                    return True
+                visited.add(cell)
+                queue.append(cell)
+        return False
+
+    def _nearest_open_cell(self, grid, point: Point2, clearance: int, radius: int = 8) -> Optional[Tuple[int, int]]:
+        origin_x = int(round(point.x))
+        origin_y = int(round(point.y))
+        best: Optional[Tuple[int, int]] = None
+        best_distance = 10**9
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                x = origin_x + dx
+                y = origin_y + dy
+                if not self._grid_cell_open(grid, x, y, clearance):
+                    continue
+                distance = dx * dx + dy * dy
+                if distance < best_distance:
+                    best = (x, y)
+                    best_distance = distance
+        return best
+
+    @staticmethod
+    def _grid_cell_open(grid, x: int, y: int, clearance: int) -> bool:
+        if x < clearance or y < clearance:
+            return False
+        if x >= grid.shape[0] - clearance or y >= grid.shape[1] - clearance:
+            return False
+        for cx in range(x - clearance, x + clearance + 1):
+            for cy in range(y - clearance, y + clearance + 1):
+                if not grid[cx, cy]:
+                    return False
+        return True
+
+    @staticmethod
+    def _terran_production_exit_points(point: Point2) -> Iterable[Point2]:
+        return (
+            point.offset(Point2((-2.5, 0.0))),
+            point.offset(Point2((0.0, 2.5))),
+            point.offset(Point2((0.0, -2.5))),
+            point.offset(Point2((2.5, 1.5))),
+        )
+
+    def _blocks_reserved_terran_addon_slot(self, point: Point2, building_half_size: float) -> bool:
+        """True if this candidate would occupy another producer's addon slot."""
+        for addon_center in self._reserved_terran_addon_positions():
+            if self._blocks_terran_addon_clearance(point, building_half_size, addon_center):
+                return True
+        return False
+
+    def _blocks_reserved_terran_production_body(self, point: Point2, building_half_size: float) -> bool:
+        for body_center in self._reserved_terran_production_positions():
+            if self._footprints_overlap(point, building_half_size, body_center, 1.5):
+                return True
+        return False
+
+    async def _has_free_terran_addon_slot(self, point: Point2, buildings, blocking_units) -> bool:
+        addon_center = point.offset(Point2((2.5, -0.5)))
+
+        if not await self.ai.find_placement(UnitTypeId.SUPPLYDEPOT, addon_center, 0, False):
+            return False
+
+        if self._is_addon_slot_too_close_to_static_objects(addon_center):
+            return False
+
+        for structure in buildings:
+            if structure.is_flying:
+                continue
+            half_size = 1.0 if structure.type_id in TERRAN_ADDONS else 1.5
+            if self._blocks_terran_addon_clearance(structure.position, half_size, addon_center):
+                return False
+
+        for reserved_addon_center in self._reserved_terran_addon_positions():
+            if self._footprints_overlap(addon_center, 1.0, reserved_addon_center, 1.0):
+                return False
+
+        for reserved_landing in self.building_solver.structure_target_move_location.values():
+            if self._blocks_terran_addon_clearance(reserved_landing, 1.5, addon_center):
+                return False
+            if self._blocks_terran_addon_clearance(point, 1.5, reserved_landing.offset(Point2((2.5, -0.5)))):
+                return False
+
+        return not blocking_units.closer_than(1.2, addon_center).exists
+
+    def _is_addon_slot_too_close_to_static_objects(self, addon_center: Point2) -> bool:
+        for group_name in ("structures", "mineral_field", "vespene_geyser"):
+            group = getattr(self.ai, group_name, None)
+            if not group:
+                continue
+            if group.closer_than(TERRAN_ADDON_CLEARANCE_RADIUS, addon_center).exists:
+                return True
+        return False
+
+    def _reserved_terran_addon_positions(self) -> Set[Point2]:
+        positions: Set[Point2] = set()
+        production_types = TERRAN_PRODUCTION_BUILDINGS
+        for building in self.ai.structures.of_type(production_types):
+            if building.is_flying:
+                continue
+            positions.add(building.add_on_position)
+        for tag, landing_position in self.building_solver.structure_target_move_location.items():
+            positions.add(landing_position.offset(Point2((2.5, -0.5))))
+
+        production_abilities = {
+            self.ai._game_data.units[unit_type.value].creation_ability.id
+            for unit_type in production_types
+        }
+        for worker in self.ai.workers:
+            for order in worker.orders:
+                if order.ability.id not in production_abilities:
+                    continue
+                if isinstance(order.target, int):
+                    continue
+                build_position = Point2.from_proto(order.target)
+                positions.add(build_position.offset(Point2((2.5, -0.5))))
+        return positions
+
+    def _reserved_terran_production_positions(self) -> Set[Point2]:
+        positions: Set[Point2] = set(self.building_solver.structure_target_move_location.values())
+        production_abilities = {
+            self.ai._game_data.units[unit_type.value].creation_ability.id
+            for unit_type in TERRAN_PRODUCTION_BUILDINGS
+        }
+        for worker in self.ai.workers:
+            for order in worker.orders:
+                if order.ability.id not in production_abilities:
+                    continue
+                if isinstance(order.target, int):
+                    continue
+                positions.add(Point2.from_proto(order.target))
+        return positions
+
+    @staticmethod
+    def _footprints_overlap(a: Point2, a_half_size: float, b: Point2, b_half_size: float) -> bool:
+        limit = a_half_size + b_half_size
+        return abs(a.x - b.x) < limit and abs(a.y - b.y) < limit
+
+    @staticmethod
+    def _blocks_terran_addon_clearance(point: Point2, half_size: float, addon_center: Point2) -> bool:
+        return GridBuilding._footprints_overlap(point, half_size, addon_center, 1.0)
+
+    async def position_terran(self, count) -> Optional[Point2]:
         is_depot = self.unit_type == UnitTypeId.SUPPLYDEPOT
         buildings = self.ai.structures
         future_position = None
 
+        # 步骤一：过滤会阻挡地面建造的地面单位（排除飞行单位与当前建造 SCV）
+        blocking_units = self.ai.units.not_flying
+        if self.builder_tag is not None:
+            blocking_units = blocking_units.tags_not_in({self.builder_tag})
+
+        unit_data = self.ai._game_data.units[self.unit_type.value]
+        creation_ability: AbilityId = unit_data.creation_ability.id
+        collision_radius = 1.2 if is_depot else 1.5
+
         if is_depot:
             for point in self.building_solver.buildings2x2:
-                if not buildings.closer_than(1, point):
+                if await self._validate_terran_point(
+                    point, buildings, blocking_units, creation_ability, collision_radius
+                ):
                     return point
         else:
             pylons = self.cache.own(UnitTypeId.PYLON).not_ready
@@ -306,13 +885,14 @@ class GridBuilding(ActBuilding):
                 if not self.allow_wall:
                     if point in self.building_solver.wall3x3:
                         continue
-                # If a structure is landing here from AddonSwap() then dont use this location
                 if point in reserved_landing_locations:
                     continue
-                # If this location has a techlab or reactor next to it, then don't create a new structure here
                 if point in self.building_solver.free_addon_locations:
                     continue
-                if not buildings.closer_than(1, point):
+
+                if await self._validate_terran_point(
+                    point, buildings, blocking_units, creation_ability, collision_radius
+                ):
                     return point
 
                 if future_position is None and pylons and point.distance_to_closest(pylons) <= 7:
@@ -334,17 +914,51 @@ class GridBuilding(ActBuilding):
             worker.build(self.unit_type, position, queue=True)
 
         # TODO: Remake the error handling with frame delay
+        self._reserve_position_this_frame(position)
         worker.build(self.unit_type, position)
+        self.actual_placements += 1
 
     async def build_zerg(self, worker: Unit, count, position: Point2):
         # try the selected position first
         # TODO: Remake the error handling with frame delay
+        self._reserve_position_this_frame(position)
         worker.build(self.unit_type, position)
+        self.actual_placements += 1
 
     async def build_terran(self, worker: Unit, count, position: Point2):
         # try the selected position first
         # TODO: Remake the error handling with frame delay
+        self._reserve_position_this_frame(position)
         worker.build(self.unit_type, position)
+        self.actual_placements += 1
+
+    def _placement_half_size(self) -> float:
+        if self.unit_type in {UnitTypeId.PYLON, UnitTypeId.SUPPLYDEPOT}:
+            return 1.0
+        return 1.5
+
+    def _same_frame_position_reservations(self) -> list[tuple[Point2, float]]:
+        """Placement footprints shared by every GridBuilding in this frame."""
+        try:
+            frame = int(self.ai.state.game_loop)
+        except Exception:
+            frame = float(getattr(self.ai, "time", 0.0))
+        if getattr(self.ai, "_sharpy_build_reservation_frame", None) != frame:
+            self.ai._sharpy_build_reservation_frame = frame
+            self.ai._sharpy_build_position_reservations = []
+        return self.ai._sharpy_build_position_reservations
+
+    def _position_reserved_this_frame(self, point: Point2) -> bool:
+        half_size = self._placement_half_size()
+        return any(
+            self._footprints_overlap(point, half_size, reserved, reserved_half_size)
+            for reserved, reserved_half_size in self._same_frame_position_reservations()
+        )
+
+    def _reserve_position_this_frame(self, point: Point2) -> None:
+        reservations = self._same_frame_position_reservations()
+        if not self._position_reserved_this_frame(point):
+            reservations.append((point, self._placement_half_size()))
 
     def is_on_creep(self, creep: PixelMap, point: Point2) -> bool:
         x_original = floor(point.x) - 1

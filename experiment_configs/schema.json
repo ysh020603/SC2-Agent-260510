@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ysh020603/SC2-Agent-260510/experiment_configs/schema.json",
+  "title": "SC2 strategy sweep experiment suite",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "defaults", "experiments"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_version": {"const": 1},
+    "name": {"$ref": "#/$defs/component"},
+    "description": {"type": "string"},
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backend": {"enum": ["foreground", "tmux"]},
+        "parallel_experiments": {"type": "boolean"},
+        "max_parallel_experiments": {"type": "integer", "minimum": 1},
+        "experiment_stagger_seconds": {"type": "number", "minimum": 0},
+        "log_root": {"type": "string", "minLength": 1},
+        "tmux_session_prefix": {"$ref": "#/$defs/component"},
+        "replace_existing_tmux_session": {"type": "boolean"},
+        "environment": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "defaults": {
+      "allOf": [{"$ref": "#/$defs/sweep"}],
+      "unevaluatedProperties": false
+    },
+    "experiments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/sweep"},
+          {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {"$ref": "#/$defs/component"},
+              "description": {"type": "string"},
+              "enabled": {"type": "boolean"}
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "component": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+    },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "sweep": {
+      "type": "object",
+      "properties": {
+        "batch_name": {"$ref": "#/$defs/component"},
+        "decision_model": {"type": "string", "minLength": 1},
+        "data_subagent_model": {"type": "string", "minLength": 1},
+        "decision_agent_mode": {
+          "enum": [
+            "naive",
+            "data-v2.2",
+            "data-v2.2-v2",
+            "data-v2.2-v2-no-knowledge",
+            "data-v2.3",
+            "data-v2.3-no-knowledge",
+            "plan-execute",
+            "self-refine",
+            "suntzu",
+            "hima",
+            "cos"
+          ]
+        },
+        "decision_interval": {"type": "number", "exclusiveMinimum": 0},
+        "concurrency": {"type": "integer", "minimum": 1},
+        "repeats": {"type": "integer", "minimum": 1},
+        "game_time_limit": {"type": "integer", "minimum": 1},
+        "max_attempts": {"type": "integer", "minimum": 1},
+        "launch_stagger_seconds": {"type": "number", "minimum": 0},
+        "startup_timeout": {"type": "number", "exclusiveMinimum": 0},
+        "enemy_build": {"enum": ["random", "rush", "timing", "power", "macro", "air"]},
+        "strategies": {"$ref": "#/$defs/stringList"},
+        "maps": {"$ref": "#/$defs/stringList"},
+        "bot_races": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"enum": ["terran", "protoss", "zerg"]}
+        },
+        "enemy_races": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"enum": ["terran", "protoss", "zerg"]}
+        },
+        "difficulties": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["veryeasy", "easy", "medium", "mediumhard", "hard", "harder", "veryhard", "vision", "money", "insane"]
+          }
+        },
+        "start_index": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

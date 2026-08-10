@@ -1,8 +1,9 @@
 import os
-import sys
 import argparse
 
-sys.path.insert(1, "python-sc2")
+from sc2_runtime import ensure_bundled_python_sc2
+
+ensure_bundled_python_sc2()
 
 from bot_loader import BotDefinitions
 from version import update_version_txt

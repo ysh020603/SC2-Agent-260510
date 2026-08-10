@@ -1,14 +1,10 @@
 {
-  "_comment": "Whitelist of Terran strategy folders exposed to the T=0 LLM selection list. Strategies NOT listed here will be ignored by _discover_strategies even if their folder exists on disk. New strategies generated at runtime via the GENERATE action are auto-registered here by UniversalLLMBot._materialise_strategy_folder().",
+  "_comment": "Enabled representative Terran strategies. Other folders are retained but temporarily disabled.",
   "registered_strategies": [
     "marine_rush",
-    "battle_cruisers",
-    "two_base_tanks",
-    "safe_tvt_raven",
-    "cyclones",
-    "rusty",
     "bio",
-    "banshees",
-    "one_base_turtle"
+    "blueflame_locks",
+    "two_base_matrix_tanks",
+    "yamato_rust_fleet"
   ]
 }

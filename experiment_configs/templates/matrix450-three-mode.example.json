@@ -1,0 +1,58 @@
+{
+  "$schema": "../schema.json",
+  "schema_version": 1,
+  "name": "matrix450_three_mode_example",
+  "description": "Three comparable 450-game groups: naive, DataAgent V1, and DataAgent V2.",
+  "execution": {
+    "backend": "tmux",
+    "parallel_experiments": false,
+    "max_parallel_experiments": 1,
+    "experiment_stagger_seconds": 3,
+    "log_root": "game_records/_batch_logs/config_runs/matrix450_three_mode",
+    "tmux_session_prefix": "sc2exp",
+    "replace_existing_tmux_session": false,
+    "environment": {
+      "SC2PATH": "/data2/SC2/StarCraftII/"
+    }
+  },
+  "defaults": {
+    "decision_model": "DeepSeek-V4-flash",
+    "data_subagent_model": "DeepSeek-V4-flash",
+    "decision_interval": 60,
+    "concurrency": 10,
+    "repeats": 2,
+    "game_time_limit": 1200,
+    "max_attempts": 3,
+    "launch_stagger_seconds": 2,
+    "startup_timeout": 180,
+    "enemy_build": "macro",
+    "strategies": ["enabled"],
+    "maps": ["KairosJunctionLE"],
+    "bot_races": ["terran", "protoss", "zerg"],
+    "enemy_races": ["terran", "protoss", "zerg"],
+    "difficulties": ["easy", "medium", "mediumhard", "hard", "harder"],
+    "start_index": 0
+  },
+  "experiments": [
+    {
+      "name": "naive_nothink",
+      "description": "Preserved single-call baseline.",
+      "batch_name": "matrix450_naive_nothink_example",
+      "decision_agent_mode": "naive"
+    },
+    {
+      "name": "v1_nothink",
+      "description": "DataAgent V1 with non-thinking MainAgent and DataSubAgent.",
+      "batch_name": "matrix450_v1_nothink_example",
+      "decision_agent_mode": "data-v2.2"
+    },
+    {
+      "name": "v2_think",
+      "description": "DataAgent V2 with a separately configured thinking model key.",
+      "batch_name": "matrix450_v2_think_example",
+      "decision_agent_mode": "data-v2.2-v2",
+      "decision_model": "DeepSeek-V4-flash_think",
+      "data_subagent_model": "DeepSeek-V4-flash_think"
+    }
+  ]
+}

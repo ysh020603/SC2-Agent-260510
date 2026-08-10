@@ -1,0 +1,10 @@
+{
+  "_comment": "Enabled representative Protoss strategies. Other folders are retained but temporarily disabled.",
+  "registered_strategies": [
+    "four_gate",
+    "dark_templar_rush",
+    "robo",
+    "voidray",
+    "macro_stalkers"
+  ]
+}

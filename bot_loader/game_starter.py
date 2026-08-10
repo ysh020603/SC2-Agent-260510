@@ -19,6 +19,19 @@ from sharpy.tools import LoggingUtility
 
 new_line = "\n"
 
+
+def artifact_file_name(
+    record_dir: Optional[str],
+    match_id: Optional[str],
+    fallback: str,
+) -> str:
+    """Choose a bounded artifact stem while preserving match uniqueness."""
+
+    if record_dir:
+        return "match"
+    return match_id or fallback
+
+
 # Used for random map selection
 known_melee_maps = (
     "AbyssalReefLE",
@@ -139,56 +152,42 @@ Builds:
             help="File prefix for this match's log, replay, and LLM JSON.",
         )
         parser.add_argument(
-            "--instruct",
-            help="Natural-language tactical instruction for the LLM bot.",
-            default="",
+            "--decision-model",
+            help="Model key from config.json for the macro decision agent.",
+            default="Kimi-k2.5",
         )
         parser.add_argument(
-            "--top-model",
-            help="Model key from config.json for Top Agent.",
-            default="",
+            "--data-subagent-model",
+            help="Independent model key from config.json for DataSubAgent.",
+            default="Kimi-k2.5",
         )
         parser.add_argument(
-            "--mid-model",
-            help="Model key from config.json for Mid Agent.",
-            default="",
+            "--decision-agent-mode",
+            choices=(
+                "data-v2.3",
+                "data-v2.3-no-knowledge",
+                "data-v2.2-v2-no-knowledge",
+                "data-v2.2-v2",
+                "data-v2.2",
+                "naive",
+                "plan-execute",
+                "self-refine",
+                "suntzu",
+                "hima",
+                "cos",
+            ),
+            help="Macro decision orchestration mode.",
+            default="data-v2.2",
         )
         parser.add_argument(
-            "--down-model",
-            help="Model key from config.json for Down Agent.",
-            default="",
-        )
-        parser.add_argument(
-            "--use-top-60-prompt",
-            help="Enable [Phase Guidance] injection in Top Agent t=60 prompt (reads Top_agent_60.md).",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--use-mid-prompt",
-            help="Enable [Execution Guidance] injection in Mid Agent prompt (reads mid_agent.md).",
-            action="store_true",
-        )
-        # ---- Ablation switches (Module 3) -----------------------------
-        parser.add_argument(
-            "--disable-all-skills",
-            help="Skip Phase-1 skill selection entirely; degrade to baseline (no skill injection).",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--enable-skill-layers",
-            help="Which layer enables the two-stage Skill pipeline: all/top_only/mid_only/none.",
-            choices=["all", "top_only", "mid_only", "none"],
-            default="all",
-        )
-        parser.add_argument(
-            "--disable-specific-skills-layers",
-            help="Which layer must drop strategy-specific skills (only Generic): all/top/mid/none.",
-            choices=["all", "top", "mid", "none"],
-            default="none",
+            "--decision-interval",
+            type=float,
+            help="Macro replanning interval in in-game seconds.",
+            default=60.0,
         )
         parser.add_argument(
             "--force-strategy",
-            help="Force a specific strategy folder name (e.g. 'marine_rush'); bypasses t=0 LLM.",
+            help="Strategy folder name under SKILL/<race>/ for UniversalLLMBot.",
             default="",
         )
 
@@ -236,17 +235,26 @@ Builds:
 
         player1_bot: AbstractPlayer = self.players[player1_type](player1_split)
 
-        folder = os.path.abspath(args.record_dir) if args.record_dir else "games"
+        folder = os.path.abspath(args.record_dir) if args.record_dir else "game_records"
         if not os.path.isdir(folder):
             os.makedirs(folder, exist_ok=True)
 
-        if args.match_id:
-            file_name = args.match_id
-        else:
+        if not args.record_dir and not args.match_id:
             time = datetime.now().strftime("%Y-%m-%d %H_%M_%S")
             randomizer = random.randint(0, 999999)
             # Randomizer is to make it less likely that games started at the same time have same name
-            file_name = f"{player2}_{map_name}_{time}_{randomizer}"
+            fallback_file_name = f"{player2}_{map_name}_{time}_{randomizer}"
+        else:
+            fallback_file_name = "match"
+        # The enclosing record directory already carries the unique match id.
+        # Do not repeat it in every artifact filename: on Windows the doubled
+        # path can exceed MAX_PATH even when each component is individually
+        # valid.
+        file_name = artifact_file_name(
+            args.record_dir,
+            args.match_id,
+            fallback_file_name,
+        )
         path = os.path.join(folder, f"{file_name}.log")
 
         if self.config.getboolean("general", "log_file"):
@@ -268,12 +276,18 @@ Builds:
         GameStarter._set_recorder_replay_path(player2_bot, replay_path)
 
         runner = MatchRunner()
+        # Game length cap in seconds. Default 30 game-minutes; override via the
+        # SC2_GAME_TIME_LIMIT env var (useful for short smoke tests).
+        try:
+            _time_limit = int(float(os.environ.get("SC2_GAME_TIME_LIMIT", 30 * 60)))
+        except (TypeError, ValueError):
+            _time_limit = 30 * 60
         result = runner.run_game(
             maps.get(map_name),
             [player1_bot, player2_bot],
             player1_id=player1,
             realtime=args.real_time,
-            game_time_limit=(30 * 60),
+            game_time_limit=_time_limit,
             save_replay_as=replay_path,
             start_port=args.port,
         )
@@ -302,29 +316,14 @@ Builds:
                 recorder = getattr(my_bot, "llm_observation_recorder", None)
                 if recorder is not None:
                     recorder.output_folder = record_dir
-            if getattr(args, "instruct", None) and hasattr(my_bot, "instruct"):
-                my_bot.instruct = args.instruct
-            if getattr(args, "top_model", None) and hasattr(my_bot, "top_model_key"):
-                my_bot.top_model_key = args.top_model
-            if getattr(args, "mid_model", None) and hasattr(my_bot, "mid_model_key"):
-                my_bot.mid_model_key = args.mid_model
-            if getattr(args, "down_model", None) and hasattr(my_bot, "down_model_key"):
-                my_bot.down_model_key = args.down_model
-            if hasattr(my_bot, "use_top_60_prompt"):
-                my_bot.use_top_60_prompt = bool(getattr(args, "use_top_60_prompt", False))
-            if hasattr(my_bot, "use_mid_prompt"):
-                my_bot.use_mid_prompt = bool(getattr(args, "use_mid_prompt", False))
-            # ---- Ablation switches (Module 3) ------------------------
-            if hasattr(my_bot, "disable_all_skills"):
-                my_bot.disable_all_skills = bool(getattr(args, "disable_all_skills", False))
-            if hasattr(my_bot, "enable_skill_layers"):
-                my_bot.enable_skill_layers = (
-                    getattr(args, "enable_skill_layers", "all") or "all"
-                )
-            if hasattr(my_bot, "disable_specific_skills_layers"):
-                my_bot.disable_specific_skills_layers = (
-                    getattr(args, "disable_specific_skills_layers", "none") or "none"
-                )
+            if getattr(args, "decision_model", None) and hasattr(my_bot, "decision_model_key"):
+                my_bot.decision_model_key = args.decision_model
+            if getattr(args, "data_subagent_model", None) and hasattr(my_bot, "data_subagent_model_key"):
+                my_bot.data_subagent_model_key = args.data_subagent_model
+            if hasattr(my_bot, "decision_agent_mode"):
+                my_bot.decision_agent_mode = args.decision_agent_mode
+            if getattr(args, "decision_interval", None) and hasattr(my_bot, "decision_interval_seconds"):
+                my_bot.decision_interval_seconds = float(args.decision_interval)
             if hasattr(my_bot, "force_strategy"):
                 fs = (getattr(args, "force_strategy", "") or "").strip()
                 my_bot.force_strategy = fs if fs and fs.lower() != "none" else None

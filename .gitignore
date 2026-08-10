@@ -113,7 +113,19 @@ tools/build_order.json
 data/
 
 # Game records
-game_records/
+game_records/*
+!game_records/.gitkeep
+
+# The Agent owns a pinned python-sc2 snapshot. Do not let generic patterns such
+# as data/ hide files inside this vendored dependency.
+!python-sc2/
+!python-sc2/**
+python-sc2/**/__pycache__/
+python-sc2/**/*.py[cod]
 
 # LLM API keys (copy from API_config/config.example.json)
 API_config/config.json
+
+# Experiment templates are versioned; machine/run-specific instances are not.
+experiment_configs/local/*
+!experiment_configs/local/.gitkeep

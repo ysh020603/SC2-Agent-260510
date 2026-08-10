@@ -1,0 +1,10 @@
+{
+  "_comment": "Enabled representative Zerg strategies. Other folders are retained but temporarily disabled.",
+  "registered_strategies": [
+    "twelve_pool",
+    "macro_roach",
+    "roach_hydra",
+    "lurkers",
+    "mutalisk"
+  ]
+}
