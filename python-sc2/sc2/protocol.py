@@ -45,6 +45,11 @@ class Protocol:
         assert ws
         self._ws: ClientWebSocketResponse = ws
         self._sc2_process = process
+        # SC2 accepts exactly one request at a time on a protocol connection.
+        # Most callers are sequential, but managers and timeout cancellation can
+        # otherwise overlap a follow-up query with a response still in flight.
+        self._request_lock = asyncio.Lock()
+        self._process_exit_logged = False
         # pyre-fixme[11]
         self._status: Status | None = None
 
@@ -60,7 +65,9 @@ class Protocol:
     def _raise_if_process_exited(self) -> None:
         diagnostics = self._process_diagnostics()
         if diagnostics is not None and diagnostics.get("returncode") is not None:
-            logger.error("SC2 client process exited: {}", diagnostics)
+            if not self._process_exit_logged:
+                logger.error("SC2 client process exited: {}", diagnostics)
+                self._process_exit_logged = True
             raise SC2ProcessExitedError(
                 f"SC2 client process exited: {diagnostics}"
             )
@@ -132,19 +139,19 @@ class Protocol:
 
     async def _execute(self, **kwargs):
         assert len(kwargs) == 1, "Only one request allowed by the API"
+        async with self._request_lock:
+            response = await self.__request(sc_pb.Request(**kwargs))
 
-        response = await self.__request(sc_pb.Request(**kwargs))
+            new_status = Status(response.status)
+            if new_status != self._status:
+                logger.info(f"Client status changed to {new_status} (was {self._status})")
+            self._status = new_status
 
-        new_status = Status(response.status)
-        if new_status != self._status:
-            logger.info(f"Client status changed to {new_status} (was {self._status})")
-        self._status = new_status
+            if response.error:
+                logger.debug(f"Response contained an error: {response.error}")
+                raise ProtocolError(f"{response.error}")
 
-        if response.error:
-            logger.debug(f"Response contained an error: {response.error}")
-            raise ProtocolError(f"{response.error}")
-
-        return response
+            return response
 
     async def ping(self):
         result = await self._execute(ping=sc_pb.RequestPing())

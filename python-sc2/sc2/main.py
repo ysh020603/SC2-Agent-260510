@@ -53,13 +53,12 @@ def _game_info_refresh_due(
     """Return whether the dynamic pathing grid should be refreshed.
 
     RequestGameInfo is substantially heavier than an observation on the pinned
-    Linux SC2 build.  Asking for it after every four-game-loop step can
-    eventually wedge the native response queue in long, unit-heavy matches.
-    Zero retains the upstream every-step behavior for callers that explicitly
-    require it; formal experiments use a bounded five-game-second interval.
+    Linux SC2 build and can wedge its native response queue in long matches.
+    Zero disables periodic refresh; a positive value explicitly opts into a
+    refresh interval. The initial game-info request is always retained.
     """
 
-    return interval_game_loops <= 0 or (
+    return interval_game_loops > 0 and (
         current_game_loop - last_refresh_game_loop >= interval_game_loops
     )
 

@@ -268,10 +268,10 @@ def main() -> int:
     parser.add_argument(
         "--game-info-refresh-game-loops",
         type=int,
-        default=112,
+        default=0,
         help=(
-            "Refresh the dynamic pathing grid at this SC2 game-loop interval. "
-            "112 is five game seconds and avoids an expensive request every step."
+            "Refresh the dynamic pathing grid at this SC2 game-loop interval; "
+            "zero disables periodic refresh after the initial request."
         ),
     )
     parser.add_argument("--launch-stagger", type=float, default=5.0)
@@ -306,7 +306,7 @@ def main() -> int:
         or args.protocol_response_timeout <= 0
         or args.ai_step_timeout <= 0
         or args.launch_stagger < 0
-        or args.game_info_refresh_game_loops < 1
+        or args.game_info_refresh_game_loops < 0
         or args.foreign_sc2_wait_timeout <= 0
     ):
         raise ValueError("timeouts must be positive")
@@ -434,6 +434,7 @@ def main() -> int:
                 "SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS": str(args.protocol_response_timeout),
                 "SC2_AI_STEP_TIMEOUT_SECONDS": str(args.ai_step_timeout),
                 "SC2_GAME_INFO_REFRESH_GAME_LOOPS": str(args.game_info_refresh_game_loops),
+                "SC2_VERBOSE_LOG": "0",
                 "SC2_ALLOW_GLOBAL_WINESERVER_KILL": "0",
                 "PYTHONUNBUFFERED": "1",
             }

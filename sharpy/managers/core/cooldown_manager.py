@@ -5,6 +5,11 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
+from sc2.protocol import (
+    ConnectionAlreadyClosedError,
+    ProtocolResponseTimeoutError,
+    SC2ProcessExitedError,
+)
 
 
 class CooldownManager(ManagerBase):
@@ -27,6 +32,15 @@ class CooldownManager(ManagerBase):
             return
         try:
             result: List[List[AbilityId]] = await self.ai.get_available_abilities(self.ai.all_own_units)
+        except (
+            ConnectionAlreadyClosedError,
+            ProtocolResponseTimeoutError,
+            SC2ProcessExitedError,
+        ):
+            # These are match-terminal transport failures. Swallowing them here
+            # makes the bot issue the same doomed query every frame and can grow
+            # a single log into gigabytes after the native client has exited.
+            raise
         except Exception as e:
             self.print(f"Get available abilities failed: {e}")
             return

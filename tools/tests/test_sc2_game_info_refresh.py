@@ -14,9 +14,9 @@ def test_game_info_refresh_interval_is_bounded() -> None:
     )
 
 
-def test_zero_interval_preserves_upstream_every_step_behavior() -> None:
-    assert _game_info_refresh_due(
-        current_game_loop=1,
+def test_zero_disables_periodic_game_info_refresh() -> None:
+    assert not _game_info_refresh_due(
+        current_game_loop=1_000_000,
         last_refresh_game_loop=0,
         interval_game_loops=0,
     )

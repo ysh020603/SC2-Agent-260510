@@ -23,6 +23,11 @@ class _DeadSC2Process:
         }
 
 
+def test_protocol_constructs_single_flight_request_lock():
+    protocol = Protocol(_NeverRespondingWebSocket())
+    assert protocol._request_lock is not None
+
+
 def test_protocol_response_timeout_is_bounded(monkeypatch):
     monkeypatch.setenv("SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS", "0.01")
     protocol = Protocol(_NeverRespondingWebSocket())

@@ -231,8 +231,11 @@ class SC2Process:
         if self._render:
             args.extend(["-eglpath", "libEGL.so"])
 
-        # if logger.getEffectiveLevel() <= logging.DEBUG:
-        args.append("-verbose")
+        # The pinned Linux client can emit hundreds of megabytes per minute in
+        # verbose mode after a protocol fault. Keep fatal stderr diagnostics,
+        # but make the firehose an explicit troubleshooting opt-in.
+        if os.environ.get("SC2_VERBOSE_LOG", "").strip() == "1":
+            args.append("-verbose")
 
         sc2_cwd = str(Paths.CWD) if Paths.CWD else None
 
@@ -250,7 +253,7 @@ class SC2Process:
             # , env=run_config.env
         )
 
-    def diagnostic_snapshot(self, tail_bytes: int = 8192) -> dict[str, Any]:
+    def diagnostic_snapshot(self, tail_bytes: int = 4096) -> dict[str, Any]:
         """Return bounded process diagnostics safe to copy into match logs."""
 
         return_code = self._process.poll() if self._process is not None else None
