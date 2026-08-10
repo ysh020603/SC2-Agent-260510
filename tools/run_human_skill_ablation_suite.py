@@ -247,10 +247,10 @@ def main() -> int:
     parser.add_argument(
         "--concurrency",
         type=int,
-        default=1,
+        default=15,
         help=(
-            "Active native SC2 clients. Keep at 1 for formal 1200-second runs: "
-            "the Linux SC2 binary can stall and SIGSEGV with concurrent clients."
+            "Active native SC2 clients. Formal batches use 15 after runner-level "
+            "process-forest ownership and game-info throttling fixes."
         ),
     )
     parser.add_argument(
