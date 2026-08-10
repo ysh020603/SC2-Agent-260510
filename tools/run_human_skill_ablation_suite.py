@@ -299,6 +299,25 @@ def main() -> int:
     parser.add_argument("--retry-backoff", type=float, default=15.0)
     parser.add_argument("--wall-timeout", type=int, default=3000)
     parser.add_argument("--protocol-response-timeout", type=float, default=90.0)
+    parser.add_argument(
+        "--protocol-observation-timeout",
+        type=float,
+        default=300.0,
+        help=(
+            "Bound a slow SC2 observation response separately from ordinary "
+            "protocol calls. The receive remains alive after this deadline so "
+            "cleanup never starts a second websocket receive."
+        ),
+    )
+    parser.add_argument(
+        "--protocol-drain-timeout",
+        type=float,
+        default=10.0,
+        help=(
+            "Wait this long for an already-pending SC2 response during cleanup "
+            "before killing only the owned client process."
+        ),
+    )
     parser.add_argument("--ai-step-timeout", type=float, default=180.0)
     parser.add_argument("--available-abilities-refresh-game-loops", type=int, default=44)
     parser.add_argument("--available-abilities-query-chunk-size", type=int, default=32)
@@ -341,6 +360,8 @@ def main() -> int:
     if (
         args.wall_timeout < 1
         or args.protocol_response_timeout <= 0
+        or args.protocol_observation_timeout <= 0
+        or args.protocol_drain_timeout < 0
         or args.ai_step_timeout <= 0
         or args.launch_stagger < 0
         or args.game_info_refresh_game_loops < 0
@@ -371,6 +392,8 @@ def main() -> int:
         "concurrency": args.concurrency,
         "wall_timeout": args.wall_timeout,
         "protocol_response_timeout": args.protocol_response_timeout,
+        "protocol_observation_timeout": args.protocol_observation_timeout,
+        "protocol_drain_timeout": args.protocol_drain_timeout,
         "ai_step_timeout": args.ai_step_timeout,
         "game_info_refresh_game_loops": args.game_info_refresh_game_loops,
         "available_abilities_refresh_game_loops": args.available_abilities_refresh_game_loops,
@@ -474,6 +497,10 @@ def main() -> int:
                 "SC2_GAME_TIME_LIMIT": str(args.game_time_limit),
                 "SC2_STARTUP_TIMEOUT": "240",
                 "SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS": str(args.protocol_response_timeout),
+                "SC2_PROTOCOL_OBSERVATION_TIMEOUT_SECONDS": str(
+                    args.protocol_observation_timeout
+                ),
+                "SC2_PROTOCOL_DRAIN_TIMEOUT_SECONDS": str(args.protocol_drain_timeout),
                 "SC2_AI_STEP_TIMEOUT_SECONDS": str(args.ai_step_timeout),
                 "SC2_GAME_INFO_REFRESH_GAME_LOOPS": str(args.game_info_refresh_game_loops),
                 "SC2_AVAILABLE_ABILITIES_REFRESH_GAME_LOOPS": str(

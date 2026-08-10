@@ -56,6 +56,16 @@ def terminate_owned_process(process: subprocess.Popen, timeout_seconds: float = 
     return True
 
 
+def kill_owned_stalled_process(process: subprocess.Popen) -> bool:
+    """Kill one owned process without invoking SC2's broken pending-response handler."""
+
+    if process.poll() is not None:
+        return False
+    process.kill()
+    process.wait()
+    return True
+
+
 class KillSwitch:
     _to_kill: list[Any] = []
 
@@ -126,6 +136,10 @@ class SC2Process:
         self._stderr_handle = None
         self._session = None
         self._ws = None
+        self._controller = None
+        self._protocol_request_in_flight = False
+        self._protocol_request_timed_out = False
+        self._protocol_request_type: str | None = None
         self._sc2_version = sc2_version
         self._base_build = base_build
         self._data_hash = data_hash
@@ -148,12 +162,27 @@ class SC2Process:
             self._clean()
             raise
 
-        return Controller(self._ws, self)
+        self._controller = Controller(self._ws, self)
+        return self._controller
 
     async def __aexit__(self, *args) -> None:
         await self._close_connection()
         KillSwitch.kill_all()
         signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    def protocol_request_started(self, request_type: str) -> None:
+        self._protocol_request_in_flight = True
+        self._protocol_request_timed_out = False
+        self._protocol_request_type = request_type
+
+    def protocol_request_finished(self, request_type: str | None = None) -> None:
+        if request_type is None or request_type == self._protocol_request_type:
+            self._protocol_request_in_flight = False
+
+    def protocol_request_timed_out(self, request_type: str) -> None:
+        self._protocol_request_in_flight = True
+        self._protocol_request_timed_out = True
+        self._protocol_request_type = request_type
 
     @property
     def ws_url(self) -> str:
@@ -273,6 +302,9 @@ class SC2Process:
             "pid": self._process.pid if self._process is not None else None,
             "port": self._port,
             "returncode": return_code,
+            "protocol_request_in_flight": self._protocol_request_in_flight,
+            "protocol_request_timed_out": self._protocol_request_timed_out,
+            "protocol_request_type": self._protocol_request_type,
             "stderr_tail": stderr_tail[-tail_bytes:],
         }
 
@@ -327,8 +359,39 @@ class SC2Process:
     async def _close_connection(self) -> None:
         logger.info(f"Closing connection at {self._port}...")
 
+        if self._controller is not None and self._controller.has_pending_response:
+            try:
+                drain_timeout = max(
+                    0.0,
+                    float(os.environ.get("SC2_PROTOCOL_DRAIN_TIMEOUT_SECONDS", "10")),
+                )
+            except (TypeError, ValueError):
+                drain_timeout = 10.0
+            drained = await self._controller.drain_pending_response(drain_timeout)
+            if not drained:
+                logger.error(
+                    "SC2 response still pending during cleanup: request_type={} "
+                    "drain_timeout_seconds={}",
+                    self._controller.pending_request_type,
+                    drain_timeout,
+                )
+                # Closing the websocket first makes the legacy Linux client
+                # enter the same broken pending-response shutdown path as
+                # SIGTERM. Kill this exact owned client before closing the
+                # transport; sibling clients and the shared Wine server are
+                # deliberately untouched.
+                if (
+                    self._process is not None
+                    and self._process.poll() is None
+                    and paths.PF not in {"WSL1", "WSL2"}
+                ):
+                    kill_owned_stalled_process(self._process)
+
         if self._ws is not None:
-            await self._ws.close()
+            try:
+                await asyncio.wait_for(self._ws.close(), timeout=5.0)
+            except (asyncio.TimeoutError, RuntimeError):
+                logger.warning("Timed out closing SC2 websocket at {}", self._port)
 
         if self._session is not None:
             await self._session.close()
@@ -343,6 +406,21 @@ class SC2Process:
             if paths.PF in {"WSL1", "WSL2"}:
                 if wsl.kill(self._process):
                     logger.error("KILLED")
+            elif self._process.poll() is None and (
+                self._protocol_request_in_flight or self._protocol_request_timed_out
+            ):
+                # SIGTERM enters the legacy SC2 shutdown handler. If a response
+                # is pending that handler crashes with signal 11. A direct,
+                # match-local SIGKILL avoids the broken native cleanup path and
+                # never affects sibling SC2 clients.
+                logger.warning(
+                    "Force-killing owned stalled SC2 process pid={} "
+                    "request_type={} timed_out={}",
+                    self._process.pid,
+                    self._protocol_request_type,
+                    self._protocol_request_timed_out,
+                )
+                kill_owned_stalled_process(self._process)
             elif self._process.poll() is None:
                 for _ in range(3):
                     self._process.terminate()
@@ -376,6 +454,10 @@ class SC2Process:
 
         self._process = None
         self._ws = None
+        self._controller = None
+        self._protocol_request_in_flight = False
+        self._protocol_request_timed_out = False
+        self._protocol_request_type = None
         if self._used_portpicker and self._port is not None:
             portpicker.return_port(self._port)
             self._port = None

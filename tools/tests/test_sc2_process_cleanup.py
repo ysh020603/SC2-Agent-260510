@@ -1,7 +1,14 @@
+import asyncio
 import subprocess
 import sys
 
-from sc2.sc2process import allow_global_wineserver_kill, terminate_owned_process
+import sc2.sc2process as sc2process_module
+from sc2.sc2process import (
+    SC2Process,
+    allow_global_wineserver_kill,
+    kill_owned_stalled_process,
+    terminate_owned_process,
+)
 
 
 def test_global_wineserver_kill_is_disabled_by_default(monkeypatch):
@@ -59,6 +66,49 @@ def test_owned_process_cleanup_ignores_already_exited_process():
     process = FakeProcess(running=False)
     assert terminate_owned_process(process) is False
     assert process.terminated == 0
+
+
+def test_stalled_process_cleanup_skips_sigterm_handler():
+    process = FakeProcess()
+    assert kill_owned_stalled_process(process) is True
+    assert process.terminated == 0
+    assert process.killed == 1
+    assert process.waits == [None]
+
+
+def test_pending_response_is_killed_before_transport_close(monkeypatch):
+    events = []
+
+    class Controller:
+        has_pending_response = True
+        pending_request_type = "observation"
+
+        async def drain_pending_response(self, _timeout):
+            events.append("drain")
+            return False
+
+    class Transport:
+        async def close(self):
+            events.append("transport_close")
+
+    process = FakeProcess()
+
+    def kill_owned(owned):
+        assert owned is process
+        events.append("kill")
+        owned.running = False
+        return True
+
+    monkeypatch.setattr(sc2process_module, "kill_owned_stalled_process", kill_owned)
+    sc2_process = object.__new__(SC2Process)
+    sc2_process._port = 12345
+    sc2_process._controller = Controller()
+    sc2_process._process = process
+    sc2_process._ws = Transport()
+    sc2_process._session = None
+
+    asyncio.run(sc2_process._close_connection())
+    assert events == ["drain", "kill", "transport_close"]
 
 
 def test_owned_process_cleanup_does_not_touch_peer_process():

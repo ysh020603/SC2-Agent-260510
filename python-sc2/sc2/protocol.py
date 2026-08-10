@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import sys
 from contextlib import suppress
 
 from aiohttp.client_ws import ClientWebSocketResponse
@@ -30,6 +29,12 @@ class ProtocolResponseTimeoutError(ProtocolError):
     pass
 
 
+class ProtocolResponsePendingError(ConnectionAlreadyClosedError):
+    """A previous SC2 request is still awaiting its one permitted response."""
+
+    pass
+
+
 class SC2ProcessExitedError(ConnectionAlreadyClosedError):
     """The websocket failed because the owned SC2 client process exited."""
 
@@ -48,10 +53,72 @@ class Protocol:
         # SC2 accepts exactly one request at a time on a protocol connection.
         # Most callers are sequential, but managers and timeout cancellation can
         # otherwise overlap a follow-up query with a response still in flight.
-        self._request_lock = asyncio.Lock()
+        # Create the lock lazily inside the active loop.  Protocol objects are
+        # also constructed by compatibility callers before asyncio.run(); on
+        # Python 3.9 an eagerly-created Lock can bind to the wrong loop.
+        self._request_lock: asyncio.Lock | None = None
         self._process_exit_logged = False
+        self._pending_response_task: asyncio.Task | None = None
+        self._pending_request_type: str | None = None
         # pyre-fixme[11]
         self._status: Status | None = None
+
+    @property
+    def has_pending_response(self) -> bool:
+        task = self._pending_response_task
+        return task is not None and not task.done()
+
+    @property
+    def pending_request_type(self) -> str | None:
+        return self._pending_request_type if self.has_pending_response else None
+
+    def _notify_process(self, method: str, *args) -> None:
+        process = self._sc2_process
+        callback = getattr(process, method, None) if process is not None else None
+        if callback is not None:
+            callback(*args)
+
+    def _response_task_done(self, task: asyncio.Task) -> None:
+        request_type = self._pending_request_type
+        with suppress(asyncio.CancelledError, Exception):
+            task.exception()
+        if self._pending_response_task is task:
+            self._pending_response_task = None
+            self._pending_request_type = None
+            self._notify_process("protocol_request_finished", request_type)
+
+    @staticmethod
+    def _timeout_seconds(request_type: str) -> float:
+        try:
+            generic = float(
+                os.environ.get("SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS", "90")
+            )
+        except (TypeError, ValueError):
+            generic = 90.0
+        specific_name = f"SC2_PROTOCOL_{request_type.upper()}_TIMEOUT_SECONDS"
+        specific = os.environ.get(specific_name)
+        if specific is not None:
+            try:
+                return float(specific)
+            except (TypeError, ValueError):
+                logger.warning("Ignoring invalid {}={!r}", specific_name, specific)
+        # Old SC2 builds can spend substantially longer serializing the final
+        # observation. The old runner waited indefinitely; retain a bound, but
+        # do not apply the aggressive generic timeout to this known slow path.
+        if request_type == "observation" and generic > 0:
+            return max(generic, 300.0)
+        return generic
+
+    async def drain_pending_response(self, timeout_seconds: float) -> bool:
+        """Wait without cancelling the sole SC2 response receiver."""
+
+        task = self._pending_response_task
+        if task is None or task.done():
+            return True
+        done, _ = await asyncio.wait(
+            {task}, timeout=max(0.0, float(timeout_seconds))
+        )
+        return bool(done)
 
     def _process_diagnostics(self):
         process = self._sc2_process
@@ -74,6 +141,11 @@ class Protocol:
 
     async def __request(self, request):
         request_type = request.WhichOneof("request") or "unknown"
+        if self.has_pending_response:
+            raise ProtocolResponsePendingError(
+                "Cannot send a new SC2 request while response is pending for "
+                f"request_type={self.pending_request_type}"
+            )
         logger.debug(f"Sending request: {request!r}")
         self._raise_if_process_exited()
         try:
@@ -84,20 +156,22 @@ class Protocol:
         logger.debug("Request sent")
 
         response = sc_pb.Response()
+        receive_task = asyncio.create_task(self._ws.receive_bytes())
+        self._pending_response_task = receive_task
+        self._pending_request_type = request_type
+        self._notify_process("protocol_request_started", request_type)
+        receive_task.add_done_callback(self._response_task_done)
         try:
-            try:
-                timeout_seconds = float(
-                    os.environ.get("SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS", "90")
-                )
-            except (TypeError, ValueError):
-                timeout_seconds = 90.0
+            timeout_seconds = self._timeout_seconds(request_type)
             if timeout_seconds <= 0:
-                response_bytes = await self._ws.receive_bytes()
+                response_bytes = await asyncio.shield(receive_task)
             else:
-                response_bytes = await asyncio.wait_for(
-                    self._ws.receive_bytes(), timeout=timeout_seconds
-                )
+                done, _ = await asyncio.wait({receive_task}, timeout=timeout_seconds)
+                if not done:
+                    raise asyncio.TimeoutError
+                response_bytes = receive_task.result()
         except asyncio.TimeoutError as exc:
+            self._notify_process("protocol_request_timed_out", request_type)
             diagnostics = self._process_diagnostics()
             if diagnostics is not None and diagnostics.get("returncode") is not None:
                 logger.error("SC2 client exited while awaiting response: {}", diagnostics)
@@ -128,12 +202,9 @@ class Protocol:
             logger.error("Cannot receive: Connection already closed.")
             raise ConnectionAlreadyClosedError("Connection already closed.") from exc
         except asyncio.CancelledError:
-            # If request is sent, the response must be received before reraising cancel
-            try:
-                await self._ws.receive_bytes()
-            except asyncio.CancelledError:
-                logger.critical("Requests must not be cancelled multiple times")
-                sys.exit(2)
+            # asyncio.wait/shield leaves the receiver alive. Never start a
+            # second receive for the same websocket response.
+            self._notify_process("protocol_request_timed_out", request_type)
             raise
 
         response.ParseFromString(response_bytes)
@@ -142,6 +213,8 @@ class Protocol:
 
     async def _execute(self, **kwargs):
         assert len(kwargs) == 1, "Only one request allowed by the API"
+        if self._request_lock is None:
+            self._request_lock = asyncio.Lock()
         async with self._request_lock:
             response = await self.__request(sc_pb.Request(**kwargs))
 
