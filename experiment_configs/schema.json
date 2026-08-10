@@ -68,7 +68,19 @@
         "decision_model": {"type": "string", "minLength": 1},
         "data_subagent_model": {"type": "string", "minLength": 1},
         "decision_agent_mode": {
-          "enum": ["naive", "data-v2.2", "data-v2.2-v2", "data-v2.2-v2-no-knowledge", "data-v2.3", "data-v2.3-no-knowledge"]
+          "enum": [
+            "naive",
+            "data-v2.2",
+            "data-v2.2-v2",
+            "data-v2.2-v2-no-knowledge",
+            "data-v2.3",
+            "data-v2.3-no-knowledge",
+            "plan-execute",
+            "self-refine",
+            "suntzu",
+            "hima",
+            "cos"
+          ]
         },
         "decision_interval": {"type": "number", "exclusiveMinimum": 0},
         "concurrency": {"type": "integer", "minimum": 1},

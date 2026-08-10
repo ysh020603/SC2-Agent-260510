@@ -4,7 +4,7 @@
 
 The runtime has one public LLM responsibility: periodically produce a complete,
 ordered macro queue in canonical names for Terran, Protoss, or Zerg. Naming and
-ordering are one operation. Concrete execution is code-owned. Five selectable
+ordering are one operation. Concrete execution is code-owned. Eleven selectable
 implementations fulfill that same responsibility:
 
 - `data-v2.2`, the supported-launcher default, orchestrates MainAgent and one
@@ -20,13 +20,17 @@ implementations fulfill that same responsibility:
   prerequisites, affordability, timing, and mobile-combat usefulness;
 - `naive` preserves the original single-call `SC2_Agent/decision_agent.py`
   implementation unchanged.
+- `plan-execute`, `self-refine`, `suntzu`, `hima`, and `cos` are isolated,
+  knowledge-free structural harnesses. They vary only model-call orchestration,
+  keep the observation frozen within each decision, and return the same public
+  macro queue.
 
 There is no:
 
 - Naming Agent;
 - Ordering Agent;
 - Ordered Naming mode switch;
-- Executor LLM;
+- an Executor LLM outside explicitly selected structural harnesses;
 - Supply Planner;
 - BO-list execution mode;
 - per-step strategy instruction.
@@ -48,6 +52,11 @@ uncommitted canonical names from previous queue
                  ▼
 decision-agent mode
      ├─ naive ───────────────── SC2_Agent/decision_agent.py
+     ├─ plan-execute ────────── Planner → sequential Executors
+     ├─ self-refine ─────────── Init → Feedback ↔ Refine
+     ├─ suntzu ──────────────── Planner ↔ Verifier → Executor ↔ verifier
+     ├─ hima ────────────────── Advisors A/B/C → Leader
+     ├─ cos ─────────────────── L1 → latest-five history → L2
      ├─ data-v2.2 ───────────── MainAgent ↔ DataSubAgent ↔ query tools/data
      ├─ data-v2.2-v2 ────────── V2 planner ↔ DataSubAgent ↔ query tools/data
      └─ V2 no-knowledge control V2 planner ↔ tool-free DataSubAgent

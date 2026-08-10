@@ -8,12 +8,12 @@ mode.
 ```text
 strategy summary + observation + previous uncommitted canonical names
                                │
-              naive / data-v2.2 / data-v2.2-v2 / V2 control
-                 │          │             │           │
-          one model call    └──── MainAgent ↔ DataSubAgent
-                                           ↕
-                              dataset tools or model prior
-                 └─────────────┬─────────────┘
+      naive / structural harnesses / data-v2.2 / V2 family
+          │              │             │           │
+     one call       multi-call roles   └── MainAgent ↔ DataSubAgent
+                                                 ↕
+                                    dataset tools or model prior
+                 └──────────────────┬──────────────────┘
                                ▼
                     {reason, ordered_names}
                                ▼
@@ -56,8 +56,18 @@ command submission.
   SubAgent retrieval.
 - `naive` uses the preserved `SC2_Agent/decision_agent.py` implementation. It
   shares neither prompt files nor orchestration code with either knowledge mode.
+- `plan-execute` separates one semantic Planner from sequential per-step
+  Executors and concatenates their canonical queue fragments.
+- `self-refine` generates an initial queue, critiques it, and performs up to two
+  bounded full-queue refinement rounds.
+- `suntzu` reproduces hierarchical plan verification/refinement followed by
+  deterministic macro-queue verification and bounded Executor retries.
+- `hima` runs three independent Advisors and one Leader that resolves agreement,
+  conflict, and isolated suggestions.
+- `cos` records one L1 summary per decision and gives the latest five
+  match-scoped summaries to an L2 commander.
 
-All six modes accept the same trigger context and return the same public contract:
+All eleven modes accept the same trigger context and return the same public contract:
 
 ```json
 {
@@ -72,7 +82,7 @@ as scheduler actions.
 
 ## Repository boundary
 
-Only the `UniversalLLMBot` macro-planning path selects between the five modes.
+Only the `UniversalLLMBot` macro-planning path selects between the modes.
 The repository retains Sharpy, bundled `python-sc2`, example bots, ladder
 launchers, mapping code, and deterministic execution. The V2.2 dependency
 closures are copied under `SC2_Agent/knowledge_v2_2/` and
@@ -84,6 +94,9 @@ sibling `SC2_DATA_Agent` repository.
 `UniversalLLMBot`, `GameStarter`, and the supported CLIs all use `data-v2.2` by
 default. Existing callers can select the preserved implementation explicitly
 with `decision_agent_mode="naive"` or `--decision-agent-mode naive`.
+The five structure-only modes are selectable with `plan-execute`,
+`self-refine`, `suntzu`, `hima`, or `cos`; they use no knowledge layer and all
+roles inherit the selected decision-model profile.
 
 ## Decision semantics
 
@@ -135,6 +148,18 @@ python run_vs_ai.py `
   --decision-model Kimi-k2.5 `
   --force-strategy marine_rush
 ```
+
+Select any structure-only baseline with the same decision model and runtime:
+
+```powershell
+python run_vs_ai.py `
+  --decision-agent-mode suntzu `
+  --decision-model qwen3-32b `
+  --force-strategy marine_rush
+```
+
+The other structural mode values are `plan-execute`, `self-refine`, `hima`,
+and `cos`. See [structural-baselines.md](docs/structural-baselines.md).
 
 Select the planning-constrained V2 mode explicitly:
 
@@ -215,8 +240,9 @@ retried.
 ## Records
 
 Every match writes its interaction JSON and `*.llm_calls.json`. Naive decisions
-retain schema version 2; V2.2 V1 decisions use schema version 3 and V2 planning
-decisions use schema version 4. Knowledge modes record the
+retain schema version 2; V2.2 V1 decisions use schema version 3, V2 planning
+decisions use schema version 4, and structural baselines use schema version 5.
+Knowledge modes record the
 selected mode, MainAgent rounds, DataSubAgent sessions, model-call reasoning
 flags, whether a knowledge query was used, and queue transition. A decision
 may legitimately contain zero DataSubAgent sessions. Full V2.2 tool results are kept in
@@ -224,6 +250,8 @@ may legitimately contain zero DataSubAgent sessions. Full V2.2 tool results are 
 Windows-safe compact directory `kv2_traces/`, while control traces use
 `kv2_no_knowledge_traces/`, V2.3 uses `kv2_3_traces/`, and V2.3 no-knowledge
 uses `kv2_3_no_knowledge_traces/`.
+Structural traces use `pe_traces/`, `sr_traces/`, `suntzu_traces/`,
+`hima_traces/`, or `cos_traces/`, and every role call is retained separately.
 
 See [Data V2.2 decision mode](docs/data-v2.2-decision-agent.md),
 [Data V2.2 V2 planning mode](docs/data-v2.2-v2-decision-agent.md),

@@ -34,6 +34,9 @@ verify:
 - V2.3 rejects provider-native tools, executes repository queries locally,
   sends DataSubAgent one ordinary text completion, preserves deterministic
   evidence on summary failure, and continues safely when retrieval fails.
+- structural-baseline tests cover parsers, exact role order, frozen context,
+  bounded refinement/retry, HIMA advisor independence, CoS rolling history and
+  match reset, CLI routing, and fail-closed queue behavior.
 
 ## 2. Model configuration
 
@@ -76,6 +79,21 @@ Every result must parse to the exact public contract. Fail the gate if any
 result has a provider error, rejected response, unknown canonical name, or
 unmapped canonical name. To compare the preserved baseline, rerun with
 `--decision-agent-mode naive`.
+
+For the five structural baselines, use the dedicated probes:
+
+```powershell
+python tools\probe_structural_baselines.py `
+  --decision-agent-mode plan-execute `
+  --model-key qwen3-32b
+
+python tools\probe_sc2_structural_baselines.py `
+  --decision-agent-mode cos `
+  --model-key qwen3-32b
+```
+
+The CoS probe runs at least six cycles and requires history sizes
+`1, 2, 3, 4, 5, 5`.
 
 ## 4. Short SC2 smoke match
 
@@ -128,6 +146,8 @@ Under `game_records/<batch>/<match>/`, inspect the match JSON,
 `*.llm_calls.json`, log, Replay, and the mode-specific trace directory
 (`knowledge_v2_2_traces/` for V1 or `kv2_traces/` for V2).
 The no-knowledge control uses `kv2_no_knowledge_traces/`.
+Structural modes use `pe_traces/`, `sr_traces/`, `suntzu_traces/`,
+`hima_traces/`, and `cos_traces/` with schema version 5.
 
 Expected for `data-v2.2`:
 
@@ -196,6 +216,9 @@ See [reasoning-profile-routing.md](reasoning-profile-routing.md).
   recorded as an orchestration error.
 - A valid replacement discards old uncommitted local work, while work already
   issued to SC2 continues in the engine.
+- Structural-harness parse/provider failures keep the old queue. SunTzu retries
+  malformed or verifier-rejected Executor candidates within its configured
+  bound; CoS keeps a valid L1 summary even when L2 is invalid.
 
 ## 8. Sweep
 
@@ -223,6 +246,17 @@ Concurrent launches are staggered. Confirm each child reaches
 `Status.in_game`, and count only directories with a parseable match result.
 Report startup failures, retries, ties, and missing results separately from win
 rate.
+
+The fixed 10-match-per-mode structural smoke matrix is available as:
+
+```powershell
+python tools\run_structural_baseline_smoke10.py `
+  --decision-model qwen3-32b `
+  --concurrency 10
+```
+
+Its audited 2026-08-10 results and limitations are recorded in
+[structural-baselines.md](structural-baselines.md).
 
 For a reusable multi-group comparison, use the versioned configuration layer:
 

@@ -221,7 +221,19 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--data-subagent-model", default=DEFAULT_DATA_SUBAGENT_MODEL)
     parser.add_argument(
         "--decision-agent-mode",
-        choices=("data-v2.3", "data-v2.3-no-knowledge", "data-v2.2-v2-no-knowledge", "data-v2.2-v2", "data-v2.2", "naive"),
+        choices=(
+            "data-v2.3",
+            "data-v2.3-no-knowledge",
+            "data-v2.2-v2-no-knowledge",
+            "data-v2.2-v2",
+            "data-v2.2",
+            "naive",
+            "plan-execute",
+            "self-refine",
+            "suntzu",
+            "hima",
+            "cos",
+        ),
         default=DEFAULT_DECISION_AGENT_MODE,
     )
     parser.add_argument(

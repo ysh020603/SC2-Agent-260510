@@ -61,7 +61,10 @@ tracked 450 templates must report 450 jobs for every experiment group.
 
 Supported `decision_agent_mode` values include `naive`, `data-v2.2`,
 `data-v2.2-v2`, `data-v2.2-v2-no-knowledge`, `data-v2.3`, and
-`data-v2.3-no-knowledge`. V2.3 requires no
+`data-v2.3-no-knowledge`, plus the knowledge-free structural baselines
+`plan-execute`, `self-refine`, `suntzu`, `hima`, and `cos`. Structural roles
+all use `decision_model`; `data_subagent_model` remains accepted by the shared
+experiment schema but is not used by these five modes. V2.3 requires no
 special API fields beyond normal response text; the model and subagent profiles
 remain independently configurable.
 

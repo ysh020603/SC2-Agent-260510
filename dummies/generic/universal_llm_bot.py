@@ -53,6 +53,11 @@ KNOWLEDGE_V22_V2_DECISION_AGENT_MODE = "data-v2.2-v2"
 KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE = "data-v2.2-v2-no-knowledge"
 KNOWLEDGE_V23_DECISION_AGENT_MODE = "data-v2.3"
 KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE = "data-v2.3-no-knowledge"
+PLAN_EXECUTE_DECISION_AGENT_MODE = "plan-execute"
+SELF_REFINE_DECISION_AGENT_MODE = "self-refine"
+SUNTZU_DECISION_AGENT_MODE = "suntzu"
+HIMA_DECISION_AGENT_MODE = "hima"
+COS_DECISION_AGENT_MODE = "cos"
 SUPPORTED_DECISION_AGENT_MODES = {
     NAIVE_DECISION_AGENT_MODE,
     KNOWLEDGE_V22_DECISION_AGENT_MODE,
@@ -60,6 +65,18 @@ SUPPORTED_DECISION_AGENT_MODES = {
     KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
     KNOWLEDGE_V23_DECISION_AGENT_MODE,
     KNOWLEDGE_V23_NO_KNOWLEDGE_DECISION_AGENT_MODE,
+    PLAN_EXECUTE_DECISION_AGENT_MODE,
+    SELF_REFINE_DECISION_AGENT_MODE,
+    SUNTZU_DECISION_AGENT_MODE,
+    HIMA_DECISION_AGENT_MODE,
+    COS_DECISION_AGENT_MODE,
+}
+STRUCTURAL_BASELINE_DECISION_AGENT_MODES = {
+    PLAN_EXECUTE_DECISION_AGENT_MODE,
+    SELF_REFINE_DECISION_AGENT_MODE,
+    SUNTZU_DECISION_AGENT_MODE,
+    HIMA_DECISION_AGENT_MODE,
+    COS_DECISION_AGENT_MODE,
 }
 DEFAULT_KNOWLEDGE_MODEL_KEY = "Kimi-k2.5"
 
@@ -112,6 +129,7 @@ class UniversalLLMBot(KnowledgeBot):
         self._knowledge_v2_3_ledger: Dict[str, Any] = {"facts": {}}
         self._knowledge_v2_3_no_knowledge_planner_state: Dict[str, Any] = {}
         self._knowledge_v2_3_no_knowledge_ledger: Dict[str, Any] = {"facts": {}}
+        self._cos_state = None
 
         self._llm_call_records: List[Dict[str, Any]] = []
         self._llm_call_seq = 0
@@ -146,6 +164,12 @@ class UniversalLLMBot(KnowledgeBot):
             )
         self.decision_interval_seconds = max(1.0, float(self.decision_interval_seconds))
         self._last_decision_time = -self.decision_interval_seconds
+        if self.decision_agent_mode == COS_DECISION_AGENT_MODE:
+            from SC2_Agent.baseline_cos import CoSState
+
+            self._cos_state = CoSState()
+        else:
+            self._cos_state = None
         self._apply_forced_strategy(self.force_strategy)
         await super().on_start()
         self.zone_manager = self.knowledge.get_required_manager(IZoneManager)
@@ -265,7 +289,9 @@ class UniversalLLMBot(KnowledgeBot):
 
         record: Dict[str, Any] = {
             "schema_version": (
-                4
+                5
+                if self.decision_agent_mode in STRUCTURAL_BASELINE_DECISION_AGENT_MODES
+                else 4
                 if self.decision_agent_mode in {
                     KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
                     KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
@@ -315,7 +341,132 @@ class UniversalLLMBot(KnowledgeBot):
                 decision_interval_seconds=self.decision_interval_seconds,
                 enemy_race=self.strategy_enemy_race,
             )
-            if self.decision_agent_mode in {
+            structural_baseline_result: Optional[Dict[str, Any]] = None
+            if self.decision_agent_mode in STRUCTURAL_BASELINE_DECISION_AGENT_MODES:
+                if self.decision_agent_mode == PLAN_EXECUTE_DECISION_AGENT_MODE:
+                    from SC2_Agent.baseline_plan_execute import (
+                        build_decision_context,
+                        run_decision,
+                    )
+
+                    trace_folder = "pe_traces"
+                    record_key = "baseline_plan_execute"
+                elif self.decision_agent_mode == SELF_REFINE_DECISION_AGENT_MODE:
+                    from SC2_Agent.baseline_self_refine import (
+                        build_decision_context,
+                        run_decision,
+                    )
+
+                    trace_folder = "sr_traces"
+                    record_key = "baseline_self_refine"
+                elif self.decision_agent_mode == SUNTZU_DECISION_AGENT_MODE:
+                    from SC2_Agent.baseline_suntzu import (
+                        build_decision_context,
+                        run_decision,
+                    )
+
+                    trace_folder = "suntzu_traces"
+                    record_key = "baseline_suntzu"
+                elif self.decision_agent_mode == HIMA_DECISION_AGENT_MODE:
+                    from SC2_Agent.baseline_hima import (
+                        build_decision_context,
+                        run_decision,
+                    )
+
+                    trace_folder = "hima_traces"
+                    record_key = "baseline_hima"
+                else:
+                    from SC2_Agent.baseline_cos import (
+                        build_decision_context,
+                        run_decision,
+                    )
+
+                    trace_folder = "cos_traces"
+                    record_key = "baseline_cos"
+                    if self._cos_state is None:
+                        from SC2_Agent.baseline_cos import CoSState
+
+                        self._cos_state = CoSState()
+                structural_context = build_decision_context(**prompt_arguments)
+                messages = [
+                    {"role": "system", "content": structural_context["system_prompt"]},
+                    {"role": "user", "content": structural_context["decision_event"]},
+                ]
+                trace_dir = (
+                    os.path.join(self.record_dir, trace_folder)
+                    if self.record_dir
+                    else None
+                )
+                run_kwargs = dict(
+                    system_prompt=structural_context["system_prompt"],
+                    decision_event=structural_context["decision_event"],
+                    provider=self.decision_model_key,
+                    log_dir=trace_dir,
+                    decision_metadata=structural_context["metadata"],
+                )
+                if self.decision_agent_mode == COS_DECISION_AGENT_MODE:
+                    run_kwargs["cos_state"] = self._cos_state
+                structural_baseline_result = run_decision(**run_kwargs)
+                decision_payload = structural_baseline_result.get("decision")
+                if isinstance(decision_payload, dict):
+                    raw_response = json.dumps(decision_payload, ensure_ascii=False)
+                    parsed = MacroDecision(
+                        reason=str(decision_payload["reason"]),
+                        ordered_names=list(decision_payload["ordered_names"]),
+                    )
+                else:
+                    raw_response = ""
+                    parsed = None
+                llm_calls = structural_baseline_result.get("llm_calls") or []
+                final_call = llm_calls[-1] if llm_calls else {}
+                api_result = {
+                    "content": raw_response,
+                    "model_key": final_call.get("model_key", self.decision_model_key),
+                    "model": final_call.get("model", ""),
+                    "is_reasoning": final_call.get("is_reasoning"),
+                    "reasoning": final_call.get("provider_reasoning", "") or "",
+                    "reasoning_source": final_call.get("reasoning_source", "none")
+                    or "none",
+                    "reasoning_extract_mode": final_call.get(
+                        "reasoning_extract_mode", "none"
+                    )
+                    or "none",
+                    "raw_content": final_call.get("raw_content", "") or raw_response,
+                    "error": "",
+                    "structural_baseline_result": structural_baseline_result,
+                }
+                orchestration = structural_baseline_result.get("orchestration") or {}
+                record[record_key] = {
+                    "run_id": structural_baseline_result.get("run_id"),
+                    "trace_path": structural_baseline_result.get("log_path"),
+                    "model_call_count": structural_baseline_result.get(
+                        "model_call_count"
+                    ),
+                    "status": structural_baseline_result.get("status"),
+                    "orchestration": orchestration,
+                    "plan_step_count": len(
+                        (structural_baseline_result.get("plan") or {}).get("steps")
+                        or (structural_baseline_result.get("plan") or {}).get("commands")
+                        or []
+                    ),
+                    "executor_step_count": len(
+                        structural_baseline_result.get("executor_steps")
+                        or structural_baseline_result.get("executor_rounds")
+                        or []
+                    ),
+                    "stop_reason": structural_baseline_result.get("stop_reason"),
+                    "refine_round_count": len(
+                        structural_baseline_result.get("rounds")
+                        or structural_baseline_result.get("plan_rounds")
+                        or []
+                    ),
+                    "valid_advisor_count": structural_baseline_result.get(
+                        "valid_advisor_count"
+                    ),
+                    "history_size": structural_baseline_result.get("history_size"),
+                    "configured_model_key": self.decision_model_key,
+                }
+            elif self.decision_agent_mode in {
                 KNOWLEDGE_V22_DECISION_AGENT_MODE,
                 KNOWLEDGE_V22_V2_DECISION_AGENT_MODE,
                 KNOWLEDGE_V22_V2_NO_KNOWLEDGE_DECISION_AGENT_MODE,
@@ -599,7 +750,12 @@ class UniversalLLMBot(KnowledgeBot):
                 f"    DECISION EXCEPTION: {exc!r}; old uncommitted queue remains active"
             )
         finally:
-            if "messages" in locals():
+            if "structural_baseline_result" in locals() and structural_baseline_result:
+                self._record_structural_baseline_llm_calls(
+                    structural_baseline_result.get("llm_calls") or [],
+                    decision=parsed,
+                )
+            elif "messages" in locals():
                 self._record_llm_call(
                     messages=messages,
                     output=raw_response,
@@ -656,6 +812,49 @@ class UniversalLLMBot(KnowledgeBot):
         except Exception as exc:
             logger.warning("[UniversalLLMBot] failed to build observation: %s", exc)
             return "(observation unavailable)", None
+
+    def _record_structural_baseline_llm_calls(
+        self,
+        llm_calls: List[Dict[str, Any]],
+        *,
+        decision: Optional[MacroDecision],
+    ) -> None:
+        """Append every structural-baseline subcall to *.llm_calls.json."""
+        for call in llm_calls:
+            self._llm_call_seq += 1
+            self._llm_call_records.append(
+                {
+                    "seq": self._llm_call_seq,
+                    "game_time": round(float(getattr(self, "time", 0.0)), 2),
+                    "decision_cycle": self._decision_cycle_count,
+                    "agent": call.get("agent") or call.get("role") or "structural_baseline",
+                    "role": call.get("role"),
+                    "decision_agent_mode": self.decision_agent_mode,
+                    "model_key": call.get("model_key") or self.decision_model_key,
+                    "configured_model_key": call.get("configured_model_key")
+                    or self.decision_model_key,
+                    "configured_data_subagent_model_key": self.data_subagent_model_key,
+                    "model": call.get("model", ""),
+                    "is_reasoning": call.get("is_reasoning"),
+                    "prompt": list(call.get("messages") or []),
+                    "output": call.get("content", "") or "",
+                    "decision_reason": decision.reason if decision else "",
+                    "ordered_names": decision.ordered_names if decision else [],
+                    "provider_reasoning": call.get("provider_reasoning", "") or "",
+                    "reasoning_source": call.get("reasoning_source", "none") or "none",
+                    "reasoning_extract_mode": call.get(
+                        "reasoning_extract_mode",
+                        "none",
+                    ),
+                    "raw_content": call.get("raw_content", "") or "",
+                    "error": call.get("error", "") or "",
+                    "wall_elapsed_seconds": call.get("wall_elapsed_seconds"),
+                    "prompt_chars": call.get("prompt_chars"),
+                    "output_chars": call.get("output_chars"),
+                    "knowledge_v2_2": None,
+                }
+            )
+        self._flush_llm_call_log()
 
     def _record_llm_call(
         self,
