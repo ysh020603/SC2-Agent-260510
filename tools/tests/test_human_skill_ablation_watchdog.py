@@ -31,7 +31,8 @@ def test_runner_accepts_clean_match_log(tmp_path):
 def test_runner_rejects_ai_iteration_and_client_exit_markers(tmp_path):
     module = _load("human_skill_suite_runtime_markers", "tools/run_human_skill_ablation_suite.py")
     (tmp_path / "match.log").write_text(
-        "AI iteration timed out: 180\nSC2 client process exited: returncode=-15",
+        "AI iteration timed out: 180\nSC2 client process exited: returncode=-15\n"
+        "SC2_PROCESS_DISAPPEARED after launch",
         encoding="utf-8",
     )
     assert module.record_has_watchdog(tmp_path) is True

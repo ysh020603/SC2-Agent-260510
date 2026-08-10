@@ -166,6 +166,7 @@ def record_has_watchdog(record_dir: Path) -> bool:
         or "Recovered stalled SC2 protocol request" in match_log
         or "SC2 client process exited" in match_log
         or "AI iteration timed out" in match_log
+        or "SC2_PROCESS_DISAPPEARED" in match_log
     ):
         return True
     for calls_path in record_dir.glob("*.llm_calls.json"):
@@ -469,8 +470,26 @@ def main() -> int:
                         start_new_session=True,
                     )
                     owned_process_roots.add(process.pid)
+                own_sc2_seen = False
+                own_sc2_missing_since: float | None = None
                 try:
                     while process.poll() is None:
+                        own_tree = _process_tree(process.pid)
+                        own_sc2_pids = _sc2_process_pids() & own_tree
+                        if own_sc2_pids:
+                            own_sc2_seen = True
+                            own_sc2_missing_since = None
+                        elif own_sc2_seen:
+                            if own_sc2_missing_since is None:
+                                own_sc2_missing_since = time.monotonic()
+                            elif time.monotonic() - own_sc2_missing_since >= 15.0:
+                                log.write(
+                                    "SC2_PROCESS_DISAPPEARED after launch; "
+                                    "terminating only this hung experiment process group\n"
+                                )
+                                log.flush()
+                                _terminate_process_group(process)
+                                break
                         foreign_pids = foreign_sc2_pids()
                         if foreign_pids:
                             foreign_overlap = foreign_pids
