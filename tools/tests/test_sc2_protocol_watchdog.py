@@ -93,7 +93,7 @@ def test_protocol_response_timeout_is_bounded(monkeypatch):
         asyncio.run(run_request())
 
 
-def test_timeout_keeps_single_receiver_alive_until_it_can_be_drained(monkeypatch):
+def test_timeout_without_owned_process_cancels_receiver(monkeypatch):
     monkeypatch.setenv("SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS", "0.01")
 
     async def run_request():
@@ -101,15 +101,9 @@ def test_timeout_keeps_single_receiver_alive_until_it_can_be_drained(monkeypatch
         protocol = Protocol(websocket)
         with pytest.raises(ProtocolResponseTimeoutError):
             await protocol.ping()
-        assert protocol.has_pending_response is True
-        assert websocket.receive_cancelled is False
-        with pytest.raises(ProtocolResponsePendingError, match="request_type=ping"):
-            await protocol.ping()
-        assert websocket.send_count == 1
-        websocket.release.set()
-        assert await protocol.drain_pending_response(1.0) is True
-        await asyncio.sleep(0)
         assert protocol.has_pending_response is False
+        assert websocket.receive_cancelled is True
+        assert websocket.send_count == 1
 
     asyncio.run(run_request())
 

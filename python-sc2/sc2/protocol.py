@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import os
 from contextlib import suppress
 
@@ -60,6 +61,9 @@ class Protocol:
         self._process_exit_logged = False
         self._pending_response_task: asyncio.Task | None = None
         self._pending_request_type: str | None = None
+        register_protocol = getattr(process, "register_protocol", None)
+        if register_protocol is not None:
+            register_protocol(self)
         # pyre-fixme[11]
         self._status: Status | None = None
 
@@ -119,6 +123,37 @@ class Protocol:
             {task}, timeout=max(0.0, float(timeout_seconds))
         )
         return bool(done)
+
+    async def cancel_pending_response(self) -> bool:
+        """Cancel this protocol's receiver after its owned SC2 is gone.
+
+        Cancelling a live receive can trigger the legacy Linux client's broken
+        pending-response shutdown path.  Callers must therefore kill or
+        observe termination of the exact owned client first.
+        """
+
+        task = self._pending_response_task
+        if task is None:
+            return False
+        if not task.done():
+            task.cancel()
+        with suppress(asyncio.CancelledError, Exception):
+            await task
+        if self._pending_response_task is task:
+            self._pending_response_task = None
+            self._pending_request_type = None
+        return True
+
+    async def _abort_timed_out_request(self, request_type: str) -> None:
+        """Abort at the failure site instead of relying on later context exit."""
+
+        process = self._sc2_process
+        callback = getattr(process, "abort_protocol_request", None) if process is not None else None
+        if callback is not None:
+            result = callback(request_type)
+            if inspect.isawaitable(result):
+                await result
+        await self.cancel_pending_response()
 
     def _process_diagnostics(self):
         process = self._sc2_process
@@ -185,6 +220,12 @@ class Protocol:
                 request_type,
                 diagnostics,
             )
+            # Do not leave the websocket receiver and native client spinning
+            # until outer context cleanup.  This Protocol may be the match
+            # Client rather than SC2Process._controller, so cleanup cannot
+            # otherwise see its pending task.  Kill only this match's native
+            # client, then cancel and await its sole receiver.
+            await self._abort_timed_out_request(request_type)
             raise ProtocolResponseTimeoutError(
                 f"SC2 protocol response timed out after {timeout_seconds:.1f} seconds; "
                 f"request_type={request_type}; process={diagnostics}"

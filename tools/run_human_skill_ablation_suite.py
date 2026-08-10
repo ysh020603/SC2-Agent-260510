@@ -299,7 +299,7 @@ def main() -> int:
     parser.add_argument(
         "--concurrency",
         type=int,
-        default=15,
+        default=3,
         help=(
             "Independent SC2 child processes. Launches are staggered and each "
             "child is allowed to finish naturally."
@@ -357,7 +357,7 @@ def main() -> int:
     parser.add_argument(
         "--launch-stagger",
         type=float,
-        default=1.0,
+        default=2.0,
         help="Minimum gap between child launches, matching the stable reference runner.",
     )
     parser.add_argument(

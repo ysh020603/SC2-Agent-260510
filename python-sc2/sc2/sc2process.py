@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import weakref
 from contextlib import suppress
 from pathlib import Path
 from typing import Any
@@ -137,6 +138,7 @@ class SC2Process:
         self._session = None
         self._ws = None
         self._controller = None
+        self._protocols = weakref.WeakSet()
         self._protocol_request_in_flight = False
         self._protocol_request_timed_out = False
         self._protocol_request_type: str | None = None
@@ -183,6 +185,34 @@ class SC2Process:
         self._protocol_request_in_flight = True
         self._protocol_request_timed_out = True
         self._protocol_request_type = request_type
+
+    def register_protocol(self, protocol) -> None:
+        """Track startup and match Protocol objects sharing this transport."""
+
+        self._protocols.add(protocol)
+
+    async def abort_protocol_request(self, request_type: str) -> None:
+        """Kill only this match's client immediately after a response timeout."""
+
+        self.protocol_request_timed_out(request_type)
+        if (
+            self._process is not None
+            and self._process.poll() is None
+            and paths.PF not in {"WSL1", "WSL2"}
+        ):
+            logger.error(
+                "Aborting timed-out owned SC2 process immediately: pid={} "
+                "request_type={}",
+                self._process.pid,
+                request_type,
+            )
+            await asyncio.to_thread(kill_owned_stalled_process, self._process)
+
+    async def _cancel_registered_protocol_receivers(self) -> None:
+        for protocol in list(self._protocols):
+            cancel = getattr(protocol, "cancel_pending_response", None)
+            if cancel is not None:
+                await cancel()
 
     @property
     def ws_url(self) -> str:
@@ -408,6 +438,11 @@ class SC2Process:
             kill_owned_stalled_process(self._process)
 
         if self._ws is not None:
+            # A match Client and the startup Controller are separate Protocol
+            # instances over the same websocket.  Once the owned client is
+            # dead, reap receivers from both before closing aiohttp.
+            if self._process is None or self._process.poll() is not None:
+                await self._cancel_registered_protocol_receivers()
             try:
                 await asyncio.wait_for(self._ws.close(), timeout=5.0)
             except (asyncio.TimeoutError, RuntimeError):
@@ -475,6 +510,7 @@ class SC2Process:
         self._process = None
         self._ws = None
         self._controller = None
+        self._protocols.clear()
         self._protocol_request_in_flight = False
         self._protocol_request_timed_out = False
         self._protocol_request_type = None
