@@ -28,7 +28,14 @@ def test_process_tree_and_native_sc2_detection(tmp_path: Path) -> None:
     _proc(tmp_path, 12, 11, b"/data2/SC2/SC2_x64 -listen")
     _proc(tmp_path, 20, 1, b"/data2/SC2/SC2_x64 -listen")
     _proc(tmp_path, 30, 1, b"bash mentions_SC2_x64")
+    _proc(tmp_path, 40, 1, b"python sibling_match.py")
+    _proc(tmp_path, 41, 40, b"/data2/SC2/SC2_x64 -listen")
 
     assert MODULE._process_tree(10, tmp_path) == {10, 11, 12}
-    assert MODULE._sc2_process_pids(tmp_path) == {12, 20}
-    assert MODULE._sc2_process_pids(tmp_path) - MODULE._process_tree(10, tmp_path) == {20}
+    assert MODULE._sc2_process_pids(tmp_path) == {12, 20, 41}
+    assert MODULE._process_forest({10, 40}, tmp_path) == {10, 11, 12, 40, 41}
+    assert (
+        MODULE._sc2_process_pids(tmp_path)
+        - MODULE._process_forest({10, 40}, tmp_path)
+        == {20}
+    )

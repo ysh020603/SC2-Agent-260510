@@ -99,6 +99,19 @@ def _process_tree(root_pid: int, proc_root: Path = Path("/proc")) -> set[int]:
     return result
 
 
+def _process_forest(root_pids: Iterable[int], proc_root: Path = Path("/proc")) -> set[int]:
+    """Return every process owned by all active jobs in this runner.
+
+    A concurrent suite has sibling match roots.  Treating only one job's tree
+    as owned makes each match misclassify the other runner jobs as foreign SC2.
+    """
+
+    result: set[int] = set()
+    for root_pid in tuple(root_pids):
+        result.update(_process_tree(root_pid, proc_root))
+    return result
+
+
 def _sc2_process_pids(proc_root: Path = Path("/proc")) -> set[int]:
     """Find native SC2 client processes without matching unrelated shells."""
 
@@ -351,6 +364,14 @@ def main() -> int:
     launch_lock = threading.Lock()
     last_launch = [0.0]
 
+    ownership_lock = threading.Lock()
+    owned_process_roots: set[int] = set()
+
+    def foreign_sc2_pids() -> list[int]:
+        with ownership_lock:
+            owned_tree = _process_forest(owned_process_roots)
+            return sorted(_sc2_process_pids() - owned_tree)
+
     def run_job(job: tuple[str, str, Condition, str, Path], attempt: int) -> dict:
         method_name, agent, condition, batch_name, log_path = job
         with launch_lock:
@@ -413,7 +434,7 @@ def main() -> int:
         with attempt_log_path.open("w", encoding="utf-8") as log:
             wait_started = time.monotonic()
             while True:
-                busy_pids = sorted(_sc2_process_pids())
+                busy_pids = foreign_sc2_pids()
                 if not busy_pids:
                     break
                 if time.monotonic() - wait_started >= args.foreign_sc2_wait_timeout:
@@ -428,28 +449,33 @@ def main() -> int:
                 time.sleep(5.0)
 
             if not foreign_overlap:
-                process = subprocess.Popen(
-                    command,
-                    cwd=ROOT,
-                    env=env,
-                    stdout=log,
-                    stderr=subprocess.STDOUT,
-                    start_new_session=True,
-                )
-                while process.poll() is None:
-                    own_tree = _process_tree(process.pid)
-                    foreign_pids = sorted(_sc2_process_pids() - own_tree)
-                    if foreign_pids:
-                        foreign_overlap = foreign_pids
-                        log.write(
-                            f"FOREIGN_SC2_OVERLAP pids={foreign_pids}; "
-                            "terminating only this experiment process group\n"
-                        )
-                        log.flush()
-                        _terminate_process_group(process)
-                        break
-                    time.sleep(2.0)
-                process_returncode = process.wait()
+                with ownership_lock:
+                    process = subprocess.Popen(
+                        command,
+                        cwd=ROOT,
+                        env=env,
+                        stdout=log,
+                        stderr=subprocess.STDOUT,
+                        start_new_session=True,
+                    )
+                    owned_process_roots.add(process.pid)
+                try:
+                    while process.poll() is None:
+                        foreign_pids = foreign_sc2_pids()
+                        if foreign_pids:
+                            foreign_overlap = foreign_pids
+                            log.write(
+                                f"FOREIGN_SC2_OVERLAP pids={foreign_pids}; "
+                                "terminating only this experiment process group\n"
+                            )
+                            log.flush()
+                            _terminate_process_group(process)
+                            break
+                        time.sleep(2.0)
+                    process_returncode = process.wait()
+                finally:
+                    with ownership_lock:
+                        owned_process_roots.discard(process.pid)
         artifact_complete = condition.skill_id in completed_skill_ids(ROOT / "game_records" / batch_name)
         complete = not foreign_overlap and process_returncode == 0 and artifact_complete
         return {
