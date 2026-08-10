@@ -62,6 +62,15 @@ def test_runner_pins_pending_observation_cleanup_controls():
     assert '"protocol_drain_timeout"' in source
 
 
+def test_runtime_never_infers_result_after_transport_failure():
+    source = (ROOT / "python-sc2/sc2/main.py").read_text(encoding="utf-8")
+    assert "no_engine_reported_result" in source
+    assert "_sc2_transport_failure" in source
+    assert "last_state_surviving_force" not in source
+    assert "last_state_no_own_assets" not in source
+    assert "recover_from_protocol_timeout" not in source
+
+
 def test_foreign_sc2_scan_freezes_candidates_before_process_forest(monkeypatch):
     module = _load("human_skill_suite_scan_order", "tools/run_human_skill_ablation_suite.py")
     calls = []
