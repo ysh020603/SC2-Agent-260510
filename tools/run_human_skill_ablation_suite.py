@@ -132,6 +132,25 @@ def _sc2_process_pids(proc_root: Path = Path("/proc")) -> set[int]:
     return result
 
 
+def _foreign_sc2_pids(
+    owned_process_roots: Iterable[int],
+    trusted_process_roots: Iterable[int],
+) -> list[int]:
+    """Return SC2 clients outside the exact trusted process forest.
+
+    Snapshot SC2 PIDs before resolving ownership. If a sibling client starts
+    between the two scans, it is absent from the frozen candidate set instead
+    of being falsely classified as foreign because it missed an older forest
+    snapshot.
+    """
+
+    sc2_pids = _sc2_process_pids()
+    owned_tree = _process_forest(
+        set(owned_process_roots) | set(trusted_process_roots)
+    )
+    return sorted(sc2_pids - owned_tree)
+
+
 def _terminate_process_group(process: subprocess.Popen, timeout_seconds: float = 10.0) -> None:
     if process.poll() is not None:
         return
@@ -378,10 +397,10 @@ def main() -> int:
 
     def foreign_sc2_pids() -> list[int]:
         with ownership_lock:
-            owned_tree = _process_forest(
-                owned_process_roots | trusted_process_roots
+            return _foreign_sc2_pids(
+                owned_process_roots,
+                trusted_process_roots,
             )
-            return sorted(_sc2_process_pids() - owned_tree)
 
     def run_job(job: tuple[str, str, Condition, str, Path], attempt: int) -> dict:
         method_name, agent, condition, batch_name, log_path = job

@@ -1,6 +1,9 @@
 import asyncio
 
 import pytest
+from s2clientprotocol import sc2api_pb2 as sc_pb
+
+from sc2.data import Status
 
 from sc2.protocol import Protocol, ProtocolResponseTimeoutError, SC2ProcessExitedError
 
@@ -23,9 +26,38 @@ class _DeadSC2Process:
         }
 
 
+class _OverlapDetectingWebSocket:
+    def __init__(self):
+        self.in_flight = 0
+        self.max_in_flight = 0
+
+    async def send_bytes(self, _payload):
+        return None
+
+    async def receive_bytes(self):
+        self.in_flight += 1
+        self.max_in_flight = max(self.max_in_flight, self.in_flight)
+        try:
+            await asyncio.sleep(0.01)
+            return sc_pb.Response(status=Status.launched.value).SerializeToString()
+        finally:
+            self.in_flight -= 1
+
+
 def test_protocol_constructs_single_flight_request_lock():
     protocol = Protocol(_NeverRespondingWebSocket())
     assert protocol._request_lock is not None
+
+
+def test_protocol_serializes_concurrent_requests():
+    websocket = _OverlapDetectingWebSocket()
+    protocol = Protocol(websocket)
+
+    async def run_requests():
+        await asyncio.gather(protocol.ping(), protocol.ping())
+
+    asyncio.run(run_requests())
+    assert websocket.max_in_flight == 1
 
 
 def test_protocol_response_timeout_is_bounded(monkeypatch):

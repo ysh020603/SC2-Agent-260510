@@ -51,6 +51,25 @@ def test_runner_exposes_all_readable_skill_methods():
     }
 
 
+def test_foreign_sc2_scan_freezes_candidates_before_process_forest(monkeypatch):
+    module = _load("human_skill_suite_scan_order", "tools/run_human_skill_ablation_suite.py")
+    calls = []
+
+    def scan_sc2():
+        calls.append("sc2")
+        return {101, 202}
+
+    def scan_forest(roots):
+        calls.append(("forest", set(roots)))
+        return {1, 2, 101}
+
+    monkeypatch.setattr(module, "_sc2_process_pids", scan_sc2)
+    monkeypatch.setattr(module, "_process_forest", scan_forest)
+
+    assert module._foreign_sc2_pids({1}, {2}) == [202]
+    assert calls == ["sc2", ("forest", {1, 2})]
+
+
 def test_analyzer_supports_selected_methods_and_non_full_baseline():
     module = _load("human_skill_analyzer_methods", "tools/analyze_human_skill_ablation.py")
     methods = ("positive_only", "full_v2")
