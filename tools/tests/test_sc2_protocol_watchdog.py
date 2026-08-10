@@ -118,7 +118,7 @@ def test_observation_timeout_has_a_safer_default(monkeypatch):
     monkeypatch.setenv("SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS", "90")
     monkeypatch.delenv("SC2_PROTOCOL_OBSERVATION_TIMEOUT_SECONDS", raising=False)
     assert Protocol._timeout_seconds("ping") == 90
-    assert Protocol._timeout_seconds("observation") == 300
+    assert Protocol._timeout_seconds("observation") == 120
     monkeypatch.setenv("SC2_PROTOCOL_OBSERVATION_TIMEOUT_SECONDS", "45")
     assert Protocol._timeout_seconds("observation") == 45
 

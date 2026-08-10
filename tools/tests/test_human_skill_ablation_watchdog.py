@@ -54,7 +54,7 @@ def test_runner_exposes_all_readable_skill_methods():
 def test_runner_pins_pending_observation_cleanup_controls():
     source = (ROOT / "tools/run_human_skill_ablation_suite.py").read_text(encoding="utf-8")
     assert '"--protocol-observation-timeout"' in source
-    assert "default=300.0" in source
+    assert "default=120.0" in source
     assert '"SC2_PROTOCOL_OBSERVATION_TIMEOUT_SECONDS"' in source
     assert '"--protocol-drain-timeout"' in source
     assert '"SC2_PROTOCOL_DRAIN_TIMEOUT_SECONDS"' in source

@@ -102,11 +102,11 @@ class Protocol:
                 return float(specific)
             except (TypeError, ValueError):
                 logger.warning("Ignoring invalid {}={!r}", specific_name, specific)
-        # Old SC2 builds can spend substantially longer serializing the final
-        # observation. The old runner waited indefinitely; retain a bound, but
-        # do not apply the aggressive generic timeout to this known slow path.
+        # Give loaded clients more room for an observation, but keep the bound
+        # short enough that a terminal SC2 4.10 response stall can be killed
+        # and retried instead of holding a batch worker indefinitely.
         if request_type == "observation" and generic > 0:
-            return max(generic, 300.0)
+            return max(generic, 120.0)
         return generic
 
     async def drain_pending_response(self, timeout_seconds: float) -> bool:

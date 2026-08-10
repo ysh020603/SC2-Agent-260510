@@ -326,7 +326,7 @@ def main() -> int:
     parser.add_argument(
         "--protocol-observation-timeout",
         type=float,
-        default=300.0,
+        default=120.0,
         help=(
             "Bound a slow SC2 observation response separately from ordinary "
             "protocol calls. The receive remains alive after this deadline so "
