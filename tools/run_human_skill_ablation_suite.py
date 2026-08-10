@@ -288,6 +288,12 @@ def main() -> int:
     parser.add_argument("--model", default="DeepSeek-V4-flash")
     parser.add_argument("--indices", default="0-14")
     args = parser.parse_args()
+    try:
+        trusted_owner_pid = int(os.environ.get("SC2_TRUSTED_OWNER_PID", "0") or 0)
+    except ValueError as exc:
+        raise ValueError("SC2_TRUSTED_OWNER_PID must be an integer PID") from exc
+    if trusted_owner_pid < 0:
+        raise ValueError("SC2_TRUSTED_OWNER_PID cannot be negative")
     if args.concurrency < 1 or args.retry_concurrency < 1:
         raise ValueError("concurrency values must be positive")
     if args.max_attempts < 1 or args.retry_backoff < 0:
@@ -329,6 +335,7 @@ def main() -> int:
         "game_info_refresh_game_loops": args.game_info_refresh_game_loops,
         "launch_stagger": args.launch_stagger,
         "foreign_sc2_wait_timeout": args.foreign_sc2_wait_timeout,
+        "trusted_owner_pid": trusted_owner_pid or None,
         "retry_concurrency": args.retry_concurrency,
         "max_attempts": args.max_attempts,
         "retry_backoff": args.retry_backoff,
@@ -366,10 +373,13 @@ def main() -> int:
 
     ownership_lock = threading.Lock()
     owned_process_roots: set[int] = set()
+    trusted_process_roots = {trusted_owner_pid} if trusted_owner_pid else set()
 
     def foreign_sc2_pids() -> list[int]:
         with ownership_lock:
-            owned_tree = _process_forest(owned_process_roots)
+            owned_tree = _process_forest(
+                owned_process_roots | trusted_process_roots
+            )
             return sorted(_sc2_process_pids() - owned_tree)
 
     def run_job(job: tuple[str, str, Condition, str, Path], attempt: int) -> dict:
