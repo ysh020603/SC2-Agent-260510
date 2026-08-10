@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Optional, Set
 
 from sharpy.managers.core.manager_base import ManagerBase
@@ -10,6 +11,12 @@ from sc2.protocol import (
     ProtocolResponseTimeoutError,
     SC2ProcessExitedError,
 )
+
+
+def _available_abilities_refresh_due(
+    *, current_game_loop: int, last_refresh_game_loop: int, interval_game_loops: int
+) -> bool:
+    return current_game_loop - last_refresh_game_loop >= max(1, interval_game_loops)
 
 
 class CooldownManager(ManagerBase):
@@ -25,13 +32,41 @@ class CooldownManager(ManagerBase):
         self.adept_to_shade: Dict[int, int] = dict()
         self.shade_to_adept: Dict[int, int] = dict()
         self._shade_tags_handled: Set[int] = set()
+        self._last_available_refresh_game_loop = -1_000_000
 
     async def update(self):
-        self.available_dict.clear()
         if len(self.ai.all_own_units) < 1:
             return
         try:
-            result: List[List[AbilityId]] = await self.ai.get_available_abilities(self.ai.all_own_units)
+            refresh_interval = max(
+                1,
+                int(os.environ.get("SC2_AVAILABLE_ABILITIES_REFRESH_GAME_LOOPS", "44")),
+            )
+        except (TypeError, ValueError):
+            refresh_interval = 44
+        current_game_loop = int(getattr(self.ai.state, "game_loop", 0))
+        if not _available_abilities_refresh_due(
+            current_game_loop=current_game_loop,
+            last_refresh_game_loop=self._last_available_refresh_game_loop,
+            interval_game_loops=refresh_interval,
+        ):
+            return
+        self._last_available_refresh_game_loop = current_game_loop
+
+        try:
+            chunk_size = max(
+                1,
+                int(os.environ.get("SC2_AVAILABLE_ABILITIES_QUERY_CHUNK_SIZE", "32")),
+            )
+        except (TypeError, ValueError):
+            chunk_size = 32
+        units = list(self.ai.all_own_units)
+        try:
+            result: List[List[AbilityId]] = []
+            for start in range(0, len(units), chunk_size):
+                result.extend(
+                    await self.ai.get_available_abilities(units[start : start + chunk_size])
+                )
         except (
             ConnectionAlreadyClosedError,
             ProtocolResponseTimeoutError,
@@ -45,8 +80,9 @@ class CooldownManager(ManagerBase):
             self.print(f"Get available abilities failed: {e}")
             return
 
-        for i in range(0, len(self.ai.all_own_units)):
-            self.available_dict[self.ai.all_own_units[i].tag] = result[i]
+        self.available_dict.clear()
+        for unit, abilities in zip(units, result):
+            self.available_dict[unit.tag] = abilities
 
         shades = self.cache.own(UnitTypeId.ADEPTPHASESHIFT)
 

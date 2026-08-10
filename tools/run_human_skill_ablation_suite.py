@@ -132,9 +132,21 @@ def _sc2_process_pids(proc_root: Path = Path("/proc")) -> set[int]:
     return result
 
 
+def _process_has_trusted_owner_env(pid: int, trusted_owner_pid: int) -> bool:
+    if trusted_owner_pid <= 0:
+        return False
+    try:
+        environment = (Path("/proc") / str(pid) / "environ").read_bytes().split(b"\0")
+    except OSError:
+        return False
+    expected = f"SC2_TRUSTED_OWNER_PID={trusted_owner_pid}".encode("ascii")
+    return expected in environment
+
+
 def _foreign_sc2_pids(
     owned_process_roots: Iterable[int],
     trusted_process_roots: Iterable[int],
+    trusted_owner_pid: int = 0,
 ) -> list[int]:
     """Return SC2 clients outside the exact trusted process forest.
 
@@ -148,7 +160,11 @@ def _foreign_sc2_pids(
     owned_tree = _process_forest(
         set(owned_process_roots) | set(trusted_process_roots)
     )
-    return sorted(sc2_pids - owned_tree)
+    return sorted(
+        pid
+        for pid in sc2_pids - owned_tree
+        if not _process_has_trusted_owner_env(pid, trusted_owner_pid)
+    )
 
 
 def _terminate_process_group(process: subprocess.Popen, timeout_seconds: float = 10.0) -> None:
@@ -284,6 +300,8 @@ def main() -> int:
     parser.add_argument("--wall-timeout", type=int, default=3000)
     parser.add_argument("--protocol-response-timeout", type=float, default=90.0)
     parser.add_argument("--ai-step-timeout", type=float, default=180.0)
+    parser.add_argument("--available-abilities-refresh-game-loops", type=int, default=44)
+    parser.add_argument("--available-abilities-query-chunk-size", type=int, default=32)
     parser.add_argument(
         "--game-info-refresh-game-loops",
         type=int,
@@ -326,6 +344,8 @@ def main() -> int:
         or args.ai_step_timeout <= 0
         or args.launch_stagger < 0
         or args.game_info_refresh_game_loops < 0
+        or args.available_abilities_refresh_game_loops < 1
+        or args.available_abilities_query_chunk_size < 1
         or args.foreign_sc2_wait_timeout <= 0
     ):
         raise ValueError("timeouts must be positive")
@@ -353,6 +373,8 @@ def main() -> int:
         "protocol_response_timeout": args.protocol_response_timeout,
         "ai_step_timeout": args.ai_step_timeout,
         "game_info_refresh_game_loops": args.game_info_refresh_game_loops,
+        "available_abilities_refresh_game_loops": args.available_abilities_refresh_game_loops,
+        "available_abilities_query_chunk_size": args.available_abilities_query_chunk_size,
         "launch_stagger": args.launch_stagger,
         "foreign_sc2_wait_timeout": args.foreign_sc2_wait_timeout,
         "trusted_owner_pid": trusted_owner_pid or None,
@@ -400,6 +422,7 @@ def main() -> int:
             return _foreign_sc2_pids(
                 owned_process_roots,
                 trusted_process_roots,
+                trusted_owner_pid,
             )
 
     def run_job(job: tuple[str, str, Condition, str, Path], attempt: int) -> dict:
@@ -453,6 +476,12 @@ def main() -> int:
                 "SC2_PROTOCOL_RESPONSE_TIMEOUT_SECONDS": str(args.protocol_response_timeout),
                 "SC2_AI_STEP_TIMEOUT_SECONDS": str(args.ai_step_timeout),
                 "SC2_GAME_INFO_REFRESH_GAME_LOOPS": str(args.game_info_refresh_game_loops),
+                "SC2_AVAILABLE_ABILITIES_REFRESH_GAME_LOOPS": str(
+                    args.available_abilities_refresh_game_loops
+                ),
+                "SC2_AVAILABLE_ABILITIES_QUERY_CHUNK_SIZE": str(
+                    args.available_abilities_query_chunk_size
+                ),
                 "SC2_VERBOSE_LOG": "0",
                 "SC2_ALLOW_GLOBAL_WINESERVER_KILL": "0",
                 "PYTHONUNBUFFERED": "1",

@@ -35,8 +35,10 @@ owner_pid=$$
 common=(
   --phase all --difficulty medium --concurrency 15 --retry-concurrency 1
   --max-attempts 5 --retry-backoff 15 --game-time-limit 1200
-  --wall-timeout 3000 --protocol-response-timeout 90 --ai-step-timeout 360
+  --wall-timeout 3000 --protocol-response-timeout 90
   --game-info-refresh-game-loops 0 --foreign-sc2-wait-timeout 21600
+  --available-abilities-refresh-game-loops 44
+  --available-abilities-query-chunk-size 32
   --launch-stagger 3
 )
 
@@ -45,12 +47,14 @@ printf 'launching Qwen Full15 immediately with recovered DeepSeek dev6 owner=%s 
 
 SC2_TRUSTED_OWNER_PID="$owner_pid" "$python" tools/run_human_skill_ablation_suite.py \
   "${common[@]}" --method full_v2 --indices 0-14 \
+  --ai-step-timeout 900 \
   --batch-prefix "$qwen_prefix" --manifest-name full_v2.json \
   --model qwen3-32b > "$qwen_log" 2>&1 &
 qwen_pid=$!
 
 SC2_TRUSTED_OWNER_PID="$owner_pid" "$python" tools/run_human_skill_ablation_suite.py \
   "${common[@]}" --method full_v2 --indices 5,6,7,12,13,14 \
+  --ai-step-timeout 360 \
   --batch-prefix "$deep_prefix" --manifest-name full_v2_dev6.json \
   --model DeepSeek-V4-flash > "$deep_dev_log" 2>&1 &
 deep_dev_pid=$!
@@ -64,6 +68,7 @@ deep_pid=0
 if [[ "$deep_dev_status" == "0" ]]; then
   SC2_TRUSTED_OWNER_PID="$owner_pid" "$python" tools/run_human_skill_ablation_suite.py \
     "${common[@]}" --method full_v2 --indices 0-14 \
+    --ai-step-timeout 360 \
     --batch-prefix "$deep_prefix" --manifest-name full_v2_all15.json \
     --model DeepSeek-V4-flash > "$deep_log" 2>&1 &
   deep_pid=$!
@@ -80,6 +85,7 @@ qwen_positive_pid=0
 if [[ "$qwen_status" == "0" ]]; then
   SC2_TRUSTED_OWNER_PID="$owner_pid" "$python" tools/run_human_skill_ablation_suite.py \
     "${common[@]}" --method positive_only --indices 0-14 \
+    --ai-step-timeout 900 \
     --batch-prefix "$qwen_prefix" --manifest-name positive_only.json \
     --model qwen3-32b > "$qwen_positive_log" 2>&1 &
   qwen_positive_pid=$!

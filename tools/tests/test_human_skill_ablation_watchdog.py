@@ -66,8 +66,21 @@ def test_foreign_sc2_scan_freezes_candidates_before_process_forest(monkeypatch):
     monkeypatch.setattr(module, "_sc2_process_pids", scan_sc2)
     monkeypatch.setattr(module, "_process_forest", scan_forest)
 
+    monkeypatch.setattr(module, "_process_has_trusted_owner_env", lambda pid, owner: False)
     assert module._foreign_sc2_pids({1}, {2}) == [202]
     assert calls == ["sc2", ("forest", {1, 2})]
+
+
+def test_foreign_sc2_accepts_shared_owner_environment(monkeypatch):
+    module = _load("human_skill_suite_owner_env", "tools/run_human_skill_ablation_suite.py")
+    monkeypatch.setattr(module, "_sc2_process_pids", lambda: {101, 202, 303})
+    monkeypatch.setattr(module, "_process_forest", lambda roots: {101})
+    monkeypatch.setattr(
+        module,
+        "_process_has_trusted_owner_env",
+        lambda pid, owner: pid == 202 and owner == 999,
+    )
+    assert module._foreign_sc2_pids({1}, {2}, 999) == [303]
 
 
 def test_analyzer_supports_selected_methods_and_non_full_baseline():
