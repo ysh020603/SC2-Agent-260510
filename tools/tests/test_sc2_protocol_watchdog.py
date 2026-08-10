@@ -67,7 +67,9 @@ def test_protocol_response_timeout_is_bounded(monkeypatch):
     async def run_request():
         await protocol.ping()
 
-    with pytest.raises(ProtocolResponseTimeoutError, match="timed out"):
+    with pytest.raises(
+        ProtocolResponseTimeoutError, match="request_type=ping"
+    ):
         asyncio.run(run_request())
 
 

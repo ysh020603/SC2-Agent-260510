@@ -73,6 +73,7 @@ class Protocol:
             )
 
     async def __request(self, request):
+        request_type = request.WhichOneof("request") or "unknown"
         logger.debug(f"Sending request: {request!r}")
         self._raise_if_process_exited()
         try:
@@ -104,13 +105,15 @@ class Protocol:
                     f"SC2 client exited while awaiting response: {diagnostics}"
                 ) from exc
             logger.error(
-                "SC2 protocol response timed out after {:.1f} seconds; process={}",
+                "SC2 protocol response timed out after {:.1f} seconds; "
+                "request_type={}; process={}",
                 timeout_seconds,
+                request_type,
                 diagnostics,
             )
             raise ProtocolResponseTimeoutError(
                 f"SC2 protocol response timed out after {timeout_seconds:.1f} seconds; "
-                f"process={diagnostics}"
+                f"request_type={request_type}; process={diagnostics}"
             ) from exc
         except TypeError as exc:
             if self._status == Status.ended:
