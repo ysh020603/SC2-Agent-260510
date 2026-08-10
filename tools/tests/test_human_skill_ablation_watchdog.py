@@ -71,6 +71,19 @@ def test_runtime_never_infers_result_after_transport_failure():
     assert "recover_from_protocol_timeout" not in source
 
 
+def test_runner_uses_reference_natural_child_lifecycle():
+    source = (ROOT / "tools/run_human_skill_ablation_suite.py").read_text(encoding="utf-8")
+    run_job = source.split("def run_job", 1)[1].split("pending =", 1)[0]
+    assert "completed_process = subprocess.run(" in run_job
+    assert "start_new_session=True" not in run_job
+    assert "subprocess.Popen(" not in run_job
+    assert "foreign_sc2_pids()" not in run_job
+    assert "_terminate_process_group(" not in run_job
+    assert '"timeout",' not in run_job
+    assert '"launcher_mode": "natural_subprocess_run"' in source
+    assert '"foreign_sc2_runtime_monitor": False' in source
+
+
 def test_foreign_sc2_scan_freezes_candidates_before_process_forest(monkeypatch):
     module = _load("human_skill_suite_scan_order", "tools/run_human_skill_ablation_suite.py")
     calls = []

@@ -43,6 +43,22 @@ class Condition:
     enemy_build: str
 
 
+class LaunchGate:
+    """Serialize only the instant at which concurrent SC2 children start."""
+
+    def __init__(self, stagger_seconds: float) -> None:
+        self.stagger_seconds = max(0.0, float(stagger_seconds))
+        self._lock = threading.Lock()
+        self._last_launch = 0.0
+
+    def wait(self) -> None:
+        with self._lock:
+            delay = self.stagger_seconds - (time.monotonic() - self._last_launch)
+            if delay > 0:
+                time.sleep(delay)
+            self._last_launch = time.monotonic()
+
+
 CONDITIONS = (
     Condition(0, "protoss", "protoss", "PvP_O01", "macro"),
     Condition(1, "protoss", "terran", "PvT_O03", "timing"),
@@ -285,19 +301,27 @@ def main() -> int:
         type=int,
         default=15,
         help=(
-            "Active native SC2 clients. Formal batches use 15 after runner-level "
-            "process-forest ownership and game-info throttling fixes."
+            "Independent SC2 child processes. Launches are staggered and each "
+            "child is allowed to finish naturally."
         ),
     )
     parser.add_argument(
         "--retry-concurrency",
         type=int,
         default=1,
-        help="Lower-concurrency retry pool used after watchdog/client failures.",
+        help="Lower-concurrency retry pool used after invalid or failed matches.",
     )
     parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument("--retry-backoff", type=float, default=15.0)
-    parser.add_argument("--wall-timeout", type=int, default=3000)
+    parser.add_argument(
+        "--wall-timeout",
+        type=int,
+        default=3000,
+        help=(
+            "Compatibility/audit value only. The stable high-concurrency path "
+            "does not externally terminate a live SC2 protocol request."
+        ),
+    )
     parser.add_argument("--protocol-response-timeout", type=float, default=90.0)
     parser.add_argument(
         "--protocol-observation-timeout",
@@ -330,14 +354,19 @@ def main() -> int:
             "zero disables periodic refresh after the initial request."
         ),
     )
-    parser.add_argument("--launch-stagger", type=float, default=5.0)
+    parser.add_argument(
+        "--launch-stagger",
+        type=float,
+        default=1.0,
+        help="Minimum gap between child launches, matching the stable reference runner.",
+    )
     parser.add_argument(
         "--foreign-sc2-wait-timeout",
         type=float,
         default=21600.0,
         help=(
-            "Wait this many seconds for SC2 clients owned by other experiment "
-            "trees to leave the host before starting a match."
+            "Deprecated compatibility/audit value. The stable launcher does "
+            "not poll or terminate unrelated SC2 process trees."
         ),
     )
     parser.add_argument("--batch-prefix", default="human_skill_ablation_1200_mediumhard_20260809")
@@ -382,7 +411,7 @@ def main() -> int:
     manifest_path = log_root / args.manifest_name
     manifest_lock = threading.Lock()
     manifest = {
-        "schema_version": 3,
+        "schema_version": 4,
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "phase": args.phase,
         "difficulty": args.difficulty,
@@ -401,12 +430,17 @@ def main() -> int:
         "launch_stagger": args.launch_stagger,
         "foreign_sc2_wait_timeout": args.foreign_sc2_wait_timeout,
         "trusted_owner_pid": trusted_owner_pid or None,
+        "launcher_mode": "natural_subprocess_run",
+        "launcher_reference": (
+            "/data2/shy_2608/SC2-Agent-knowlegde/"
+            "tools/run_structural_baseline_smoke10.py"
+        ),
+        "wall_timeout_enforced": False,
+        "foreign_sc2_runtime_monitor": False,
         "retry_concurrency": args.retry_concurrency,
         "max_attempts": args.max_attempts,
         "retry_backoff": args.retry_backoff,
-        "runtime_failure_policy": (
-            "exclude_invalid_artifact_retry_serially_and_abort_on_foreign_sc2_overlap"
-        ),
+        "runtime_failure_policy": "natural_child_exit_validate_then_retry_serially",
         "global_wineserver_kill_allowed": False,
         "model": args.model,
         "conditions": [asdict(item) for item in conditions],
@@ -433,31 +467,12 @@ def main() -> int:
                 jobs.append((method_name, agent, condition, batch_name, log_path))
     save_manifest()
     print(f"suite jobs pending={len(jobs)} concurrency={args.concurrency}", flush=True)
-    launch_lock = threading.Lock()
-    last_launch = [0.0]
-
-    ownership_lock = threading.Lock()
-    owned_process_roots: set[int] = set()
-    trusted_process_roots = {trusted_owner_pid} if trusted_owner_pid else set()
-
-    def foreign_sc2_pids() -> list[int]:
-        with ownership_lock:
-            return _foreign_sc2_pids(
-                owned_process_roots,
-                trusted_process_roots,
-                trusted_owner_pid,
-            )
+    launch_gate = LaunchGate(args.launch_stagger)
 
     def run_job(job: tuple[str, str, Condition, str, Path], attempt: int) -> dict:
         method_name, agent, condition, batch_name, log_path = job
-        with launch_lock:
-            delay = args.launch_stagger - (time.monotonic() - last_launch[0])
-            if delay > 0:
-                time.sleep(delay)
-            last_launch[0] = time.monotonic()
+        launch_gate.wait()
         command = [
-            "timeout",
-            f"{args.wall_timeout}s",
             str(PYTHON),
             "run_vs_ai_human_skill.py",
             "--human-skill-agent",
@@ -516,73 +531,21 @@ def main() -> int:
         )
         started = time.time()
         attempt_log_path = log_path.with_suffix(f".attempt{attempt}.log")
-        foreign_overlap: list[int] = []
-        process_returncode: int | None = None
         with attempt_log_path.open("w", encoding="utf-8") as log:
-            wait_started = time.monotonic()
-            while True:
-                busy_pids = foreign_sc2_pids()
-                if not busy_pids:
-                    break
-                if time.monotonic() - wait_started >= args.foreign_sc2_wait_timeout:
-                    log.write(
-                        f"FOREIGN_SC2_WAIT_TIMEOUT pids={busy_pids} "
-                        f"timeout={args.foreign_sc2_wait_timeout}\n"
-                    )
-                    foreign_overlap = busy_pids
-                    break
-                log.write(f"FOREIGN_SC2_WAIT pids={busy_pids}\n")
-                log.flush()
-                time.sleep(5.0)
-
-            if not foreign_overlap:
-                with ownership_lock:
-                    process = subprocess.Popen(
-                        command,
-                        cwd=ROOT,
-                        env=env,
-                        stdout=log,
-                        stderr=subprocess.STDOUT,
-                        start_new_session=True,
-                    )
-                    owned_process_roots.add(process.pid)
-                own_sc2_seen = False
-                own_sc2_missing_since: float | None = None
-                try:
-                    while process.poll() is None:
-                        own_tree = _process_tree(process.pid)
-                        own_sc2_pids = _sc2_process_pids() & own_tree
-                        if own_sc2_pids:
-                            own_sc2_seen = True
-                            own_sc2_missing_since = None
-                        elif own_sc2_seen:
-                            if own_sc2_missing_since is None:
-                                own_sc2_missing_since = time.monotonic()
-                            elif time.monotonic() - own_sc2_missing_since >= 15.0:
-                                log.write(
-                                    "SC2_PROCESS_DISAPPEARED after launch; "
-                                    "terminating only this hung experiment process group\n"
-                                )
-                                log.flush()
-                                _terminate_process_group(process)
-                                break
-                        foreign_pids = foreign_sc2_pids()
-                        if foreign_pids:
-                            foreign_overlap = foreign_pids
-                            log.write(
-                                f"FOREIGN_SC2_OVERLAP pids={foreign_pids}; "
-                                "terminating only this experiment process group\n"
-                            )
-                            log.flush()
-                            _terminate_process_group(process)
-                            break
-                        time.sleep(2.0)
-                    process_returncode = process.wait()
-                finally:
-                    with ownership_lock:
-                        owned_process_roots.discard(process.pid)
+            log.write("LAUNCHER_MODE natural_subprocess_run\n")
+            log.write("External process-group watchdog disabled; waiting for child exit.\n")
+            log.flush()
+            completed_process = subprocess.run(
+                command,
+                cwd=ROOT,
+                env=env,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            process_returncode = completed_process.returncode
         artifact_complete = condition.skill_id in completed_skill_ids(ROOT / "game_records" / batch_name)
-        complete = not foreign_overlap and process_returncode == 0 and artifact_complete
+        complete = process_returncode == 0 and artifact_complete
         return {
             "method": method_name,
             "agent": agent,
@@ -593,12 +556,10 @@ def main() -> int:
             "status": "complete" if complete else "retryable_failure",
             "returncode": process_returncode,
             "artifact_complete": artifact_complete,
-            "foreign_sc2_overlap_pids": foreign_overlap,
+            "foreign_sc2_overlap_pids": [],
             "failure_reason": (
                 ""
                 if complete
-                else "foreign_sc2_overlap"
-                if foreign_overlap
                 else "nonzero_exit"
                 if process_returncode
                 else "invalid_or_watchdog_artifact"
