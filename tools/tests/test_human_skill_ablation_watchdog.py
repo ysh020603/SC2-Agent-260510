@@ -62,6 +62,21 @@ def test_runner_pins_pending_observation_cleanup_controls():
     assert '"protocol_drain_timeout"' in source
 
 
+def test_runner_does_not_use_in_progress_replay_as_terminal_result():
+    source = (ROOT / "tools/run_human_skill_ablation_suite.py").read_text(encoding="utf-8")
+    assert "SC2_TERMINAL_REPLAY_PROBE_MAX_SUPPLY" not in source
+    main_source = (ROOT / "python-sc2/sc2/main.py").read_text(encoding="utf-8")
+    assert "probe_ended_result" not in main_source
+
+
+def test_runner_bounds_synchronous_llm_http_reads():
+    runner_source = (ROOT / "tools/run_human_skill_ablation_suite.py").read_text(encoding="utf-8")
+    agent_source = (ROOT / "SC2_Agent/human_skill_common/agent_base.py").read_text(encoding="utf-8")
+    assert '"SC2_LLM_REQUEST_TIMEOUT_SECONDS": "60"' in runner_source
+    assert 'os.environ.get("SC2_LLM_REQUEST_TIMEOUT_SECONDS", "60")' in agent_source
+    assert "timeout=request_timeout" in agent_source
+
+
 def test_runtime_never_infers_result_after_transport_failure():
     source = (ROOT / "python-sc2/sc2/main.py").read_text(encoding="utf-8")
     assert "no_engine_reported_result" in source

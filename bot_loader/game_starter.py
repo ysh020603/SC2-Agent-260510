@@ -20,6 +20,17 @@ from sharpy.tools import LoggingUtility
 new_line = "\n"
 
 
+def _is_human_player_spec(player_spec: str) -> bool:
+    """Return whether a dotted player specification selects the real Human player.
+
+    Bot identifiers are free-form and may legitimately contain the word
+    ``human`` (for example ``universal_llm_human_skill.protoss``), so a
+    substring test incorrectly turns those bot matches into realtime games.
+    Only the registered top-level ``human`` player key denotes a person.
+    """
+    return player_spec.split(".", 1)[0].strip().lower() == "human"
+
+
 def artifact_file_name(
     record_dir: Optional[str],
     match_id: Optional[str],
@@ -213,7 +224,7 @@ Builds:
 
         if player1 == "random":
             player1 = random.choice(list(self.random_bots.keys()))
-        elif "human" in player1:
+        elif _is_human_player_spec(player1):
             args.real_time = True
             args.release = True
 
@@ -283,6 +294,10 @@ Builds:
 
         print(f"Starting game in {map_name}.")
         print(f"{player1} vs {player2}")
+        print(
+            f"Match mode: realtime={args.real_time} "
+            f"player1_spec={player1} human={_is_human_player_spec(player1)}"
+        )
 
         replay_path = os.path.join(folder, f"{file_name}.SC2Replay")
         # Tell each bot's LLMObservationRecorder where the replay will land so

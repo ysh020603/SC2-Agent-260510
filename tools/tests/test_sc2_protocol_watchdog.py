@@ -5,8 +5,14 @@ from s2clientprotocol import sc2api_pb2 as sc_pb
 
 from sc2.data import Status
 
-from sc2.protocol import Protocol, ProtocolResponseTimeoutError, SC2ProcessExitedError
-from sc2.protocol import ProtocolResponsePendingError
+from sc2.protocol import (
+    Protocol,
+    ProtocolError,
+    ProtocolResponsePendingError,
+    ProtocolResponseTimeoutError,
+    SC2MatchFatalError,
+    SC2ProcessExitedError,
+)
 
 
 class _NeverRespondingWebSocket:
@@ -61,6 +67,26 @@ class _ControllableWebSocket:
             self.receive_cancelled = True
             raise
         return sc_pb.Response(status=Status.launched.value).SerializeToString()
+
+
+@pytest.mark.parametrize(
+    "error_type", (ProtocolResponseTimeoutError, SC2ProcessExitedError)
+)
+def test_transport_failures_cannot_be_swallowed_by_business_handlers(error_type):
+    assert issubclass(error_type, SC2MatchFatalError)
+    assert issubclass(error_type, BaseException)
+    assert not issubclass(error_type, Exception)
+    assert not issubclass(error_type, ProtocolError)
+
+    business_handler_ran = False
+    try:
+        raise error_type("fatal transport")
+    except Exception:
+        business_handler_ran = True
+    except SC2MatchFatalError:
+        pass
+
+    assert business_handler_ran is False
 
 
 def test_protocol_constructs_single_flight_request_lock_lazily():

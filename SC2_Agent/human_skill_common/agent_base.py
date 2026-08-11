@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 import math
+import os
 import re
 from typing import Any, Callable, Dict, List, Optional
 
@@ -84,10 +85,18 @@ class HumanSkillAgent:
 
     @staticmethod
     def _default_llm_call(messages: List[Dict[str, str]], model_key: str, api_config_path: str) -> Dict[str, Any]:
+        try:
+            request_timeout = max(
+                1.0,
+                float(os.environ.get("SC2_LLM_REQUEST_TIMEOUT_SECONDS", "60")),
+            )
+        except (TypeError, ValueError):
+            request_timeout = 60.0
         return call_openai_detailed(
             messages=messages,
             model_key=model_key,
             config_path=api_config_path,
+            timeout=request_timeout,
             response_format={"type": "json_object"},
         )
 

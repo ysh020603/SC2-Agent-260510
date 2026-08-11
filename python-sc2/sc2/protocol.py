@@ -24,7 +24,24 @@ class ConnectionAlreadyClosedError(ProtocolError):
     pass
 
 
-class ProtocolResponseTimeoutError(ProtocolError):
+class SC2MatchFatalError(BaseException):
+    """An unrecoverable transport failure for the current SC2 match.
+
+    This intentionally does not inherit from ``Exception``. Bot and manager
+    code contains broad recovery handlers for ordinary gameplay failures and
+    ``ProtocolError`` responses. A dead native client cannot be recovered by
+    that code: swallowing the failure makes the Python match loop issue more
+    requests against a killed client forever.
+
+    Match boundaries must catch this type explicitly after their scoped SC2
+    cleanup has run and terminate the single-match process with a non-zero
+    status.
+    """
+
+    pass
+
+
+class ProtocolResponseTimeoutError(SC2MatchFatalError):
     """The SC2 websocket accepted a request but never returned a response."""
 
     pass
@@ -36,7 +53,7 @@ class ProtocolResponsePendingError(ConnectionAlreadyClosedError):
     pass
 
 
-class SC2ProcessExitedError(ConnectionAlreadyClosedError):
+class SC2ProcessExitedError(SC2MatchFatalError):
     """The websocket failed because the owned SC2 client process exited."""
 
     pass

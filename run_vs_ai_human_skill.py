@@ -15,9 +15,11 @@ ensure_bundled_python_sc2()
 
 from bot_loader import BotDefinitions, GameStarter
 from SC2_Agent.human_skill_common.variants import VARIANTS
+from sc2.protocol import SC2MatchFatalError
 from version import update_version_txt
 
 DEFAULT_MODEL = "DeepSeek-V4-flash"
+MATCH_FATAL_EXIT_CODE = 70
 
 
 def _safe(value: str) -> str:
@@ -116,7 +118,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     print(f" Matchup: {args.bot_race} vs {args.enemy_race}")
     print(f" Records: {record_dir}")
     print("==================================================")
-    GameStarter(BotDefinitions(os.path.join(root_dir, "Bots"))).play()
+    try:
+        GameStarter(BotDefinitions(os.path.join(root_dir, "Bots"))).play()
+    except SC2MatchFatalError as exc:
+        # asyncio.run() has already unwound the match-scoped SC2 context here.
+        # Convert the non-business BaseException into an explicit retryable
+        # child-process failure instead of allowing a manager to continue with
+        # a dead transport or leaving the runner waiting indefinitely.
+        print(f"FATAL_SC2_MATCH_TRANSPORT: {exc}", file=sys.stderr, flush=True)
+        raise SystemExit(MATCH_FATAL_EXIT_CODE) from exc
 
 
 if __name__ == "__main__":

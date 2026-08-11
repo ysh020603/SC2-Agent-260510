@@ -517,6 +517,11 @@ def main() -> int:
                 ),
                 "SC2_PROTOCOL_DRAIN_TIMEOUT_SECONDS": str(args.protocol_drain_timeout),
                 "SC2_AI_STEP_TIMEOUT_SECONDS": str(args.ai_step_timeout),
+                # The OpenAI client is synchronous inside the bot step, so an
+                # asyncio wait_for cannot interrupt a blocked HTTP read.  Keep
+                # each SDK attempt bounded; the SDK's own retries still fit
+                # within the 180-second AI-step budget in ordinary operation.
+                "SC2_LLM_REQUEST_TIMEOUT_SECONDS": "60",
                 "SC2_GAME_INFO_REFRESH_GAME_LOOPS": str(args.game_info_refresh_game_loops),
                 "SC2_AVAILABLE_ABILITIES_REFRESH_GAME_LOOPS": str(
                     args.available_abilities_refresh_game_loops
@@ -533,6 +538,7 @@ def main() -> int:
         attempt_log_path = log_path.with_suffix(f".attempt{attempt}.log")
         with attempt_log_path.open("w", encoding="utf-8") as log:
             log.write("LAUNCHER_MODE natural_subprocess_run\n")
+            log.write("SC2_LLM_REQUEST_TIMEOUT_SECONDS 60\n")
             log.write("External process-group watchdog disabled; waiting for child exit.\n")
             log.flush()
             completed_process = subprocess.run(
