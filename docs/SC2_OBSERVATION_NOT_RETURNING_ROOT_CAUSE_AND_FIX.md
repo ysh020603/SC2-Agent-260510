@@ -1,5 +1,9 @@
 # SC2 Observation 不返回：根因、修复与验收记录
 
+> 本文是该事故的最终根因与验收摘要。正式批量实验必须遵循
+> [`SC2_BATCH_EXPERIMENT_POLICY.md`](SC2_BATCH_EXPERIMENT_POLICY.md)；完整排障时间线已归档至
+> [`archive/SC2_HIGH_CONCURRENCY_TIMEOUT_AND_EXIT_INCIDENT.md`](archive/SC2_HIGH_CONCURRENCY_TIMEOUT_AND_EXIT_INCIDENT.md)。
+
 ## 1. 现象
 
 Human-Skill Agent 对战内置 SC2 AI 时，部分失败终局会永久等待
@@ -111,6 +115,7 @@ Human-Skill vs 内置 AI 的默认实验路径已经修复：bot 不再被错误
 - 单局退出边界：`run_vs_ai_human_skill.py`
 - Qwen 请求上限：`SC2_Agent/human_skill_common/agent_base.py`
 - 批量运行器：`tools/run_human_skill_ablation_suite.py`
-- 完整事故分析：`docs/SC2_HIGH_CONCURRENCY_TIMEOUT_AND_EXIT_INCIDENT.md`
+- 完整历史事故时间线：`docs/archive/SC2_HIGH_CONCURRENCY_TIMEOUT_AND_EXIT_INCIDENT.md`
+- 现行实验规范：`docs/SC2_BATCH_EXPERIMENT_POLICY.md`
 - 最终验收日志：
   `game_records/_human_skill_ablation/human_skill_sc2_nonrealtime_final_qwen32b_nothinking_1200s_20260810/`

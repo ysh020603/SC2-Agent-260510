@@ -219,10 +219,13 @@ python tools\run_kimi_nothink_strategy_sweep.py `
   --concurrency 1
 ```
 
-Concurrent launches are staggered. Confirm each child reaches
-`Status.in_game`, and count only directories with a parseable match result.
-Report startup failures, retries, ties, and missing results separately from win
-rate.
+Concurrent launches are staggered and each child is naturally awaited. Confirm
+each child reaches `Status.in_game`, but count a result only when the artifact
+is parseable, engine-reported, and free of timeout/watchdog, process-exit,
+API, and reasoning-policy errors. Retry only failed conditions and report
+retries, ties, terminal failures, and missing results separately from win rate.
+The full acceptance boundary is
+[`SC2_BATCH_EXPERIMENT_POLICY.md`](SC2_BATCH_EXPERIMENT_POLICY.md).
 
 For a reusable multi-group comparison, use the versioned configuration layer:
 

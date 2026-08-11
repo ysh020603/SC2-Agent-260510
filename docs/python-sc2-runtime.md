@@ -55,9 +55,12 @@ print(ensure_bundled_python_sc2())
 3. 使用 `SC2_STARTUP_TIMEOUT` 限制 WebSocket 等待时间，默认 180 秒；
 4. 清理时关闭连接、终止残留进程并归还 `portpicker` 端口。
 
-批量测试应使用 `tools/run_kimi_nothink_strategy_sweep.py`。该入口会错峰
-启动并发客户端、使用无缓冲日志、记录每次尝试，并对没有生成有效比赛记录的
-任务进行重试。
+批量测试应使用受支持的 sweep 入口。普通策略矩阵使用
+`tools/run_kimi_nothink_strategy_sweep.py`；Human-Skill 正式 15 条件实验使用
+`tools/run_human_skill_reference_topology.py`。二者必须错峰启动并自然等待单局
+子进程，只重试无效任务。有效结果、match-local 清理和永久禁止全局
+`wineserver -k` 的完整约束见
+[`SC2_BATCH_EXPERIMENT_POLICY.md`](SC2_BATCH_EXPERIMENT_POLICY.md)。
 
 ## 更新规则
 

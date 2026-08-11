@@ -212,6 +212,12 @@ The configurable SC2 sweep accepts the same `--decision-agent-mode` option.
 Concurrent launches are staggered, startup is bounded, and failed jobs can be
 retried.
 
+Formal native SC2 batches must also naturally await each child, accept only
+parseable engine results without timeout/watchdog contamination, retry only
+failed jobs, use the repository-bundled python-sc2, and never invoke global
+`wineserver -k`. See the canonical
+[SC2 batch experiment policy](docs/SC2_BATCH_EXPERIMENT_POLICY.md).
+
 ## Records
 
 Every match writes its interaction JSON and `*.llm_calls.json`. Naive decisions

@@ -48,6 +48,11 @@ runner leaves discovery to the registry/default installation. Concurrent batch
 launches use a two-second gap by default to avoid initializing several clients
 in the same instant.
 
+正式批量实验还必须自然等待子进程、只统计可解析且无 timeout/watchdog 污染的
+引擎结果、单独有限重试失败条件，并永久禁止全局 `wineserver -k`。不要从本页
+零散示例推导运行策略；以
+[`SC2_BATCH_EXPERIMENT_POLICY.md`](SC2_BATCH_EXPERIMENT_POLICY.md) 为准。
+
 SC2 websocket startup waits up to 180 seconds by default. Override it for a
 known slow host with either the sweep option or the child environment:
 

@@ -24,6 +24,12 @@ not obsolete merely because they do not launch `UniversalLLMBot`.
 Never place API credentials in these scripts. Model endpoints belong in the
 ignored `API_config/config.json`.
 
+All native SC2 batch entrypoints are governed by
+[`docs/SC2_BATCH_EXPERIMENT_POLICY.md`](../docs/SC2_BATCH_EXPERIMENT_POLICY.md):
+use bundled python-sc2, stagger launches, naturally await children, count only
+clean parseable engine results, retry failed jobs separately, and never invoke
+global `wineserver -k`.
+
 For repeatable comparisons, copy a tracked template from
 `experiment_configs/templates/` to the ignored `experiment_configs/local/`
 directory. See `docs/experiment-configuration.md` for validation, launch,

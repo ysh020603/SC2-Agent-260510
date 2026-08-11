@@ -122,6 +122,11 @@ Parallelism is two-level: total possible SC2 clients are approximately
 `max_parallel_experiments × concurrency`. Select both values according to host
 CPU, memory, graphics capacity, and provider rate limits.
 
+配置层只负责展开和记录，不放宽底层实验约束。每个 sweep 仍必须使用仓库内置
+python-sc2、错峰启动、自然等待、干净结果计数、失败项有限重试和 match-local
+cleanup。权威定义见
+[`SC2_BATCH_EXPERIMENT_POLICY.md`](SC2_BATCH_EXPERIMENT_POLICY.md)。
+
 ## Reproducibility record
 
 Every foreground execution writes an ignored JSON manifest under

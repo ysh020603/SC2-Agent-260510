@@ -1,5 +1,11 @@
 # Human-Skill SC2 高并发响应超时与退出故障记录
 
+> **历史事故时间线，已归档。** 本文按排障发生顺序保留中间假设和阶段性结论，
+> 因而早期“尚未完全修复”“后续计划”等文字不是当前状态。现行启动/计数约束见
+> [`../SC2_BATCH_EXPERIMENT_POLICY.md`](../SC2_BATCH_EXPERIMENT_POLICY.md)，最终根因、
+> 修复和 15/15 验收见
+> [`../SC2_OBSERVATION_NOT_RETURNING_ROOT_CAUSE_AND_FIX.md`](../SC2_OBSERVATION_NOT_RETURNING_ROOT_CAUSE_AND_FIX.md)。
+
 ## 文档状态
 
 - 记录日期：2026-08-10

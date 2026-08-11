@@ -346,6 +346,12 @@ and reports its return code immediately; a live client that never publishes
 the websocket receives a precise timeout error. Failed jobs are retried by the
 sweep runner and are not counted as valid merely because a directory exists.
 
+Batch lifecycle and result validity are defined once in
+[`SC2_BATCH_EXPERIMENT_POLICY.md`](SC2_BATCH_EXPERIMENT_POLICY.md). In
+particular, formal runs use bundled python-sc2, staggered launch,
+`subprocess.run` natural waiting, clean parseable results, failed-job-only
+retry, and permanently forbid global `wineserver -k`.
+
 Formal multi-group experiments add a configuration layer above the sweep. It
 does not duplicate job expansion or retry logic. Tracked JSON templates define
 the comparison, ignored local instances hold run-specific names/settings, and
