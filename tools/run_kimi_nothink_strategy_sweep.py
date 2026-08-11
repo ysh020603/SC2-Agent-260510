@@ -11,16 +11,22 @@ import fcntl
 import os
 import subprocess
 import sys
+import threading
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import datetime, time as dt_time
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from zoneinfo import ZoneInfo
 
 from run_bo_list_strategy_sweep import is_job_completed
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MAX_ATTEMPTS = 3
+_PAUSE_LOG_LOCK = threading.Lock()
+_PAUSE_ANNOUNCED = False
 
 STRATEGIES = [
     "bio",
@@ -154,6 +160,14 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Skip jobs that already have a valid record under game_records/<batch-name>/.",
     )
     parser.add_argument(
+        "--exclude-difficulties",
+        default="",
+        help=(
+            "Comma-separated difficulties to drop after job indexing "
+            "(keeps run-index stable vs full difficulty list). E.g. veryhard."
+        ),
+    )
+    parser.add_argument(
         "--job-stride",
         type=int,
         default=1,
@@ -171,7 +185,175 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=DEFAULT_MAX_ATTEMPTS,
         help="Retry a job when the process exits without a valid result record.",
     )
+    parser.add_argument(
+        "--pause-hhmm-windows",
+        default="",
+        help=(
+            "Comma-separated HH:MM-HH:MM local windows where NEW jobs must not start "
+            "(in-flight games may finish). Example: 09:00-12:00,14:00-18:00"
+        ),
+    )
+    parser.add_argument(
+        "--pause-timezone",
+        default="Asia/Shanghai",
+        help="IANA timezone for --pause-hhmm-windows (default: Asia/Shanghai / Beijing).",
+    )
+    parser.add_argument(
+        "--schedule-balance",
+        default="",
+        help=(
+            "Reorder pending jobs to keep counts balanced while running. "
+            "Comma-separated priorities among: difficulty,race. "
+            "Example: difficulty,race (difficulty first)."
+        ),
+    )
     return parser.parse_args(argv)
+
+
+def _parse_schedule_balance(spec: str) -> List[str]:
+    allowed = {"difficulty", "race"}
+    keys: List[str] = []
+    for part in (spec or "").split(","):
+        key = part.strip().lower()
+        if not key:
+            continue
+        if key not in allowed:
+            raise SystemExit(
+                f"Invalid --schedule-balance key {part!r}; "
+                f"allowed: {', '.join(sorted(allowed))}"
+            )
+        if key not in keys:
+            keys.append(key)
+    return keys
+
+
+def _reorder_jobs_for_balance(
+    pending: Sequence[MatchJob],
+    *,
+    completed_diff: Dict[str, int],
+    completed_race: Dict[str, int],
+    priorities: Sequence[str],
+) -> List[MatchJob]:
+    """Greedy schedule: always emit the job that most improves running balance."""
+    if not priorities:
+        return list(pending)
+    remaining = list(pending)
+    out: List[MatchJob] = []
+    counts_d = Counter(completed_diff)
+    counts_r = Counter(completed_race)
+
+    while remaining:
+        def sort_key(job: MatchJob) -> Tuple:
+            key_parts = []
+            for p in priorities:
+                if p == "difficulty":
+                    key_parts.append(counts_d[job.enemy_difficulty])
+                elif p == "race":
+                    key_parts.append(counts_r[job.enemy_race])
+            key_parts.append(job.index)
+            return tuple(key_parts)
+
+        best = min(remaining, key=sort_key)
+        remaining.remove(best)
+        out.append(best)
+        counts_d[best.enemy_difficulty] += 1
+        counts_r[best.enemy_race] += 1
+    return out
+
+
+def _parse_hhmm(value: str) -> dt_time:
+    hh, mm = value.strip().split(":")
+    return dt_time(hour=int(hh), minute=int(mm))
+
+
+def _parse_pause_windows(spec: str) -> List[Tuple[dt_time, dt_time]]:
+    windows: List[Tuple[dt_time, dt_time]] = []
+    for part in (spec or "").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" not in part:
+            raise SystemExit(f"Invalid pause window (want HH:MM-HH:MM): {part!r}")
+        start_s, end_s = part.split("-", 1)
+        start, end = _parse_hhmm(start_s), _parse_hhmm(end_s)
+        if start == end:
+            raise SystemExit(f"Invalid pause window (empty range): {part!r}")
+        windows.append((start, end))
+    return windows
+
+
+def _in_pause_window(now_local: datetime, windows: Sequence[Tuple[dt_time, dt_time]]) -> bool:
+    cur = now_local.time().replace(tzinfo=None, microsecond=0)
+    for start, end in windows:
+        if start < end:
+            if start <= cur < end:
+                return True
+        else:
+            # overnight window, e.g. 22:00-06:00
+            if cur >= start or cur < end:
+                return True
+    return False
+
+
+def _seconds_until_pause_end(now_local: datetime, windows: Sequence[Tuple[dt_time, dt_time]]) -> float:
+    """Seconds until the current pause window ends; 0 if not paused."""
+    from datetime import timedelta
+
+    if not _in_pause_window(now_local, windows):
+        return 0.0
+    cur = now_local.time().replace(tzinfo=None, microsecond=0)
+    for start, end in windows:
+        if start < end:
+            active = start <= cur < end
+        else:
+            active = cur >= start or cur < end
+        if not active:
+            continue
+        end_dt = now_local.replace(hour=end.hour, minute=end.minute, second=0, microsecond=0)
+        if start >= end and cur >= start:
+            end_dt = end_dt + timedelta(days=1)
+        return max(1.0, (end_dt - now_local).total_seconds())
+    return 60.0
+
+
+def _wait_out_pause_windows(
+    windows: Sequence[Tuple[dt_time, dt_time]],
+    tz_name: str,
+    job_label: str = "",
+) -> None:
+    global _PAUSE_ANNOUNCED
+    if not windows:
+        return
+    tz = ZoneInfo(tz_name)
+    local_announced = False
+    while True:
+        now_local = datetime.now(tz)
+        if not _in_pause_window(now_local, windows):
+            if local_announced:
+                with _PAUSE_LOG_LOCK:
+                    if _PAUSE_ANNOUNCED:
+                        print(
+                            f"[pause] resume off-peak at "
+                            f"{now_local.strftime('%Y-%m-%d %H:%M:%S %Z')}",
+                            flush=True,
+                        )
+                        _PAUSE_ANNOUNCED = False
+            return
+        remain = _seconds_until_pause_end(now_local, windows)
+        wait_s = min(max(remain, 5.0), 300.0)  # poll every 5s..5min
+        if not local_announced:
+            with _PAUSE_LOG_LOCK:
+                if not _PAUSE_ANNOUNCED:
+                    print(
+                        f"[pause] peak window "
+                        f"{now_local.strftime('%Y-%m-%d %H:%M:%S %Z')}; "
+                        f"no new jobs for ~{remain/60:.0f}m "
+                        f"(tz={tz_name})",
+                        flush=True,
+                    )
+                    _PAUSE_ANNOUNCED = True
+            local_announced = True
+        time.sleep(wait_s)
 
 
 def _job_lock_path(batch_name: str, run_index: int) -> Path:
@@ -199,6 +381,8 @@ def _run_one(
     decision_mode: str,
     enemy_build: str,
     max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    pause_windows: Optional[Sequence[Tuple[dt_time, dt_time]]] = None,
+    pause_timezone: str = "Asia/Shanghai",
 ) -> tuple[MatchJob, int, str]:
     base_summary = (
         f"idx={job.index} strategy={job.strategy} map={job.map_name} "
@@ -208,6 +392,13 @@ def _run_one(
     # Re-check at worker start: another shard/session may have finished this job.
     if is_job_completed(batch_name, job):
         return job, 0, f"{base_summary} exit=0 skipped=already_completed"
+
+    # Wait before lock so peak hours do not pin job locks / concurrency slots forever.
+    _wait_out_pause_windows(
+        pause_windows or (),
+        pause_timezone,
+        job_label=f"idx={job.index}",
+    )
 
     lock_path = _job_lock_path(batch_name, job.index)
     with lock_path.open("a+", encoding="utf-8") as lock_fh:
@@ -313,6 +504,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             for j in jobs
         ]
     jobs = [j for j in jobs if j.index >= args.start_index]
+    exclude_diffs = {
+        d.strip().lower()
+        for d in (args.exclude_difficulties or "").split(",")
+        if d.strip()
+    }
+    if exclude_diffs:
+        before = len(jobs)
+        jobs = [j for j in jobs if j.enemy_difficulty.lower() not in exclude_diffs]
+        print(
+            f"Exclude difficulties: {sorted(exclude_diffs)} "
+            f"-> {len(jobs)}/{before}"
+        )
     if args.job_stride < 1:
         raise SystemExit("--job-stride must be >= 1")
     if not (0 <= args.job_offset < args.job_stride):
@@ -324,6 +527,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             f"Job shard: stride={args.job_stride} offset={args.job_offset} "
             f"-> {len(jobs)}/{before}"
         )
+    balance_keys = _parse_schedule_balance(args.schedule_balance)
+    completed_diff: Counter = Counter()
+    completed_race: Counter = Counter()
+    if args.skip_completed or balance_keys:
+        for job in jobs:
+            if is_job_completed(args.batch_name, job):
+                completed_diff[job.enemy_difficulty] += 1
+                completed_race[job.enemy_race] += 1
     if args.skip_completed:
         pending = []
         skipped = 0
@@ -334,6 +545,28 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             pending.append(job)
         jobs = pending
         print(f"Skip completed: {skipped}")
+        if skipped:
+            print(
+                "Completed so far: "
+                f"diff={dict(completed_diff)} race={dict(completed_race)}"
+            )
+
+    if balance_keys and jobs:
+        before_preview = [
+            (j.enemy_difficulty, j.enemy_race, j.index) for j in jobs[:12]
+        ]
+        jobs = _reorder_jobs_for_balance(
+            jobs,
+            completed_diff=completed_diff,
+            completed_race=completed_race,
+            priorities=balance_keys,
+        )
+        after_preview = [
+            (j.enemy_difficulty, j.enemy_race, j.index) for j in jobs[:12]
+        ]
+        print(f"Schedule balance: {','.join(balance_keys)}")
+        print(f"  next(before)={before_preview}")
+        print(f"  next(after) ={after_preview}")
 
     log_dir = ROOT / "game_records" / "_batch_logs" / args.batch_name
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -351,6 +584,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"Jobs: {len(jobs)} (concurrency={args.concurrency}, repeats={args.repeats})")
     print(f"Max attempts/job: {args.max_attempts}")
     print(f"Logs: {log_dir}")
+    pause_windows = _parse_pause_windows(args.pause_hhmm_windows)
+    if pause_windows:
+        win_s = ", ".join(
+            f"{a.strftime('%H:%M')}-{b.strftime('%H:%M')}" for a, b in pause_windows
+        )
+        print(f"Pause new jobs: {win_s} ({args.pause_timezone})")
+        # If we start during peak, block the main thread first so logs are clear.
+        _wait_out_pause_windows(pause_windows, args.pause_timezone, job_label="startup")
 
     if args.dry_run:
         for job in jobs[:5]:
@@ -379,6 +620,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args.decision_mode,
                 args.enemy_build,
                 args.max_attempts,
+                pause_windows,
+                args.pause_timezone,
             ): job
             for job in jobs
         }
