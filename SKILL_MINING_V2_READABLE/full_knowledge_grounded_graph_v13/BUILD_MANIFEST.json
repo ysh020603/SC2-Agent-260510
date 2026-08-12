@@ -1,0 +1,238 @@
+{
+  "design": "human trajectory signs + node routing + positive/negative experience + validated SC2 knowledge + general process feedback",
+  "method": "full_knowledge_grounded_graph_v13",
+  "rows": [
+    {
+      "path": "protoss/PvP/PvP_O01",
+      "skill_id": "PvP_O01"
+    },
+    {
+      "path": "protoss/PvP/PvP_O02",
+      "skill_id": "PvP_O02"
+    },
+    {
+      "path": "protoss/PvP/PvP_O03",
+      "skill_id": "PvP_O03"
+    },
+    {
+      "path": "protoss/PvP/PvP_O04",
+      "skill_id": "PvP_O04"
+    },
+    {
+      "path": "protoss/PvP/PvP_O05",
+      "skill_id": "PvP_O05"
+    },
+    {
+      "path": "protoss/PvT/PvT_O01",
+      "skill_id": "PvT_O01"
+    },
+    {
+      "path": "protoss/PvT/PvT_O02",
+      "skill_id": "PvT_O02"
+    },
+    {
+      "path": "protoss/PvT/PvT_O03",
+      "skill_id": "PvT_O03"
+    },
+    {
+      "path": "protoss/PvT/PvT_O04",
+      "skill_id": "PvT_O04"
+    },
+    {
+      "path": "protoss/PvT/PvT_O05",
+      "skill_id": "PvT_O05"
+    },
+    {
+      "path": "protoss/PvT/PvT_O06",
+      "skill_id": "PvT_O06"
+    },
+    {
+      "path": "protoss/PvT/PvT_O07",
+      "skill_id": "PvT_O07"
+    },
+    {
+      "path": "protoss/PvT/PvT_O08",
+      "skill_id": "PvT_O08"
+    },
+    {
+      "path": "protoss/PvT/PvT_O09",
+      "skill_id": "PvT_O09"
+    },
+    {
+      "path": "protoss/PvZ/PvZ_O01",
+      "skill_id": "PvZ_O01"
+    },
+    {
+      "path": "protoss/PvZ/PvZ_O02",
+      "skill_id": "PvZ_O02"
+    },
+    {
+      "path": "protoss/PvZ/PvZ_O03",
+      "skill_id": "PvZ_O03"
+    },
+    {
+      "path": "protoss/PvZ/PvZ_O04",
+      "skill_id": "PvZ_O04"
+    },
+    {
+      "path": "protoss/PvZ/PvZ_O05",
+      "skill_id": "PvZ_O05"
+    },
+    {
+      "path": "terran/TvP/TvP_O01",
+      "skill_id": "TvP_O01"
+    },
+    {
+      "path": "terran/TvP/TvP_O02",
+      "skill_id": "TvP_O02"
+    },
+    {
+      "path": "terran/TvP/TvP_O03",
+      "skill_id": "TvP_O03"
+    },
+    {
+      "path": "terran/TvP/TvP_O04",
+      "skill_id": "TvP_O04"
+    },
+    {
+      "path": "terran/TvP/TvP_O05",
+      "skill_id": "TvP_O05"
+    },
+    {
+      "path": "terran/TvP/TvP_O06",
+      "skill_id": "TvP_O06"
+    },
+    {
+      "path": "terran/TvP/TvP_O07",
+      "skill_id": "TvP_O07"
+    },
+    {
+      "path": "terran/TvT/TvT_O01",
+      "skill_id": "TvT_O01"
+    },
+    {
+      "path": "terran/TvT/TvT_O02",
+      "skill_id": "TvT_O02"
+    },
+    {
+      "path": "terran/TvT/TvT_O03",
+      "skill_id": "TvT_O03"
+    },
+    {
+      "path": "terran/TvT/TvT_O04",
+      "skill_id": "TvT_O04"
+    },
+    {
+      "path": "terran/TvT/TvT_O05",
+      "skill_id": "TvT_O05"
+    },
+    {
+      "path": "terran/TvT/TvT_O06",
+      "skill_id": "TvT_O06"
+    },
+    {
+      "path": "terran/TvT/TvT_O07",
+      "skill_id": "TvT_O07"
+    },
+    {
+      "path": "terran/TvZ/TvZ_O01",
+      "skill_id": "TvZ_O01"
+    },
+    {
+      "path": "terran/TvZ/TvZ_O02",
+      "skill_id": "TvZ_O02"
+    },
+    {
+      "path": "terran/TvZ/TvZ_O03",
+      "skill_id": "TvZ_O03"
+    },
+    {
+      "path": "terran/TvZ/TvZ_O04",
+      "skill_id": "TvZ_O04"
+    },
+    {
+      "path": "terran/TvZ/TvZ_O05",
+      "skill_id": "TvZ_O05"
+    },
+    {
+      "path": "terran/TvZ/TvZ_O06",
+      "skill_id": "TvZ_O06"
+    },
+    {
+      "path": "zerg/ZvP/ZvP_O01",
+      "skill_id": "ZvP_O01"
+    },
+    {
+      "path": "zerg/ZvP/ZvP_O02",
+      "skill_id": "ZvP_O02"
+    },
+    {
+      "path": "zerg/ZvP/ZvP_O03",
+      "skill_id": "ZvP_O03"
+    },
+    {
+      "path": "zerg/ZvP/ZvP_O04",
+      "skill_id": "ZvP_O04"
+    },
+    {
+      "path": "zerg/ZvP/ZvP_O05",
+      "skill_id": "ZvP_O05"
+    },
+    {
+      "path": "zerg/ZvP/ZvP_O06",
+      "skill_id": "ZvP_O06"
+    },
+    {
+      "path": "zerg/ZvP/ZvP_O07",
+      "skill_id": "ZvP_O07"
+    },
+    {
+      "path": "zerg/ZvT/ZvT_O01",
+      "skill_id": "ZvT_O01"
+    },
+    {
+      "path": "zerg/ZvT/ZvT_O02",
+      "skill_id": "ZvT_O02"
+    },
+    {
+      "path": "zerg/ZvT/ZvT_O03",
+      "skill_id": "ZvT_O03"
+    },
+    {
+      "path": "zerg/ZvT/ZvT_O04",
+      "skill_id": "ZvT_O04"
+    },
+    {
+      "path": "zerg/ZvT/ZvT_O05",
+      "skill_id": "ZvT_O05"
+    },
+    {
+      "path": "zerg/ZvZ/ZvZ_O01",
+      "skill_id": "ZvZ_O01"
+    },
+    {
+      "path": "zerg/ZvZ/ZvZ_O02",
+      "skill_id": "ZvZ_O02"
+    },
+    {
+      "path": "zerg/ZvZ/ZvZ_O03",
+      "skill_id": "ZvZ_O03"
+    },
+    {
+      "path": "zerg/ZvZ/ZvZ_O04",
+      "skill_id": "ZvZ_O04"
+    },
+    {
+      "path": "zerg/ZvZ/ZvZ_O05",
+      "skill_id": "ZvZ_O05"
+    },
+    {
+      "path": "zerg/ZvZ/ZvZ_O06",
+      "skill_id": "ZvZ_O06"
+    }
+  ],
+  "schema_version": 1,
+  "skills": 57,
+  "source_method": "full_signed_graph",
+  "source_root": "/data2/shy_2608/SC2trace2nl/SKILL_MINING_V2_READABLE_KNOWLEDGE_V1/full_signed_graph"
+}

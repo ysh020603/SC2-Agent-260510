@@ -1,0 +1,778 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "285cca71b3d7f05b5bc662fea68f8433c5f96426c99dbd7cb5aba77593199744",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "4c9cc366c9c780bfc26009ca6e870259a8f4e94ad896b49451563896d40ac22c",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14252_TvP_O03_TvP_R02_180",
+      "E_14279_TvP_O03_TvP_R03_180",
+      "E_14325_TvP_O03_TvP_R02_180",
+      "E_14360_TvP_O03_TvP_R03_180",
+      "E_14399_TvP_O03_TvP_R02_180",
+      "E_14448_TvP_O03_TvP_R02_180",
+      "E_14453_TvP_O03_TvP_R02_180"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T180_OWN_S02",
+      "TvP_TvP_O03_T180_OWN_S03",
+      "TvP_TvP_O03_T180_OWN_S04",
+      "TvP_TvP_O03_T180_OWN_S06",
+      "TvP_TvP_O03_T180_OWN_S07",
+      "TvP_TvP_O03_T180_OWN_S09",
+      "TvP_TvP_O03_T180_OWN_S10"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "20c9958bbfd9ab3c9c58500c1c10136796fd02b0ab5583d0bf44a5a85d22a2cf",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "0ee3411274fc2b996c6328cf0a72a92440db24c61cdc420eaf8ffd9d70d17e8d",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "285cca71b3d7f05b5bc662fea68f8433c5f96426c99dbd7cb5aba77593199744",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "4c9cc366c9c780bfc26009ca6e870259a8f4e94ad896b49451563896d40ac22c",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "synergizes_with",
+        "relation_id": "74e73c8ebd3e577cc75a5400bf8c2e4636c4d018edfeb064f4e863c0ec8e6d82",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14468_TvP_O03_TvP_R04_240"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T240_OWN_S01"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14552_TvP_O03_TvP_R03_300",
+      "E_14705_TvP_O03_TvP_R01_360"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T300_OWN_S01",
+      "TvP_TvP_O03_T360_OWN_S02"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "82beea76e8eb55c5e047e065a25289d63bbd4e747a9664d05abebbfd66ee7474",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "counters",
+        "relation_id": "ba5e01be5d187636f193c165e2cbe884838e115fbb5c63368000f3a5da730fcf",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "synergizes_with",
+        "relation_id": "74e73c8ebd3e577cc75a5400bf8c2e4636c4d018edfeb064f4e863c0ec8e6d82",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14650_TvP_O03_TvP_R04_300",
+      "E_14742_TvP_O03_TvP_R04_360",
+      "E_14824_TvP_O03_TvP_R04_360"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T300_OWN_S04",
+      "TvP_TvP_O03_T360_OWN_S03",
+      "TvP_TvP_O03_T360_OWN_S05"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "20c9958bbfd9ab3c9c58500c1c10136796fd02b0ab5583d0bf44a5a85d22a2cf",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Sentry",
+        "relation": "counters",
+        "relation_id": "9a9e145671d632cc6dce0adf0a3e85246fe99f3b1da6bf2d41b640a5a27f3690",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Sentry",
+        "relation": "counters",
+        "relation_id": "c30dc84a6d3549427ef7aa164de86f8051e104c09b70014a0477ef20aa0c8971",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "0ee3411274fc2b996c6328cf0a72a92440db24c61cdc420eaf8ffd9d70d17e8d",
+        "subject": "Reaper"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "c1a01672a46164f7711167e23ed6c3d5efd53e7f47e7eab0f7ab9d08fa884c1c",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "e15f7aef55966d6310d5617f0f94a224f2a78fb64548193de6100cd6964d3642",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "7f9b4780e621144e0e56b1a97b8a0044fdd0994f80543bf381fb8515b5a0aae2",
+        "subject": "Marine"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "860bd6f480e9f34f33413b263ee7fcb0b455d6717a06f785ceddc23f6ef37fde",
+        "subject": "Marauder"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14970_TvP_O03_TvP_R04_420",
+      "E_15158_TvP_O03_TvP_R04_480",
+      "E_15251_TvP_O03_TvP_R04_540",
+      "E_15323_TvP_O03_TvP_R04_540"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T420_OWN_S04",
+      "TvP_TvP_O03_T480_OWN_S05",
+      "TvP_TvP_O03_T540_OWN_S01",
+      "TvP_TvP_O03_T540_OWN_S03"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "e15f7aef55966d6310d5617f0f94a224f2a78fb64548193de6100cd6964d3642",
+        "subject": "Immortal"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "c1a01672a46164f7711167e23ed6c3d5efd53e7f47e7eab0f7ab9d08fa884c1c",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "860bd6f480e9f34f33413b263ee7fcb0b455d6717a06f785ceddc23f6ef37fde",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "7f9b4780e621144e0e56b1a97b8a0044fdd0994f80543bf381fb8515b5a0aae2",
+        "subject": "Marine"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "eba2cf9902b020c712283a8427e99210f57962d0d87b28281cea0dc9e2c5b37e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "285cca71b3d7f05b5bc662fea68f8433c5f96426c99dbd7cb5aba77593199744",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "4c9cc366c9c780bfc26009ca6e870259a8f4e94ad896b49451563896d40ac22c",
+        "subject": "Zealot"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14873_TvP_O03_TvP_R10_420",
+      "E_15022_TvP_O03_TvP_R10_480"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T420_OWN_S01",
+      "TvP_TvP_O03_T480_OWN_S01"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [
+      {
+        "object": "Colossus",
+        "relation": "counters",
+        "relation_id": "6600da95b96a75a07bf05b5f66360dae1b8d6577f2aab5675392ea2671a9471c",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "20c9958bbfd9ab3c9c58500c1c10136796fd02b0ab5583d0bf44a5a85d22a2cf",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Sentry",
+        "relation": "counters",
+        "relation_id": "9a9e145671d632cc6dce0adf0a3e85246fe99f3b1da6bf2d41b640a5a27f3690",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Sentry",
+        "relation": "counters",
+        "relation_id": "c30dc84a6d3549427ef7aa164de86f8051e104c09b70014a0477ef20aa0c8971",
+        "subject": "Reaper"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15457_TvP_O03_TvP_R04_600"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T600_OWN_S03"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "e15f7aef55966d6310d5617f0f94a224f2a78fb64548193de6100cd6964d3642",
+        "subject": "Immortal"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "c1a01672a46164f7711167e23ed6c3d5efd53e7f47e7eab0f7ab9d08fa884c1c",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "860bd6f480e9f34f33413b263ee7fcb0b455d6717a06f785ceddc23f6ef37fde",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "7f9b4780e621144e0e56b1a97b8a0044fdd0994f80543bf381fb8515b5a0aae2",
+        "subject": "Marine"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "eba2cf9902b020c712283a8427e99210f57962d0d87b28281cea0dc9e2c5b37e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "944e881ed8c4d882bb62375abf5eb5cb2fdd0f6d1e1ec1c9c7f56bf804eab636",
+        "subject": "Marauder"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15442_TvP_O03_TvP_R01_600"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T600_OWN_S02"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [
+      {
+        "object": "Colossus",
+        "relation": "counters",
+        "relation_id": "676cac52ef3daf870140728018164aad487e347fec86248ebc3751e03f0d852b",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Colossus",
+        "relation": "counters",
+        "relation_id": "6600da95b96a75a07bf05b5f66360dae1b8d6577f2aab5675392ea2671a9471c",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "20c9958bbfd9ab3c9c58500c1c10136796fd02b0ab5583d0bf44a5a85d22a2cf",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Sentry",
+        "relation": "counters",
+        "relation_id": "9a9e145671d632cc6dce0adf0a3e85246fe99f3b1da6bf2d41b640a5a27f3690",
+        "subject": "Hellion"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15353_TvP_O03_TvP_R10_600"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T600_OWN_S01"
+    ]
+  },
+  "N010": {
+    "knowledge_claims": [
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14422_TvP_O03_TvP_R08_180"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T180_OWN_S08"
+    ]
+  },
+  "N011": {
+    "knowledge_claims": [
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "20c9958bbfd9ab3c9c58500c1c10136796fd02b0ab5583d0bf44a5a85d22a2cf",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "0ee3411274fc2b996c6328cf0a72a92440db24c61cdc420eaf8ffd9d70d17e8d",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "82beea76e8eb55c5e047e065a25289d63bbd4e747a9664d05abebbfd66ee7474",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "counters",
+        "relation_id": "ba5e01be5d187636f193c165e2cbe884838e115fbb5c63368000f3a5da730fcf",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "285cca71b3d7f05b5bc662fea68f8433c5f96426c99dbd7cb5aba77593199744",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      }
+    ],
+    "source_edge_ids": [
+      "E_14600_TvP_O03_TvP_R04_300"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T300_OWN_S02"
+    ]
+  },
+  "N012": {
+    "knowledge_claims": [
+      {
+        "object": "Carrier",
+        "relation": "counters",
+        "relation_id": "e3d8724942731a6188e567fcb4ebbf75111314fa9493fd33771abe9de8950fbc",
+        "subject": "Marine"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "7fef88253705f3b2ba48c0ae59f848f252d919b775d15f8f15b96366466e56eb",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "346676651ca8177eca7177f10e7aab158807316c32f4b065078606ad64a04cc7",
+        "subject": "Medivac"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15298_TvP_O03_TvP_R03_540"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O03_T540_OWN_S02"
+    ]
+  }
+}

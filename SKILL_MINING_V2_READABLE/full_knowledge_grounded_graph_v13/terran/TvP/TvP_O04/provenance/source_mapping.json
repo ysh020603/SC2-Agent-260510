@@ -1,0 +1,562 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15773_TvP_O04_TvP_R02_240",
+      "E_15806_TvP_O04_TvP_R02_240"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T240_OWN_S03",
+      "TvP_TvP_O04_T240_OWN_S04"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15824_TvP_O04_TvP_R03_300"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T300_OWN_S01"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "eba2cf9902b020c712283a8427e99210f57962d0d87b28281cea0dc9e2c5b37e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "counters",
+        "relation_id": "ba5e01be5d187636f193c165e2cbe884838e115fbb5c63368000f3a5da730fcf",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "944e881ed8c4d882bb62375abf5eb5cb2fdd0f6d1e1ec1c9c7f56bf804eab636",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "7fef88253705f3b2ba48c0ae59f848f252d919b775d15f8f15b96366466e56eb",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15827_TvP_O04_TvP_R06_300",
+      "E_15858_TvP_O04_TvP_R03_300",
+      "E_15888_TvP_O04_TvP_R03_300",
+      "E_15909_TvP_O04_TvP_R02_300",
+      "E_15969_TvP_O04_TvP_R07_360",
+      "E_16013_TvP_O04_TvP_R06_360",
+      "E_16046_TvP_O04_TvP_R06_360"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T300_OWN_S01",
+      "TvP_TvP_O04_T300_OWN_S02",
+      "TvP_TvP_O04_T300_OWN_S03",
+      "TvP_TvP_O04_T300_OWN_S04",
+      "TvP_TvP_O04_T360_OWN_S01",
+      "TvP_TvP_O04_T360_OWN_S03",
+      "TvP_TvP_O04_T360_OWN_S04"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15510_TvP_O04_TvP_R03_180",
+      "E_15550_TvP_O04_TvP_R03_180",
+      "E_15568_TvP_O04_TvP_R03_180",
+      "E_15617_TvP_O04_TvP_R03_180",
+      "E_15639_TvP_O04_TvP_R03_180",
+      "E_15677_TvP_O04_TvP_R03_180",
+      "E_15704_TvP_O04_TvP_R03_180",
+      "E_15720_TvP_O04_TvP_R02_180"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T180_OWN_S01",
+      "TvP_TvP_O04_T180_OWN_S02",
+      "TvP_TvP_O04_T180_OWN_S03",
+      "TvP_TvP_O04_T180_OWN_S04",
+      "TvP_TvP_O04_T180_OWN_S05",
+      "TvP_TvP_O04_T180_OWN_S06",
+      "TvP_TvP_O04_T180_OWN_S07",
+      "TvP_TvP_O04_T180_OWN_S08"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "944e881ed8c4d882bb62375abf5eb5cb2fdd0f6d1e1ec1c9c7f56bf804eab636",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marine",
+        "relation": "grants_stat_bonus",
+        "relation_id": "21e369c45c86ca6a9d3cbc95f58eb6e5e6bbcbc312a5c5e533ff21ebb9d21c7f",
+        "subject": "ShieldWall"
+      },
+      {
+        "object": "Marauder",
+        "relation": "grants_stat_bonus",
+        "relation_id": "4005c1132f04b8242138fbd7130eb84a64b41132ab448a011d50da6fa73079bb",
+        "subject": "TerranInfantryWeaponsLevel1"
+      },
+      {
+        "object": "Marine",
+        "relation": "grants_stat_bonus",
+        "relation_id": "3c3b18cb09a424ab3467962fa9939e8d4c05ee2d199fb526cdbabd097e797abf",
+        "subject": "TerranInfantryWeaponsLevel1"
+      }
+    ],
+    "source_edge_ids": [
+      "E_16146_TvP_O04_TvP_R07_420",
+      "E_16214_TvP_O04_TvP_R06_420",
+      "E_16246_TvP_O04_TvP_R06_480",
+      "E_16329_TvP_O04_TvP_R06_480",
+      "E_16364_TvP_O04_TvP_R07_540"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T420_OWN_S03",
+      "TvP_TvP_O04_T420_OWN_S05",
+      "TvP_TvP_O04_T480_OWN_S01",
+      "TvP_TvP_O04_T480_OWN_S03",
+      "TvP_TvP_O04_T540_OWN_S01"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "b524739109297d60f5abbe2c864d9d0d9ee403539c9205b2dcd0f397ba1df2d8",
+        "subject": "HighTemplar"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "a73ab2fa74dfab782a98432581731d0f2462dc2222707e61e61b797390b84bad",
+        "subject": "HighTemplar"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "285cca71b3d7f05b5bc662fea68f8433c5f96426c99dbd7cb5aba77593199744",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "4c9cc366c9c780bfc26009ca6e870259a8f4e94ad896b49451563896d40ac22c",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "944e881ed8c4d882bb62375abf5eb5cb2fdd0f6d1e1ec1c9c7f56bf804eab636",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "7fef88253705f3b2ba48c0ae59f848f252d919b775d15f8f15b96366466e56eb",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "synergizes_with",
+        "relation_id": "74e73c8ebd3e577cc75a5400bf8c2e4636c4d018edfeb064f4e863c0ec8e6d82",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_16551_TvP_O04_TvP_R06_600"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T600_OWN_S02"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "e5a25cc5523d83552267f6bbc594b6a67fc78d36d9e6986d296c095658fa0b62",
+        "subject": "Marine"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_15988_TvP_O04_TvP_R03_360"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T360_OWN_S02"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "860bd6f480e9f34f33413b263ee7fcb0b455d6717a06f785ceddc23f6ef37fde",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "944e881ed8c4d882bb62375abf5eb5cb2fdd0f6d1e1ec1c9c7f56bf804eab636",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "675d74c6c5c8b5addd8d5fe6e03c67c912b25481d6c56f95fe125b780fdce45b",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "eba2cf9902b020c712283a8427e99210f57962d0d87b28281cea0dc9e2c5b37e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "counters",
+        "relation_id": "ba5e01be5d187636f193c165e2cbe884838e115fbb5c63368000f3a5da730fcf",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_16422_TvP_O04_TvP_R06_540",
+      "E_16469_TvP_O04_TvP_R06_540"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T540_OWN_S02",
+      "TvP_TvP_O04_T540_OWN_S03"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "675d74c6c5c8b5addd8d5fe6e03c67c912b25481d6c56f95fe125b780fdce45b",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "Sentry",
+        "relation": "counters",
+        "relation_id": "c30dc84a6d3549427ef7aa164de86f8051e104c09b70014a0477ef20aa0c8971",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "0ee3411274fc2b996c6328cf0a72a92440db24c61cdc420eaf8ffd9d70d17e8d",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "eba2cf9902b020c712283a8427e99210f57962d0d87b28281cea0dc9e2c5b37e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "counters",
+        "relation_id": "ba5e01be5d187636f193c165e2cbe884838e115fbb5c63368000f3a5da730fcf",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "285cca71b3d7f05b5bc662fea68f8433c5f96426c99dbd7cb5aba77593199744",
+        "subject": "Zealot"
+      }
+    ],
+    "source_edge_ids": [
+      "E_16609_TvP_O04_TvP_R06_600"
+    ],
+    "source_state_ids": [
+      "TvP_TvP_O04_T600_OWN_S03"
+    ]
+  }
+}

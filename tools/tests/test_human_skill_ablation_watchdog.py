@@ -43,12 +43,45 @@ def test_runner_exposes_all_readable_skill_methods():
     assert set(module.METHODS) == {
         "full",
         "full_v2",
+        "full_v3",
+        "full_v4",
+        "full_v5",
+        "full_v6",
+        "full_v7",
+        "full_v8",
+        "full_v9",
+        "full_v10",
+        "full_v11",
+        "full_v12",
+        "full_v13",
         "single_trace",
         "static_population",
         "flat_adaptive",
         "positive_only",
         "frequency_only",
     }
+
+
+def test_runner_expands_two_repeats_to_global_run_indices():
+    module = _load("human_skill_suite_repeats", "tools/run_human_skill_ablation_suite.py")
+    assert module.selected_run_indices("", 30) == set(range(30))
+    assert module.selected_run_indices("15-17,29", 30) == {15, 16, 17, 29}
+
+
+def test_reference_topology_is_ten_isolated_three_match_shards():
+    module = _load("human_skill_reference_topology", "tools/run_human_skill_reference_topology.py")
+    assert module.SHARDS == tuple(f"{start}-{start + 2}" for start in range(0, 30, 3))
+    source = (ROOT / "tools/run_human_skill_reference_topology.py").read_text(encoding="utf-8")
+    assert '"--concurrency",\n            "3"' in source
+    assert '"--retry-concurrency",\n            "1"' in source
+    assert 'parser.add_argument("--repeats", type=int, default=2)' in source
+    assert '"--repeats",\n            str(args.repeats)' in source
+    assert 'parser.add_argument("--run-index-offset", type=int, default=0)' in source
+
+
+def test_human_skill_match_id_records_run_index():
+    source = (ROOT / "run_vs_ai_human_skill.py").read_text(encoding="utf-8")
+    assert 'suffix = f"_run{args.run_index}"' in source
 
 
 def test_runner_pins_pending_observation_cleanup_controls():

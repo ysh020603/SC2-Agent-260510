@@ -1,0 +1,108 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [],
+      "path": "nodes/N001.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown. Avoid deepening this direction until the live army, production, queues, supply, and threat flags have been rechecked.",
+      "title": "Negative response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "negative"
+    },
+    "N002": {
+      "children": [],
+      "path": "nodes/N002.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include WarpPrism. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a maintain course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include WarpPrism. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include WarpPrism. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include WarpPrism. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a maintain course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [
+        "N010"
+      ],
+      "path": "nodes/N006.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Stalker, WarpPrism, Observer, Immortal. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Stalker, WarpPrism, Observer, Immortal. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [],
+      "path": "nodes/N007.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Stalker, WarpPrism, Observer, Immortal. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a maintain course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Stalker, WarpPrism, Observer, Immortal. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [],
+      "path": "nodes/N008.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Stalker, Observer, Immortal. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a maintain course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Stalker, Observer, Immortal. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N009.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include Zealot. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a maintain course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include Zealot. Production appears moderate, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [],
+      "path": "nodes/N010.md",
+      "summary": "Enemy Intelligence is consistent with a air posture; representative observed or remembered cues may include Sentry, Phoenix, Oracle. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to air posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a air posture; representative observed or remembered cues may include Sentry, Phoenix, Oracle. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [],
+      "path": "nodes/N011.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include VoidRay. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen air while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include VoidRay. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N012": {
+      "children": [],
+      "path": "nodes/N012.md",
+      "summary": "Enemy Intelligence is consistent with a air posture; representative observed or remembered cues may include Zealot, Stalker, Tempest. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen air while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to air posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a air posture; representative observed or remembered cues may include Zealot, Stalker, Tempest. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    }
+  },
+  "opening_name": "TvP_O06 Technology / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "TvP_O06"
+}

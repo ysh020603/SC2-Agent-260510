@@ -1,0 +1,114 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy economy and expansion posture, moderate production, light/uncertain technology, and ground-leaning army. Enemy intelligence shows a heavy economy and technology posture with moderate production, and a representative Marine cue. Develop an economy/upgrade/expansion posture while preserving flexibility for live observation-driven adaptation. Strengthen ground forces, increase economy, maintain expansion and production, continue technology and upgrades, and maintain air and defense with safety checks.",
+      "title": "ZvT Economy/Upgrade/Expansion Opening - Ground Macro Posture",
+      "trigger_summary": "Early game with heavy economy and expansion posture, moderate production, light/uncertain technology, and ground-leaning army. Enemy intelligence shows a heavy economy and technology posture with moderate production, and a representative Marine cue.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light_or_uncertain technology, and ground-leaning army on both sides. Continue developing economy and upgrades while maintaining ground army strength and expansion posture, with safety checks against possible pressure.",
+      "title": "Economy/Upgrade/Expansion with Ground Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light_or_uncertain technology, and ground-leaning army on both sides.",
+      "type": "positive"
+    },
+    "N003": {
+      "children": [
+        "N008"
+      ],
+      "path": "nodes/N003.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light or uncertain technology, and possible pressure from a ground-leaning Terran opponent. Increase economy and expansion, strengthen ground army, continue technology and upgrades, maintain defense and air direction, with safety checks.",
+      "title": "Economy / Upgrade / Expansion Ground Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light or uncertain technology, and possible pressure from a ground-leaning Terran opponent.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light/uncertain technology. Opponent shows ground-leaning army with heavy production and technology, possible pressure. Strengthen ground army, increase economy, continue technology and upgrades, maintain expansion and production, with safety checks.",
+      "title": "Economy/Upgrade/Expansion with Ground Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light/uncertain technology. Opponent shows ground-leaning army with heavy production and technology, possible pressure.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Late midgame with heavy economy and production on both sides; opponent shows ground macro posture with SiegeTank, Marine, Medivac cues. Continue economy and expansion development while strengthening ground army and maintaining defense; increase technology and upgrades.",
+      "title": "Economy/Upgrade/Expansion Posture with Ground Macro",
+      "trigger_summary": "Late midgame with heavy economy and production on both sides; opponent shows ground macro posture with SiegeTank, Marine, Medivac cues.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N006.md",
+      "summary": "Midgame phase with heavy economy, heavy production, heavy technology, and ground-oriented army for both sides. Enemy Intelligence suggests a ground posture with possible SiegeTank, Marine, Medivac. Own posture is ground macro with Zergling, Queen, and tech structures. Continue developing economy, upgrades, and expansions while strengthening ground army. Maintain defense and production. Increase technology. Maintain air direction. Tempo is develop with safety checks.",
+      "title": "ZvT Economy/Upgrade/Expansion Midgame Ground Posture",
+      "trigger_summary": "Midgame phase with heavy economy, heavy production, heavy technology, and ground-oriented army for both sides. Enemy Intelligence suggests a ground posture with possible SiegeTank, Marine, Medivac. Own posture is ground macro with Zergling, Queen, and tech structures.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N007.md",
+      "summary": "Early game with heavy economy and moderate production, ground-oriented army, light or uncertain tech, possible pressure from opponent. Continue developing economy and upgrades while strengthening ground army, maintain production and expansion, keep tech development, with safety checks.",
+      "title": "Economy / Upgrade / Expansion Ground Posture",
+      "trigger_summary": "Early game with heavy economy and moderate production, ground-oriented army, light or uncertain tech, possible pressure from opponent.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [],
+      "path": "nodes/N008.md",
+      "summary": "Early-midgame phase where both sides show heavy economy and expansion, with ground-leaning armies. Enemy production and technology appear heavy, but exact counts are unknown. Continue developing economy and expansions while strengthening ground army and increasing technology. Maintain creep spread and upgrades. Adapt based on live observation.",
+      "title": "Economy / Upgrade / Expansion with Ground Macro Posture",
+      "trigger_summary": "Early-midgame phase where both sides show heavy economy and expansion, with ground-leaning armies. Enemy production and technology appear heavy, but exact counts are unknown.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [],
+      "path": "nodes/N009.md",
+      "summary": "Midgame phase with heavy economy and expansion posture, ground-oriented army, moderate technology, and possible pressure from opponent. Strengthen ground army, increase economy, continue technology and upgrades, maintain defense and expansion, with safety checks.",
+      "title": "ZvT Economy/Upgrade/Expansion Midgame Ground Posture",
+      "trigger_summary": "Midgame phase with heavy economy and expansion posture, ground-oriented army, moderate technology, and possible pressure from opponent.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [],
+      "path": "nodes/N010.md",
+      "summary": "This node represents a late midgame state where both sides have heavy economies, heavy production, and heavy technology investment, with a ground-oriented army posture. The opponent shows a ground macro posture with representative cues including SiegeTank, Marine, Thor, and Raven. Your own posture is also ground-oriented with Zergling, Roach, and Queen as representative cues. The policy signature indicates strengthening ground, increasing economy, continuing technology, and maintaining defense and expansion. Strengthen ground army, increase economy, continue technology and upgrades, maintain defense…",
+      "title": "Late Midgame Ground Macro with Heavy Economy and Tech",
+      "trigger_summary": "This node represents a late midgame state where both sides have heavy economies, heavy production, and heavy technology investment, with a ground-oriented army posture. The opponent shows a ground macro posture with representative cues including SiegeTank, Marine, Thor, and Raven. Your own posture is also ground-oriented with Zergling, Roach, and Queen as representative cues. The…",
+      "type": "default"
+    },
+    "N011": {
+      "children": [],
+      "path": "nodes/N011.md",
+      "summary": "Midgame phase with heavy economy and production, ground-oriented posture, and moderate air presence; enemy intelligence suggests a ground-heavy Terran composition with possible pressure. Strengthen air forces while continuing economy and expansion development, maintaining production and technology, with safety checks against potential ground pressure.",
+      "title": "Economy/Upgrade/Expansion with Air Transition",
+      "trigger_summary": "Midgame phase with heavy economy and production, ground-oriented posture, and moderate air presence; enemy intelligence suggests a ground-heavy Terran composition with possible pressure.",
+      "type": "default"
+    },
+    "N012": {
+      "children": [],
+      "path": "nodes/N012.md",
+      "summary": "Both sides are in late midgame with heavy economy, production, and technology. Opponent shows a ground-leaning army with SiegeTank, Marine, Marauder, Medivac cues. Own posture is ground-macro with heavy air presence and a policy to strengthen air. Continue developing the economy/upgrade/expansion posture while shifting toward air strength. Maintain production and defense, and increase air capability with safety checks.",
+      "title": "Late Midgame Ground-Macro Posture with Heavy Economy and Air Transition",
+      "trigger_summary": "Both sides are in late midgame with heavy economy, production, and technology. Opponent shows a ground-leaning army with SiegeTank, Marine, Marauder, Medivac cues. Own posture is ground-macro with heavy air presence and a policy to strengthen air.",
+      "type": "default"
+    }
+  },
+  "opening_name": "ZvT_O04 Economy / Upgrade / Expansion",
+  "root": "SKILL.md",
+  "skill_id": "ZvT_O04"
+}

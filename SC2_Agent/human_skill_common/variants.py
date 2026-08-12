@@ -21,6 +21,54 @@ VARIANTS = {
     "human-skill-full-v2": VariantSpec(
         "human-skill-full-v2", "SC2_Agent.human_skill_full_v2", "full_guarded_graph_v2"
     ),
+    "human-skill-full-v3": VariantSpec(
+        "human-skill-full-v3", "SC2_Agent.human_skill_full_v3", "full_contrastive_graph_v3"
+    ),
+    "human-skill-full-v4": VariantSpec(
+        "human-skill-full-v4", "SC2_Agent.human_skill_full_v4", "full_failure_aware_graph_v4"
+    ),
+    "human-skill-full-v5": VariantSpec(
+        "human-skill-full-v5", "SC2_Agent.human_skill_full_v5", "full_trajectory_fusion_graph_v5"
+    ),
+    "human-skill-full-v6": VariantSpec(
+        "human-skill-full-v6", "SC2_Agent.human_skill_full_v6", "full_race_hybrid_graph_v6"
+    ),
+    "human-skill-full-v7": VariantSpec(
+        "human-skill-full-v7", "SC2_Agent.human_skill_full_v7", "full_branch_faithful_graph_v7"
+    ),
+    "human-skill-full-v8": VariantSpec(
+        "human-skill-full-v8", "SC2_Agent.human_skill_full_v8", "full_executable_graph_v8"
+    ),
+    "human-skill-full-v9": VariantSpec(
+        "human-skill-full-v9", "SC2_Agent.human_skill_full_v9", "full_prompt_executable_graph_v9"
+    ),
+    "human-skill-full-v10": VariantSpec(
+        "human-skill-full-v10", "SC2_Agent.human_skill_full_v10", "full_opening_champion_graph_v10"
+    ),
+    "human-skill-full-v11": VariantSpec(
+        "human-skill-full-v11", "SC2_Agent.human_skill_full_v11", "full_executable_normalized_graph_v11"
+    ),
+    "human-skill-full-v12": VariantSpec(
+        "human-skill-full-v12", "SC2_Agent.human_skill_full_v12", "full_zerg_production_graph_v12"
+    ),
+    "human-skill-full-v13": VariantSpec(
+        "human-skill-full-v13", "SC2_Agent.human_skill_full_v13", "full_knowledge_grounded_graph_v13"
+    ),
+    "human-skill-full-v14": VariantSpec(
+        "human-skill-full-v14", "SC2_Agent.human_skill_full_v14", "full_knowledge_executable_graph_v14"
+    ),
+    "human-skill-full-v15": VariantSpec(
+        "human-skill-full-v15", "SC2_Agent.human_skill_full_v15", "full_knowledge_executable_graph_v14"
+    ),
+    "human-skill-full-v16": VariantSpec(
+        "human-skill-full-v16", "SC2_Agent.human_skill_full_v16", "full_knowledge_executable_graph_v14"
+    ),
+    "human-skill-full-v17": VariantSpec(
+        "human-skill-full-v17", "SC2_Agent.human_skill_full_v17", "full_knowledge_executable_graph_v14"
+    ),
+    "human-skill-full-v18": VariantSpec(
+        "human-skill-full-v18", "SC2_Agent.human_skill_full_v18", "full_knowledge_executable_graph_v14"
+    ),
     "human-skill-single-trace": VariantSpec(
         "human-skill-single-trace", "SC2_Agent.human_skill_single_trace", "ablation_single_trace"
     ),

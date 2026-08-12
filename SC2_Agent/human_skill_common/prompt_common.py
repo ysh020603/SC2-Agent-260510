@@ -31,6 +31,7 @@ def build_human_skill_messages(
     decision_interval_seconds: float,
     protocol_feedback: str = "",
     force_final: bool = False,
+    runtime_policy_context: str = "",
 ) -> List[dict[str, str]]:
     race_cap = race.capitalize()
     units = ", ".join(canonical_unit_names)
@@ -93,13 +94,16 @@ Method: {skill.method}
 [9. Variant Information Boundary]
 {variant_contract}
 
-[10. Available Node Index]
+[10. Live Policy Router]
+{runtime_policy_context or "No additional runtime policy is active for this variant."}
+
+[11. Available Node Index]
 {available_nodes}
 
-[11. Automated Tactical Boundary]
+[12. Automated Tactical Boundary]
 {automation_context}
 
-[12. Skill Use Principles]
+[13. Skill Use Principles]
 First inspect the live observation. Skill prose is strategic guidance, not an
 executable build order. Current Observation has priority when selecting exact
 actions. Previously read nodes are reusable knowledge, never commands. Never
@@ -107,7 +111,7 @@ copy a historical sequence. Reconcile guidance with Resources, Supply,
 Completed, Under Construction, Active Queues, Enemy Intelligence, Army/Income
 Advantage, and Threat Flags.
 
-[13. Allowed Canonical Outputs]
+[14. Allowed Canonical Outputs]
 Canonical units, structures, add-ons, and morphs:
 {units}
 
@@ -119,7 +123,7 @@ multiple copies. Do not output counts, action keys, positions, or prose outside
 the JSON object. Keep the queue compact, normally no more than 20 names, except
 that the high-bank/high-income production rule may extend it to 40 names.
 
-[14. Skill Read Protocol]
+[15. Skill Read Protocol]
 {final_instruction}
 Before the first FINAL_DECISION of a match, READ_SKILL exactly one node whose
 trigger best matches the live observation. Later reads are optional and should

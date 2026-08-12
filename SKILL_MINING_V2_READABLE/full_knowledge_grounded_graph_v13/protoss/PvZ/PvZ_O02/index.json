@@ -1,0 +1,102 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [],
+      "path": "nodes/N002.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Strengthen ground while keeping production on a increase course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [],
+      "path": "nodes/N007.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [
+        "N007"
+      ],
+      "path": "nodes/N008.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Strengthen ground while keeping production on a increase course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [
+        "N010"
+      ],
+      "path": "nodes/N009.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen, Overseer. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen, Overseer. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [],
+      "path": "nodes/N010.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Queen. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown. Strengthen ground while keeping production on a continue course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Queen. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [],
+      "path": "nodes/N011.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Strengthen ground while keeping production on a increase course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvZ_O02 Technology / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "PvZ_O02"
+}

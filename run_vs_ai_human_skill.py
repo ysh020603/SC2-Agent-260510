@@ -42,7 +42,8 @@ def _match_id(args: argparse.Namespace) -> str:
         )
     )
     digest = hashlib.sha1(identity.encode("utf-8")).hexdigest()[:10]
-    return f"{stamp}_{_safe(args.human_skill_agent)[:22]}_{digest}"
+    suffix = f"_run{args.run_index}" if args.run_index is not None else ""
+    return f"{stamp}_{_safe(args.human_skill_agent)[:22]}_{digest}{suffix}"
 
 
 def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:

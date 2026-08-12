@@ -1,4 +1,4 @@
-"""Run the paired 15-condition readable-skill ablation suite.
+"""Run the paired repeated-condition readable-skill ablation suite.
 
 The same conditions are reused for the full method and every ablation so that
 method is the only intended treatment variable. Existing completed matches are
@@ -8,8 +8,10 @@ discovered from their trace artifacts, making an interrupted suite resumable.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import re
 import signal
 import subprocess
 import threading
@@ -26,6 +28,22 @@ PYTHON = Path("/home/wyq/miniconda3/envs/SC2_0615/bin/python")
 METHODS = {
     "full": "human-skill-full",
     "full_v2": "human-skill-full-v2",
+    "full_v3": "human-skill-full-v3",
+    "full_v4": "human-skill-full-v4",
+    "full_v5": "human-skill-full-v5",
+    "full_v6": "human-skill-full-v6",
+    "full_v7": "human-skill-full-v7",
+    "full_v8": "human-skill-full-v8",
+    "full_v9": "human-skill-full-v9",
+    "full_v10": "human-skill-full-v10",
+    "full_v11": "human-skill-full-v11",
+    "full_v12": "human-skill-full-v12",
+    "full_v13": "human-skill-full-v13",
+    "full_v14": "human-skill-full-v14",
+    "full_v15": "human-skill-full-v15",
+    "full_v16": "human-skill-full-v16",
+    "full_v17": "human-skill-full-v17",
+    "full_v18": "human-skill-full-v18",
     "single_trace": "human-skill-single-trace",
     "static_population": "human-skill-static-population",
     "flat_adaptive": "human-skill-flat-adaptive",
@@ -41,6 +59,13 @@ class Condition:
     enemy_race: str
     skill_id: str
     enemy_build: str
+
+
+@dataclass(frozen=True)
+class RunCase:
+    condition: Condition
+    repetition: int
+    run_index: int
 
 
 class LaunchGate:
@@ -234,8 +259,37 @@ def record_has_watchdog(record_dir: Path) -> bool:
     return False
 
 
-def completed_skill_ids(batch_dir: Path) -> set[str]:
-    completed: set[str] = set()
+def _clean_non_reasoning_record(record_dir: Path, expected_model: str = "") -> bool:
+    try:
+        reads_path = next(record_dir.glob("*.skill_reads.json"))
+        json.loads(reads_path.read_text(encoding="utf-8"))
+        calls_path = next(record_dir.glob("*.llm_calls.json"))
+        calls_payload = json.loads(calls_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, StopIteration, TypeError):
+        return False
+    calls = [
+        item
+        for item in (calls_payload.get("calls") or [])
+        if isinstance(item, dict) and not item.get("event")
+    ]
+    if not calls:
+        return False
+    return all(
+        not item.get("error")
+        and item.get("is_reasoning") is False
+        and not item.get("reasoning_present")
+        and (not expected_model or item.get("model_key") == expected_model)
+        for item in calls
+    )
+
+
+def completed_run_keys(
+    batch_dir: Path,
+    *,
+    expected_method: str = "",
+    expected_model: str = "",
+) -> set[tuple[str, int]]:
+    completed: set[tuple[str, int]] = set()
     if not batch_dir.exists():
         return completed
     for trace_path in batch_dir.glob("*/*.human_skill.json"):
@@ -244,15 +298,33 @@ def completed_skill_ids(batch_dir: Path) -> set[str]:
             match = json.loads((trace_path.parent / "match.json").read_text(encoding="utf-8"))
             decisions = trace.get("decisions") or []
             skill_id = str(decisions[0].get("skill_id") if decisions else "")
+            skill_method = str(decisions[0].get("skill_method") if decisions else "")
+            run_match = re.search(r"_run(\d+)$", trace_path.parent.name)
+            if run_match:
+                run_index = int(run_match.group(1))
+            else:
+                run_index = next(
+                    (item.index for item in CONDITIONS if item.skill_id == skill_id),
+                    -1,
+                )
             if (
                 skill_id
+                and run_index >= 0
+                and (not expected_method or skill_method == expected_method)
                 and not record_has_watchdog(trace_path.parent)
+                and _clean_non_reasoning_record(trace_path.parent, expected_model)
                 and match.get("metadata", {}).get("result") in {"Victory", "Defeat", "Tie"}
             ):
-                completed.add(skill_id)
-        except (OSError, ValueError, TypeError):
+                completed.add((skill_id, run_index))
+        except (OSError, ValueError, TypeError, StopIteration):
             continue
     return completed
+
+
+def completed_skill_ids(batch_dir: Path) -> set[str]:
+    """Compatibility view used by older diagnostics and documentation."""
+
+    return {skill_id for skill_id, _run_index in completed_run_keys(batch_dir)}
 
 
 def selected_methods(phase: str) -> Iterable[tuple[str, str]]:
@@ -281,6 +353,56 @@ def selected_indices(value: str) -> set[int]:
     if not result or not result <= valid:
         raise ValueError(f"indices must select from {sorted(valid)}")
     return result
+
+
+def selected_run_indices(value: str, total: int) -> set[int]:
+    if not value.strip():
+        return set(range(total))
+    result: set[int] = set()
+    for part in value.split(","):
+        token = part.strip()
+        if not token:
+            continue
+        if "-" in token:
+            start_text, end_text = token.split("-", 1)
+            start, end = int(start_text), int(end_text)
+            if start > end:
+                raise ValueError(f"invalid descending run-index range: {token}")
+            result.update(range(start, end + 1))
+        else:
+            result.add(int(token))
+    if not result or min(result) < 0 or max(result) >= total:
+        raise ValueError(f"run-indices must select from 0-{total - 1}")
+    return result
+
+
+def git_identity() -> tuple[str, str]:
+    try:
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ).strip()
+        diff = subprocess.check_output(["git", "diff", "--binary", "HEAD"], cwd=ROOT)
+        return commit, hashlib.sha256(diff).hexdigest()
+    except (OSError, subprocess.SubprocessError):
+        return "", ""
+
+
+def model_profile_digest(model_key: str) -> tuple[str, bool | None]:
+    config_path = ROOT.parent / "API_config" / "config.json"
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+        profile = (payload.get("llm_agents_pool") or {}).get(model_key) or {}
+        safe_profile = {
+            key: value
+            for key, value in profile.items()
+            if not any(secret in key.lower() for secret in ("key", "secret", "token"))
+        }
+        digest = hashlib.sha256(
+            json.dumps(safe_profile, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        return digest, profile.get("is_reasoning")
+    except (OSError, ValueError, TypeError):
+        return "", None
 
 
 def main() -> int:
@@ -373,6 +495,17 @@ def main() -> int:
     parser.add_argument("--manifest-name", default="suite_manifest.json")
     parser.add_argument("--model", default="DeepSeek-V4-flash")
     parser.add_argument("--indices", default="0-14")
+    parser.add_argument(
+        "--repeats",
+        type=int,
+        default=2,
+        help="Repeat the fixed 15-condition matrix; two repeats give 30 matches per method.",
+    )
+    parser.add_argument(
+        "--run-indices",
+        default="",
+        help="Optional global run-index shard after repeat expansion (for example 0-2).",
+    )
     args = parser.parse_args()
     try:
         trusted_owner_pid = int(os.environ.get("SC2_TRUSTED_OWNER_PID", "0") or 0)
@@ -382,6 +515,8 @@ def main() -> int:
         raise ValueError("SC2_TRUSTED_OWNER_PID cannot be negative")
     if args.concurrency < 1 or args.retry_concurrency < 1:
         raise ValueError("concurrency values must be positive")
+    if args.repeats < 1:
+        raise ValueError("repeats must be positive")
     if args.max_attempts < 1 or args.retry_backoff < 0:
         raise ValueError("retry controls are invalid")
     if Path(args.manifest_name).name != args.manifest_name or not args.manifest_name.endswith(".json"):
@@ -405,6 +540,19 @@ def main() -> int:
         methods = [(args.method, METHODS[args.method])]
     indices = selected_indices(args.indices)
     conditions = tuple(item for item in CONDITIONS if item.index in indices)
+    run_indices = selected_run_indices(args.run_indices, args.repeats * len(CONDITIONS))
+    cases = tuple(
+        RunCase(condition=condition, repetition=repetition, run_index=repetition * len(CONDITIONS) + condition.index)
+        for repetition in range(args.repeats)
+        for condition in conditions
+        if repetition * len(CONDITIONS) + condition.index in run_indices
+    )
+    if not cases:
+        raise ValueError("condition/run-index selection produced no cases")
+    git_commit, git_diff_sha256 = git_identity()
+    model_profile_sha256, model_is_reasoning = model_profile_digest(args.model)
+    if model_is_reasoning is not False:
+        raise ValueError(f"model profile must set is_reasoning=false: {args.model}")
     state_root = ROOT / "game_records" / "_human_skill_ablation"
     log_root = state_root / args.batch_prefix
     log_root.mkdir(parents=True, exist_ok=True)
@@ -412,6 +560,10 @@ def main() -> int:
     manifest_lock = threading.Lock()
     manifest = {
         "schema_version": 4,
+        "git_commit": git_commit,
+        "git_diff_sha256": git_diff_sha256,
+        "model_profile_sha256": model_profile_sha256,
+        "non_reasoning_required": True,
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "phase": args.phase,
         "difficulty": args.difficulty,
@@ -443,6 +595,10 @@ def main() -> int:
         "runtime_failure_policy": "natural_child_exit_validate_then_retry_serially",
         "global_wineserver_kill_allowed": False,
         "model": args.model,
+        "repeats": args.repeats,
+        "run_indices": sorted(run_indices),
+        "matches_per_method": len(cases),
+        "expected_total_jobs": len(methods) * len(cases),
         "conditions": [asdict(item) for item in conditions],
         "methods": dict(methods),
         "jobs": [],
@@ -453,24 +609,62 @@ def main() -> int:
         temp.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
         temp.replace(manifest_path)
 
-    jobs: list[tuple[str, str, Condition, str, Path]] = []
+    jobs: list[tuple[str, str, RunCase, str, Path]] = []
     for method_name, agent in methods:
         batch_name = f"{args.batch_prefix}_{method_name}"
-        done = completed_skill_ids(ROOT / "game_records" / batch_name)
-        for condition in conditions:
-            log_path = log_root / f"{method_name}_{condition.index:02d}_{condition.skill_id}.log"
-            if condition.skill_id in done:
+        expected_method = METHODS[method_name].replace("human-skill-", "")
+        expected_method = {
+            "full": "full_signed_graph",
+            "full-v2": "full_guarded_graph_v2",
+            "full-v3": "full_contrastive_graph_v3",
+            "full-v4": "full_failure_aware_graph_v4",
+            "full-v5": "full_trajectory_fusion_graph_v5",
+            "full-v6": "full_race_hybrid_graph_v6",
+            "full-v7": "full_branch_faithful_graph_v7",
+            "full-v8": "full_executable_graph_v8",
+            "full-v9": "full_prompt_executable_graph_v9",
+            "full-v10": "full_opening_champion_graph_v10",
+            "full-v11": "full_executable_normalized_graph_v11",
+            "full-v12": "full_zerg_production_graph_v12",
+            "full-v13": "full_knowledge_grounded_graph_v13",
+            "full-v14": "full_knowledge_executable_graph_v14",
+            "full-v15": "full_knowledge_executable_graph_v14",
+            "full-v16": "full_knowledge_executable_graph_v14",
+            "full-v17": "full_knowledge_executable_graph_v14",
+            "full-v18": "full_knowledge_executable_graph_v14",
+            "single-trace": "ablation_single_trace",
+            "static-population": "ablation_static_population",
+            "flat-adaptive": "ablation_flat_adaptive",
+            "positive-only": "ablation_positive_only",
+            "frequency-only": "ablation_frequency_only",
+        }[expected_method]
+        done = completed_run_keys(
+            ROOT / "game_records" / batch_name,
+            expected_method=expected_method,
+            expected_model=args.model,
+        )
+        for case in cases:
+            condition = case.condition
+            log_path = log_root / f"{method_name}_run{case.run_index:02d}_{condition.skill_id}.log"
+            if (condition.skill_id, case.run_index) in done:
                 manifest["jobs"].append(
-                    {"method": method_name, "condition": asdict(condition), "status": "skipped_complete"}
+                    {
+                        "method": method_name,
+                        "condition": asdict(condition),
+                        "repetition": case.repetition,
+                        "run_index": case.run_index,
+                        "status": "skipped_complete",
+                    }
                 )
             else:
-                jobs.append((method_name, agent, condition, batch_name, log_path))
+                jobs.append((method_name, agent, case, batch_name, log_path))
     save_manifest()
     print(f"suite jobs pending={len(jobs)} concurrency={args.concurrency}", flush=True)
     launch_gate = LaunchGate(args.launch_stagger)
 
-    def run_job(job: tuple[str, str, Condition, str, Path], attempt: int) -> dict:
-        method_name, agent, condition, batch_name, log_path = job
+    def run_job(job: tuple[str, str, RunCase, str, Path], attempt: int) -> dict:
+        method_name, agent, case, batch_name, log_path = job
+        condition = case.condition
         launch_gate.wait()
         command = [
             str(PYTHON),
@@ -502,7 +696,7 @@ def main() -> int:
             "--batch-name",
             batch_name,
             "--run-index",
-            str(condition.index),
+            str(case.run_index),
             "--skip-version-update",
         ]
         env = os.environ.copy()
@@ -550,12 +744,43 @@ def main() -> int:
                 check=False,
             )
             process_returncode = completed_process.returncode
-        artifact_complete = condition.skill_id in completed_skill_ids(ROOT / "game_records" / batch_name)
+        expected_method = {
+            "full": "full_signed_graph",
+            "full_v2": "full_guarded_graph_v2",
+            "full_v3": "full_contrastive_graph_v3",
+            "full_v4": "full_failure_aware_graph_v4",
+            "full_v5": "full_trajectory_fusion_graph_v5",
+            "full_v6": "full_race_hybrid_graph_v6",
+            "full_v7": "full_branch_faithful_graph_v7",
+            "full_v8": "full_executable_graph_v8",
+            "full_v9": "full_prompt_executable_graph_v9",
+            "full_v10": "full_opening_champion_graph_v10",
+            "full_v11": "full_executable_normalized_graph_v11",
+            "full_v12": "full_zerg_production_graph_v12",
+            "full_v13": "full_knowledge_grounded_graph_v13",
+            "full_v14": "full_knowledge_executable_graph_v14",
+            "full_v15": "full_knowledge_executable_graph_v14",
+            "full_v16": "full_knowledge_executable_graph_v14",
+            "full_v17": "full_knowledge_executable_graph_v14",
+            "full_v18": "full_knowledge_executable_graph_v14",
+            "single_trace": "ablation_single_trace",
+            "static_population": "ablation_static_population",
+            "flat_adaptive": "ablation_flat_adaptive",
+            "positive_only": "ablation_positive_only",
+            "frequency_only": "ablation_frequency_only",
+        }[method_name]
+        artifact_complete = (condition.skill_id, case.run_index) in completed_run_keys(
+            ROOT / "game_records" / batch_name,
+            expected_method=expected_method,
+            expected_model=args.model,
+        )
         complete = process_returncode == 0 and artifact_complete
         return {
             "method": method_name,
             "agent": agent,
             "condition": asdict(condition),
+            "repetition": case.repetition,
+            "run_index": case.run_index,
             "batch_name": batch_name,
             "attempt": attempt,
             "log_path": str(attempt_log_path.relative_to(ROOT)),
@@ -587,7 +812,7 @@ def main() -> int:
             time.sleep(args.retry_backoff)
         workers = args.concurrency if attempt == 1 else args.retry_concurrency
         workers = min(workers, len(pending))
-        next_pending: list[tuple[str, str, Condition, str, Path]] = []
+        next_pending: list[tuple[str, str, RunCase, str, Path]] = []
         with ThreadPoolExecutor(max_workers=workers) as pool:
             futures = {pool.submit(run_job, job, attempt): job for job in pending}
             for future in as_completed(futures):
@@ -595,11 +820,14 @@ def main() -> int:
                 try:
                     result = future.result()
                 except Exception as exc:
-                    method_name, agent, condition, batch_name, log_path = job
+                    method_name, agent, case, batch_name, log_path = job
+                    condition = case.condition
                     result = {
                         "method": method_name,
                         "agent": agent,
                         "condition": asdict(condition),
+                        "repetition": case.repetition,
+                        "run_index": case.run_index,
                         "batch_name": batch_name,
                         "attempt": attempt,
                         "log_path": str(log_path.relative_to(ROOT)),
@@ -626,8 +854,8 @@ def main() -> int:
     failures = len(pending)
     if failures:
         failed_keys = {
-            f"{method_name}:{condition.skill_id}"
-            for method_name, _agent, condition, _batch_name, _log_path in pending
+            f"{method_name}:{case.condition.skill_id}:run{case.run_index}"
+            for method_name, _agent, case, _batch_name, _log_path in pending
         }
         manifest["terminal_failures"] = sorted(failed_keys)
     manifest["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")

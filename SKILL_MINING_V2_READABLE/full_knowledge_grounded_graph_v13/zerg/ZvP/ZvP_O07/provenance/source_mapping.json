@@ -1,0 +1,744 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "326346fff3f2585579c7ff1520dbb7b05fea64a546844641111437e53364541f",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Overseer",
+        "relation": "counters",
+        "relation_id": "f5f61744da9d0a9152db1b5ed552184d026eedf22b73f3c644020dc02a6882e7",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "SwarmHostMP",
+        "relation": "counters",
+        "relation_id": "35abeacda081eb9989a5aa3cb10ac822ae88eef67f2774741093f5566098150e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Queen",
+        "relation": "synergizes_with",
+        "relation_id": "9fcd6792c66f3ff3cff06132a9b147922a605d09f68d48cba15bfa1f6949e247",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "0bde3f6cf6be55c07c568f52af8bcd60497e4a2782edb502aa40309eae46fb06",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "SwarmHostMP",
+        "relation": "synergizes_with",
+        "relation_id": "39c3cf75856086a206c80bb912d084f8e4ecb2fa93aa284d6bef7ce2cd47d8e9",
+        "subject": "Overseer"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41149_ZvP_O07_ZvP_R04_300",
+      "E_41200_ZvP_O07_ZvP_R04_360",
+      "E_41249_ZvP_O07_ZvP_R04_360",
+      "E_41301_ZvP_O07_ZvP_R04_360",
+      "E_41371_ZvP_O07_ZvP_R03_360"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T300_OWN_S03",
+      "ZvP_ZvP_O07_T360_OWN_S01",
+      "ZvP_ZvP_O07_T360_OWN_S02",
+      "ZvP_ZvP_O07_T360_OWN_S04",
+      "ZvP_ZvP_O07_T360_OWN_S07"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "0bde3f6cf6be55c07c568f52af8bcd60497e4a2782edb502aa40309eae46fb06",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "synergizes_with",
+        "relation_id": "df86a104768720fe2ecaf452d00e1a3e6f663a937e94cb58cfbd22e53eccb3e9",
+        "subject": "Roach"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      },
+      {
+        "object": "Queen",
+        "relation": "synergizes_with",
+        "relation_id": "9fcd6792c66f3ff3cff06132a9b147922a605d09f68d48cba15bfa1f6949e247",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "5ba78d0c863ec0d3b41c5da4886c70a9ad287911133e21be0609c546260df365",
+        "subject": "SwarmHostMP"
+      },
+      {
+        "object": "SwarmHostMP",
+        "relation": "synergizes_with",
+        "relation_id": "c186c61262ffb3aa6f38c884fc2052b4e06fe51a7d869117e5d24010f7a6109c",
+        "subject": "Roach"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "f470af032f746bdd94497a1360cb14f6275cbd8256c662f6c3699c27b0d743c2",
+        "subject": "SwarmHostMP"
+      },
+      {
+        "object": "SwarmHostMP",
+        "relation": "synergizes_with",
+        "relation_id": "39c3cf75856086a206c80bb912d084f8e4ecb2fa93aa284d6bef7ce2cd47d8e9",
+        "subject": "Overseer"
+      }
+    ],
+    "source_edge_ids": [
+      "E_40909_ZvP_O07_ZvP_R04_180",
+      "E_40954_ZvP_O07_ZvP_R01_180",
+      "E_40977_ZvP_O07_ZvP_R06_180",
+      "E_40992_ZvP_O07_ZvP_R03_180"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T180_OWN_S01",
+      "ZvP_ZvP_O07_T180_OWN_S02",
+      "ZvP_ZvP_O07_T180_OWN_S03",
+      "ZvP_ZvP_O07_T180_OWN_S04"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "1231b9b5d2c3170707f011f3ca23e5609668a60f8bbd831c2f6e20f95ab45801",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "326346fff3f2585579c7ff1520dbb7b05fea64a546844641111437e53364541f",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "c1e7c43bf684ff52cb64aa8df9b260045d477ad9634292053f064d986e220d06",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41476_ZvP_O07_ZvP_R04_480",
+      "E_41525_ZvP_O07_ZvP_R04_540"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T480_OWN_S02",
+      "ZvP_ZvP_O07_T540_OWN_S02"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41056_ZvP_O07_ZvP_R01_240",
+      "E_41073_ZvP_O07_ZvP_R03_240",
+      "E_41094_ZvP_O07_ZvP_R04_300"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T240_OWN_S04",
+      "ZvP_ZvP_O07_T240_OWN_S05",
+      "ZvP_ZvP_O07_T300_OWN_S01"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "1231b9b5d2c3170707f011f3ca23e5609668a60f8bbd831c2f6e20f95ab45801",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "326346fff3f2585579c7ff1520dbb7b05fea64a546844641111437e53364541f",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "5028cac010e5a22715756cd66854379b7afdfe746276c748f02f0c40edab87c2",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "1c9b0a6be93ab19a97000e44b7b23318e2b77810354aa7991f7cc3b67364cee9",
+        "subject": "Roach"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "c1e7c43bf684ff52cb64aa8df9b260045d477ad9634292053f064d986e220d06",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Queen",
+        "relation": "synergizes_with",
+        "relation_id": "9fcd6792c66f3ff3cff06132a9b147922a605d09f68d48cba15bfa1f6949e247",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "0bde3f6cf6be55c07c568f52af8bcd60497e4a2782edb502aa40309eae46fb06",
+        "subject": "Hydralisk"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41452_ZvP_O07_ZvP_R09_480"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T480_OWN_S01"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "36f07c524073472e4b2486acff9a29d61ff63e6ea05cb4a696246524fbbeb5b2",
+        "subject": "Archon"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "61e9a05eb9779056f4132226c8c9e4f78467762be171995786d2a6d9c4ffa3d9",
+        "subject": "Archon"
+      },
+      {
+        "object": "Overseer",
+        "relation": "counters",
+        "relation_id": "c0e9449790f47c96fab12dbe18948c9cdb2904efba0ab897c073c54eb649acba",
+        "subject": "Archon"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "7d10360ddd35b0653c8f866fdf0a7c7c7781c755f976154460e0094d82160f57",
+        "subject": "Archon"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "9f573b7713def7d1f50cfc046f2c16b86ef4936bf2d20c2a02a7ceec547ed8b5",
+        "subject": "Archon"
+      },
+      {
+        "object": "SwarmHostMP",
+        "relation": "counters",
+        "relation_id": "7e2c7fef29381f0c2294964b481af8f6d8fea689ab31aa7254bb17fc8cb9fcab",
+        "subject": "Archon"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "0380612008df40fb58d64da565acf15d648e05a9bfea1683a181d9891df871de",
+        "subject": "Archon"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "268de63908aad1c9eaabf3d0c66edcc113c96c7e8462c1cd010e57c84d2d84bc",
+        "subject": "HighTemplar"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "84a091b2ae07e6d934ded65b21e7d08d3296c161fa491170d807e96cb61b875f",
+        "subject": "HighTemplar"
+      },
+      {
+        "object": "Archon",
+        "relation": "counters",
+        "relation_id": "35112fa90b8fab7d616b5745294007ee38f9bd42c53a83c7ad572173f2460b26",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "4e5a87b4b74053a26fdc13a21497e46427f55a3917682835dcfbddf9d330d38e",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "HighTemplar",
+        "relation": "counters",
+        "relation_id": "d75c74aaa5dbfbf4d457776f0d456dac0cb17748eb5071c7b8d7d858823670d1",
+        "subject": "Roach"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41569_ZvP_O07_ZvP_R04_600",
+      "E_41596_ZvP_O07_ZvP_R03_600"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T600_OWN_S01",
+      "ZvP_ZvP_O07_T600_OWN_S02"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [
+      {
+        "object": "VoidRay",
+        "relation": "counters",
+        "relation_id": "32b93fdf454af16c997247cc70939c2fd1cdeb225dc887724fc3133e7acb48e9",
+        "subject": "Queen"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41406_ZvP_O07_ZvP_R07_420"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T420_OWN_S01"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "326346fff3f2585579c7ff1520dbb7b05fea64a546844641111437e53364541f",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "0bde3f6cf6be55c07c568f52af8bcd60497e4a2782edb502aa40309eae46fb06",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Queen",
+        "relation": "synergizes_with",
+        "relation_id": "9fcd6792c66f3ff3cff06132a9b147922a605d09f68d48cba15bfa1f6949e247",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41513_ZvP_O07_ZvP_R02_540"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T540_OWN_S01"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "1231b9b5d2c3170707f011f3ca23e5609668a60f8bbd831c2f6e20f95ab45801",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "326346fff3f2585579c7ff1520dbb7b05fea64a546844641111437e53364541f",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "5028cac010e5a22715756cd66854379b7afdfe746276c748f02f0c40edab87c2",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "1c9b0a6be93ab19a97000e44b7b23318e2b77810354aa7991f7cc3b67364cee9",
+        "subject": "Roach"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "c1e7c43bf684ff52cb64aa8df9b260045d477ad9634292053f064d986e220d06",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Zergling",
+        "relation": "enables_morph",
+        "relation_id": "300845c0f5466cba3dedb547d6c8dad96e73c1f6ed7b4c7f34f67a4b4c58c560",
+        "subject": "BanelingNest"
+      },
+      {
+        "object": "Queen",
+        "relation": "synergizes_with",
+        "relation_id": "9fcd6792c66f3ff3cff06132a9b147922a605d09f68d48cba15bfa1f6949e247",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "0bde3f6cf6be55c07c568f52af8bcd60497e4a2782edb502aa40309eae46fb06",
+        "subject": "Hydralisk"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41409_ZvP_O07_ZvP_R02_420"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T420_OWN_S02"
+    ]
+  },
+  "N010": {
+    "knowledge_claims": [
+      {
+        "object": "VoidRay",
+        "relation": "counters",
+        "relation_id": "12440c1acb8eb92754b033bde62862694f4b67bc392e0e600aabd8b0b0ee0b11",
+        "subject": "Mutalisk"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "counters",
+        "relation_id": "32b93fdf454af16c997247cc70939c2fd1cdeb225dc887724fc3133e7acb48e9",
+        "subject": "Queen"
+      },
+      {
+        "object": "Mutalisk",
+        "relation": "counters",
+        "relation_id": "9557fed25d7a3ed28e64ec7c12f69ec158ba52b38a52847bdb7136e2682bdd9d",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Overseer",
+        "relation": "counters",
+        "relation_id": "f5f61744da9d0a9152db1b5ed552184d026eedf22b73f3c644020dc02a6882e7",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Corruptor",
+        "relation": "grants_stat_bonus",
+        "relation_id": "eea7ceded622098ae72f9a134abca17628fb1d79446b368022e04cf2b190481a",
+        "subject": "ZergFlyerWeaponsLevel1"
+      },
+      {
+        "object": "Mutalisk",
+        "relation": "grants_stat_bonus",
+        "relation_id": "9aa31b99d1dd4c4925f83464bdf0a0aac2ca87805ae06e26ac0877ada3e2bcb5",
+        "subject": "ZergFlyerWeaponsLevel1"
+      },
+      {
+        "object": "Overlord",
+        "relation": "grants_stat_bonus",
+        "relation_id": "b1ed01038fbc9c2b2f00de83b4e4ef3999bc1844249144bfaba8d71259e9c61f",
+        "subject": "ZergFlyerWeaponsLevel1"
+      },
+      {
+        "object": "Overseer",
+        "relation": "grants_stat_bonus",
+        "relation_id": "e845de02be3c5b27759dd99c175804caadd3a221995ee0b5c4ae83dd40acfdbe",
+        "subject": "ZergFlyerWeaponsLevel1"
+      },
+      {
+        "object": "Mutalisk",
+        "relation": "synergizes_with",
+        "relation_id": "9c1226887cc6ecfa8ae2c9bbf9541bb68ded311c04b048ed36a179e5672bf6b6",
+        "subject": "Corruptor"
+      },
+      {
+        "object": "Corruptor",
+        "relation": "synergizes_with",
+        "relation_id": "fc458331fd57aacefa99bbb7bb3a6609b4ee84f60ad006395305551831ed9c6b",
+        "subject": "Mutalisk"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41553_ZvP_O07_ZvP_R10_540"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T540_OWN_S03"
+    ]
+  },
+  "N011": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "326346fff3f2585579c7ff1520dbb7b05fea64a546844641111437e53364541f",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Queen",
+        "relation": "synergizes_with",
+        "relation_id": "9fcd6792c66f3ff3cff06132a9b147922a605d09f68d48cba15bfa1f6949e247",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "0bde3f6cf6be55c07c568f52af8bcd60497e4a2782edb502aa40309eae46fb06",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "synergizes_with",
+        "relation_id": "df86a104768720fe2ecaf452d00e1a3e6f663a937e94cb58cfbd22e53eccb3e9",
+        "subject": "Roach"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41270_ZvP_O07_ZvP_R09_360"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T360_OWN_S03"
+    ]
+  },
+  "N012": {
+    "knowledge_claims": [
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "Zergling",
+        "relation": "enables_morph",
+        "relation_id": "300845c0f5466cba3dedb547d6c8dad96e73c1f6ed7b4c7f34f67a4b4c58c560",
+        "subject": "BanelingNest"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_41349_ZvP_O07_ZvP_R02_360"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O07_T360_OWN_S06"
+    ]
+  }
+}

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import statistics
 from collections import Counter
 from pathlib import Path
@@ -15,6 +16,22 @@ ROOT = Path(__file__).resolve().parents[1]
 METHOD_NAMES = (
     "full",
     "full_v2",
+    "full_v3",
+    "full_v4",
+    "full_v5",
+    "full_v6",
+    "full_v7",
+    "full_v8",
+    "full_v9",
+    "full_v10",
+    "full_v11",
+    "full_v12",
+    "full_v13",
+    "full_v14",
+    "full_v15",
+    "full_v16",
+    "full_v17",
+    "full_v18",
     "single_trace",
     "static_population",
     "flat_adaptive",
@@ -81,12 +98,15 @@ def read_rows(prefix: str, methods: tuple[str, ...] = METHOD_NAMES) -> list[dict
                     {"event": "sc2_protocol_watchdog_recovery", "source": "match.log"}
                 )
             model_calls = [item for item in calls if item not in watchdog_events]
+            run_match = re.search(r"_run(\d+)$", match_path.parent.name)
+            run_index = int(run_match.group(1)) if run_match else None
             metrics = metadata.get("macro_metrics") or {}
             rows.append(
                 {
                     "method": method,
                     "skill_method": first.get("skill_method"),
                     "skill_id": first.get("skill_id"),
+                    "run_index": run_index,
                     "matchup": metadata.get("matchup"),
                     "opponent_id": metadata.get("opponent_id"),
                     "result": metadata.get("result"),
@@ -106,6 +126,15 @@ def read_rows(prefix: str, methods: tuple[str, ...] = METHOD_NAMES) -> list[dict
                     "watchdog_recovery": bool(watchdog_events),
                     "watchdog_events": watchdog_events,
                     "record_dir": str(match_path.parent),
+                    "valid_artifact": bool(
+                        run_index is not None
+                        and metadata.get("result") in OUTCOME_SCORE
+                        and not watchdog_events
+                        and model_calls
+                        and not any(item.get("error") for item in model_calls)
+                        and all(item.get("is_reasoning") is False for item in model_calls)
+                        and not any(item.get("reasoning_present") for item in model_calls)
+                    ),
                 }
             )
     return rows
@@ -115,7 +144,7 @@ def aggregate(rows: list[dict[str, Any]], methods: tuple[str, ...] = METHOD_NAME
     result: dict[str, Any] = {}
     for method in methods:
         all_group = [row for row in rows if row["method"] == method]
-        group = [row for row in all_group if not row["watchdog_recovery"]]
+        group = [row for row in all_group if row["valid_artifact"]]
         result[method] = {
             "n": len(group),
             "watchdog_recovery_count": sum(row["watchdog_recovery"] for row in all_group),
@@ -146,7 +175,7 @@ def aggregate_by_bot_race(
                 row
                 for row in rows
                 if row["method"] == method
-                and not row["watchdog_recovery"]
+                and row["valid_artifact"]
                 and str(row.get("skill_id") or "").startswith(prefix)
             ]
             result[method][race] = {
@@ -170,9 +199,9 @@ def paired(
 ) -> dict[str, Any]:
     by_method = {
         method: {
-            row["skill_id"]: row
+            (row["skill_id"], row["run_index"]): row
             for row in rows
-            if row["method"] == method and not row["watchdog_recovery"]
+            if row["method"] == method and row["valid_artifact"]
         }
         for method in methods
     }

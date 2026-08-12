@@ -1,0 +1,60 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [],
+      "path": "nodes/N001.md",
+      "summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows ground-leaning posture with possible Marine and Hellion cues. Continue developing technology, economy, and production while strengthening ground army and maintaining defense. Increase economy, production, and technology; maintain expansion and defense.",
+      "title": "Technology/Economy/Production Development with Ground Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows ground-leaning posture with possible Marine and Hellion cues.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N001"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Heavy economy and technology posture with moderate production, but army strength is insufficient relative to investment; repeated failed postures without feedback-driven adjustment. Avoid continuing to invest in economy and technology without a corresponding increase in army production; avoid ignoring repeated failed postures.",
+      "title": "Resource-to-army conversion failure with heavy economy and technology investment",
+      "trigger_summary": "Heavy economy and technology posture with moderate production, but army strength is insufficient relative to investment; repeated failed postures without feedback-driven adjustment.",
+      "type": "negative"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent shows ground posture with possible pressure; own posture is ground-oriented with heavy tech and production. Continue developing technology, economy, and production while strengthening ground army and maintaining defense. Increase economy and production, maintain expansion, and increase technology and upgrades.",
+      "title": "Technology/Economy/Production Development with Ground Macro Posture",
+      "trigger_summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent shows ground posture with possible pressure; own posture is ground-oriented with heavy tech and production.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N004.md",
+      "summary": "Early game with heavy economy and technology investment, moderate production, and light or uncertain defense and air presence. Continue developing technology and economy while strengthening ground army and maintaining defense.",
+      "title": "Technology/Economy Development with Ground Army",
+      "trigger_summary": "Early game with heavy economy and technology investment, moderate production, and light or uncertain defense and air presence.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Both players are in late midgame with heavy economy, production, and technology investment. Enemy intelligence suggests a ground-oriented Terran posture with possible pressure. Own forces are ground-leaning with heavy tech and production, but air presence is light or uncertain. Strengthen ground army, increase production and technology, maintain defense and expansion, continue air development with safety checks. Tempo is develop with safety checks.",
+      "title": "Late Midgame Ground Macro Posture with Heavy Tech and Economy",
+      "trigger_summary": "Both players are in late midgame with heavy economy, production, and technology investment. Enemy intelligence suggests a ground-oriented Terran posture with possible pressure. Own forces are ground-leaning with heavy tech and production, but air presence is light or uncertain.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Early game with heavy economy and technology investment, moderate production, and an opponent showing a ground-leaning posture with possible pressure. Continue developing technology and economy while strengthening ground forces and maintaining defense. Increase production and technology, and consider adding Immortal support to counter Marauder-heavy compositions.",
+      "title": "Technology/Economy/Production Development with Ground-Oriented Enemy Posture",
+      "trigger_summary": "Early game with heavy economy and technology investment, moderate production, and an opponent showing a ground-leaning posture with possible pressure.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvT_O03 Technology / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "PvT_O03"
+}

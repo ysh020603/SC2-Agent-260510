@@ -1,0 +1,60 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy technology investment and moderate production; opponent shows a ground-leaning posture with possible Reaper presence. Continue developing technology and economy while strengthening ground defense. Maintain expansion and production, and increase defense and technology.",
+      "title": "Early Game Technology/Defense/Economy Development",
+      "trigger_summary": "Early game with heavy technology investment and moderate production; opponent shows a ground-leaning posture with possible Reaper presence.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Both sides are in midgame with heavy ground-oriented macro postures, heavy production and technology investment, and possible pressure. Own forces include Zealots, Stalkers, and Dark Templars; opponent cues include Siege Tanks, Marines, and Medivacs. Strengthen ground army, increase economy, production, technology, and upgrades; maintain defense and expansion; continue air direction; develop with safety checks.",
+      "title": "Midgame Ground Macro Posture with Heavy Tech",
+      "trigger_summary": "Both sides are in midgame with heavy ground-oriented macro postures, heavy production and technology investment, and possible pressure. Own forces include Zealots, Stalkers, and Dark Templars; opponent cues include Siege Tanks, Marines, and Medivacs.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Early-midgame phase with heavy technology and production investment, ground-oriented army, and moderate economy. Enemy Intelligence suggests a ground posture with possible Marine and Reaper cues. Continue developing technology and production while maintaining defense and increasing economy. Strengthen ground army and consider upgrades.",
+      "title": "Technology / Defense / Economy Opening with Ground Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy technology and production investment, ground-oriented army, and moderate economy. Enemy Intelligence suggests a ground posture with possible Marine and Reaper cues.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Early-midgame phase with heavy technology investment and moderate production; opponent shows ground-leaning posture with possible Reaper presence. Strengthen ground army, increase defense and economy, continue production and technology, maintain expansion, stabilize then develop.",
+      "title": "Technology / Defense / Economy Opening with Ground-Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy technology investment and moderate production; opponent shows ground-leaning posture with possible Reaper presence.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Entered when both sides exhibit a heavy ground macro posture with heavy production and technology investment, and the game phase is late midgame. Strengthen ground forces, increase production and technology, maintain defense and expansion, and continue air development while preserving flexibility for live observation-driven adaptation.",
+      "title": "Late Midgame Ground Macro with Heavy Tech and Defense",
+      "trigger_summary": "Entered when both sides exhibit a heavy ground macro posture with heavy production and technology investment, and the game phase is late midgame.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Early game with heavy technology and defense posture, moderate production, and light or uncertain air presence on both sides. Strengthen ground forces while continuing technology and defense development; maintain economy and expansion; stabilize before further development.",
+      "title": "Technology / Defense / Economy Opening with Ground-Air Flexibility",
+      "trigger_summary": "Early game with heavy technology and defense posture, moderate production, and light or uncertain air presence on both sides.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvT_O04 Technology / Defense / Economy",
+  "root": "SKILL.md",
+  "skill_id": "PvT_O04"
+}

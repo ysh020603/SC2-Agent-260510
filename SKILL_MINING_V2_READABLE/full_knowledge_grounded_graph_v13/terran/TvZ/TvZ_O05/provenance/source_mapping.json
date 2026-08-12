@@ -1,0 +1,515 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3ee04bc6e833261a305597a48403c6b0445ea28e6ff330f62f5ec8e11f347495",
+        "subject": "Queen"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      }
+    ],
+    "source_edge_ids": [
+      "E_34201_TvZ_O05_TvZ_R10_180",
+      "E_34242_TvZ_O05_TvZ_R09_180",
+      "E_34251_TvZ_O05_TvZ_R10_180",
+      "E_34300_TvZ_O05_TvZ_R09_180"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T180_OWN_S06",
+      "TvZ_TvZ_O05_T180_OWN_S07",
+      "TvZ_TvZ_O05_T180_OWN_S08",
+      "TvZ_TvZ_O05_T180_OWN_S09"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "9c335c480703a53255128cdbeb640b28b2b216b515ebc0bfdd2e629ede812ac1",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "df0ba92ea6dcd697c2ec96a9ae8d62b17fbf01bef7ee05e5df2a7eabab3798db",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "5fad378b3f1f1aa7fd75705c7f4957d4aaf5a743d6551c0e0e4f6cfdaa3f8905",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "8d8394a0ccb98af451837bcd2a903b6886367e7114bd357b9834ffa649344401",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "cb7f0c8f28f9ad874ed6250def99afa1c00badd5a1df09e6b206cff969206bd0",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Banshee",
+        "relation": "counters",
+        "relation_id": "c0c7a1814f5c32b3a1180e1d5c676390bc4cb04f13f7e90658f2fda3dfd14832",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "90d4e128da46ccb5313d2a7be7678e3f5b6531ab4c584e60b006a34bfd9f2a49",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "5b53bc0cf591b8af35f737a33b40023ffc94ffcc668bd9aec3ee38c95f8e92a4",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "286dbc7fd193c6b930ae19d3a6fff034f7dadc16c32bc74dd9d993ea79805c6c",
+        "subject": "Marine"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_35336_TvZ_O05_TvZ_R04_540",
+      "E_35379_TvZ_O05_TvZ_R07_540"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T540_OWN_S02",
+      "TvZ_TvZ_O05_T540_OWN_S03"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3ee04bc6e833261a305597a48403c6b0445ea28e6ff330f62f5ec8e11f347495",
+        "subject": "Queen"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_34117_TvZ_O05_TvZ_R06_180",
+      "E_34159_TvZ_O05_TvZ_R06_180",
+      "E_34183_TvZ_O05_TvZ_R06_180"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T180_OWN_S03",
+      "TvZ_TvZ_O05_T180_OWN_S04",
+      "TvZ_TvZ_O05_T180_OWN_S05"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3ee04bc6e833261a305597a48403c6b0445ea28e6ff330f62f5ec8e11f347495",
+        "subject": "Queen"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "2be7609955499472b23be13de4d23c881824d2482cc734607de9c866e8ab3434",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "bfa36ccba740f2a51d550625c824a8a95d149c3960ebdafc8f8eee606c4a6cb5",
+        "subject": "Zergling"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_34327_TvZ_O05_TvZ_R01_240"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T240_OWN_S01"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3ee04bc6e833261a305597a48403c6b0445ea28e6ff330f62f5ec8e11f347495",
+        "subject": "Queen"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "synergizes_with",
+        "relation_id": "74e73c8ebd3e577cc75a5400bf8c2e4636c4d018edfeb064f4e863c0ec8e6d82",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Hellion",
+        "relation": "synergizes_with",
+        "relation_id": "a1f91f5d0f99013e5b81fab6235a3dfee50b90023bb3852d9b42db5fc7f6b069",
+        "subject": "WidowMine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "35df51a32fa9a664d00c6ab90d9e3539927a09335af2915aac7580ae3c8c7725",
+        "subject": "WidowMine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "e3239ede9be85eb25ad993b7bd3059f10fd06acb91f5b9c7e52662ba871f5ad5",
+        "subject": "WidowMine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_34559_TvZ_O05_TvZ_R02_300",
+      "E_34607_TvZ_O05_TvZ_R02_360",
+      "E_34754_TvZ_O05_TvZ_R02_360",
+      "E_34864_TvZ_O05_TvZ_R08_360"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T300_OWN_S03",
+      "TvZ_TvZ_O05_T360_OWN_S01",
+      "TvZ_TvZ_O05_T360_OWN_S03",
+      "TvZ_TvZ_O05_T360_OWN_S04"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3ee04bc6e833261a305597a48403c6b0445ea28e6ff330f62f5ec8e11f347495",
+        "subject": "Queen"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "2be7609955499472b23be13de4d23c881824d2482cc734607de9c866e8ab3434",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "bfa36ccba740f2a51d550625c824a8a95d149c3960ebdafc8f8eee606c4a6cb5",
+        "subject": "Zergling"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_34545_TvZ_O05_TvZ_R09_300",
+      "E_34601_TvZ_O05_TvZ_R04_300",
+      "E_34717_TvZ_O05_TvZ_R04_360"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T300_OWN_S02",
+      "TvZ_TvZ_O05_T300_OWN_S04",
+      "TvZ_TvZ_O05_T360_OWN_S02"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "104ff8ecae568a41579b255c40d7899f1ea0f19a085243ed5aa02a212c9e3e4a",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "a05529dd5f98826b4ce702c2d9bfc464a02879597c71752e8739fc755a44446e",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "286dbc7fd193c6b930ae19d3a6fff034f7dadc16c32bc74dd9d993ea79805c6c",
+        "subject": "Marine"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "cb7f0c8f28f9ad874ed6250def99afa1c00badd5a1df09e6b206cff969206bd0",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      }
+    ],
+    "source_edge_ids": [
+      "E_35462_TvZ_O05_TvZ_R07_600"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T600_OWN_S03"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [
+      {
+        "object": "Mutalisk",
+        "relation": "counters",
+        "relation_id": "5bf3634cdf2e1e642d2bcc523db164260481adb5f2b3d62da7d3f69e2d019320",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "df39182d7f01915b54bf7b6f9b0568fe0dd5134e3980eff8ec6fd774162a2689",
+        "subject": "Mutalisk"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "fdde41916b66c2e7ace0812b71449d222fd1b5ce9bd4ff56d03b30e800e0687f",
+        "subject": "Mutalisk"
+      }
+    ],
+    "source_edge_ids": [
+      "E_35198_TvZ_O05_TvZ_R11_420"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T420_OWN_S05"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_34304_TvZ_O05_TvZ_R11_180"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O05_T180_OWN_S10"
+    ]
+  }
+}

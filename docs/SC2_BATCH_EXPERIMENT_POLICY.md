@@ -9,8 +9,9 @@
    `sc2_runtime.ensure_bundled_python_sc2()`，解析到当前仓库的
    `python-sc2/sc2/__init__.py`。禁止混用父目录、conda 或 site-packages 中的
    其他 `sc2` 实现。
-2. **错峰启动。** 正式并发实验不得同时瞬时拉起所有客户端。当前已验证的总并发
-   15 拓扑是 5 个隔离 runner × 每个 3 局，runner 和子局均采用 2 秒级错峰。
+2. **错峰启动。** 正式并发实验不得同时瞬时拉起所有客户端。Human-Skill 的标准
+   30 局评估拓扑是 10 个隔离 runner × 每个 3 局，runner 和子局均采用 2 秒级
+   错峰。每个方法固定运行 15 条件 × 2 重复；不得把单个 runner 的并发直接改为 30。
 3. **自然等待子进程。** runner 使用 `subprocess.run` 等待每个单局自然返回，不得
    用外层 wall-clock watchdog、轮询 killpg 或周期性全局清理代替正常生命周期。
 4. **只计干净、可解析结果。** 只有引擎明确报告的 `Victory`、`Tie`、`Defeat`
@@ -29,19 +30,22 @@
 python tools/run_kimi_nothink_strategy_sweep.py --dry-run
 ```
 
-Human-Skill 的 15 条件正式实验使用：
+Human-Skill 的标准 30 局正式实验使用：
 
 ```bash
 python tools/run_human_skill_reference_topology.py \
-  --method full_v2 \
-  --model qwen3-32b \
+  --phase all \
+  --model DeepSeek-V4-flash \
   --batch-prefix <unique-batch-name> \
   --difficulty mediumhard \
   --game-time-limit 1200
 ```
 
-该 wrapper 固定拆分为 5 个 shard，每个 shard `concurrency=3`、
-`retry_concurrency=1`、`launch_stagger=2.0`。单局诊断可以直接使用
+正式启动前先对同一命令追加 `--dry-run`，确认 10 个 shard、总并发 30、每方法
+30 局及精确命令。该 wrapper 固定拆分为 10 个 shard，每个 shard
+`concurrency=3`、`retry_concurrency=1`、`launch_stagger=2.0`。`--phase all`
+运行已注册的消融组和 full/full_v2/full_v3；单方法可改用 `--method <name>`。
+单局诊断可以直接使用
 `tools/run_experiment.py` 或 `run_vs_ai_human_skill.py`，但不得把临时 shell 循环
 当作正式实验记录。
 

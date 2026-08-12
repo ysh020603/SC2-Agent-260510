@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 import math
 import os
 import re
@@ -102,6 +102,51 @@ class HumanSkillAgent:
 
     def reset_match(self) -> None:
         self.memory = MatchSkillMemory(skill_id=self.skill.skill_id, method=self.skill.method)
+
+    def _runtime_policy_context(
+        self,
+        *,
+        race: str,
+        obs_text: str,
+        game_time_seconds: float,
+    ) -> str:
+        """Variant hook for compact live-state routing; inert by default."""
+
+        return ""
+
+    def _variant_decision_error(
+        self,
+        *,
+        race: str,
+        obs_text: str,
+        ordered_names: List[str],
+        game_time_seconds: float,
+    ) -> str:
+        """Variant hook for live executable-queue invariants; inert by default."""
+
+        return ""
+
+    def _variant_transform_ordered_names(
+        self,
+        *,
+        race: str,
+        obs_text: str,
+        ordered_names: List[str],
+        game_time_seconds: float,
+    ) -> List[str]:
+        """Variant hook for deterministic queue normalization; identity by default."""
+
+        return list(ordered_names)
+
+    def _available_node_summary(
+        self,
+        *,
+        game_time_seconds: float,
+        obs_text: str,
+    ) -> str:
+        """Variant hook for evidence-node routing; all nodes remain the default."""
+
+        return self.navigator.available_summary()
 
     def _graph_phase_refresh_error(self, game_time_seconds: float) -> str:
         """Require graph-capable variants to actually navigate as the match evolves."""
@@ -404,7 +449,10 @@ class HumanSkillAgent:
                 variant_contract=self.variant_contract,
                 skill=self.skill,
                 memory=self.memory,
-                available_nodes=self.navigator.available_summary(),
+                available_nodes=self._available_node_summary(
+                    game_time_seconds=game_time_seconds,
+                    obs_text=obs_text,
+                ),
                 obs_text=obs_text,
                 unfinished_canonical_names=unfinished_canonical_names,
                 canonical_unit_names=canonical_unit_names,
@@ -417,6 +465,11 @@ class HumanSkillAgent:
                 decision_interval_seconds=decision_interval_seconds,
                 protocol_feedback=feedback,
                 force_final=force_final,
+                runtime_policy_context=self._runtime_policy_context(
+                    race=race,
+                    obs_text=obs_text,
+                    game_time_seconds=game_time_seconds,
+                ),
             )
             result = self._llm_call(messages, self.model_key, self.api_config_path) or {}
             content = str(result.get("content") or "")
@@ -467,10 +520,19 @@ class HumanSkillAgent:
                         )
                     )
                     return False
+                candidate_decision = replace(
+                    parsed.decision,
+                    ordered_names=self._variant_transform_ordered_names(
+                        race=race,
+                        obs_text=obs_text,
+                        ordered_names=parsed.decision.ordered_names,
+                        game_time_seconds=game_time_seconds,
+                    ),
+                )
                 resource_error = self._queue_resource_error(
                     race=race,
                     obs_text=obs_text,
-                    ordered_names=parsed.decision.ordered_names,
+                    ordered_names=candidate_decision.ordered_names,
                 )
                 if resource_error:
                     feedback = resource_error
@@ -488,7 +550,7 @@ class HumanSkillAgent:
                 supply_error = self._queue_supply_error(
                     race=race,
                     obs_text=obs_text,
-                    ordered_names=parsed.decision.ordered_names,
+                    ordered_names=candidate_decision.ordered_names,
                 )
                 if supply_error:
                     feedback = supply_error
@@ -506,7 +568,7 @@ class HumanSkillAgent:
                 capacity_error = self._production_capacity_error(
                     race=race,
                     obs_text=obs_text,
-                    ordered_names=parsed.decision.ordered_names,
+                    ordered_names=candidate_decision.ordered_names,
                     canonical_unit_names=canonical_unit_names,
                 )
                 if capacity_error:
@@ -522,7 +584,26 @@ class HumanSkillAgent:
                         )
                     )
                     return False
-                decision = parsed.decision
+                variant_error = self._variant_decision_error(
+                    race=race,
+                    obs_text=obs_text,
+                    ordered_names=candidate_decision.ordered_names,
+                    game_time_seconds=game_time_seconds,
+                )
+                if variant_error:
+                    feedback = variant_error
+                    rounds.append(
+                        AgentRound(
+                            type="invalid",
+                            error=feedback,
+                            round=round_number,
+                            model_key=self.model_key,
+                            model=str(result.get("model") or ""),
+                            token_usage=self._usage(result),
+                        )
+                    )
+                    return False
+                decision = candidate_decision
                 rounds.append(
                     AgentRound(
                         round=round_number,

@@ -1,0 +1,80 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [],
+      "path": "nodes/N002.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [
+        "N006"
+      ],
+      "path": "nodes/N003.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to unknown posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a unknown posture; representative observed or remembered cues may include no reliably grounded combat-unit cue. Production appears light_or_uncertain, technology investment appears light_or_uncertain, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N005.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine, Reaper. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine, Reaper. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N006.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Reaper, Battlecruiser. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Maintain current army path while keeping production on a maintain course and economy on a maintain course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Reaper, Battlecruiser. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [],
+      "path": "nodes/N007.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a maintain course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [],
+      "path": "nodes/N008.md",
+      "summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground while keeping production on a increase course and economy on a increase course; reconcile the exact choice with the live observation.",
+      "title": "Default response to ground posture",
+      "trigger_summary": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    }
+  },
+  "opening_name": "ZvT_O02 Economy / Expansion / Ground",
+  "root": "SKILL.md",
+  "skill_id": "ZvT_O02"
+}

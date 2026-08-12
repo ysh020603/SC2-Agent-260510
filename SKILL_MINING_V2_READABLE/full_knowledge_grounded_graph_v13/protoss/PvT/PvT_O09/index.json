@@ -1,0 +1,42 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [],
+      "path": "nodes/N001.md",
+      "summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent ground posture with possible pressure; own ground macro posture with heavy tech and production. Strengthen ground army, increase production and technology, maintain expansion and defense, continue air direction, develop with safety checks.",
+      "title": "Technology/Economy/Production Development with Ground Macro Posture",
+      "trigger_summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent ground posture with possible pressure; own ground macro posture with heavy tech and production.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground posture with possible pressure; own posture is ground-oriented with heavy production and technology. Continue developing technology, economy, and production while strengthening ground forces and maintaining defense. Increase production and technology, maintain expansion, and increase economy.",
+      "title": "Technology/Economy/Production Development with Ground Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground posture with possible pressure; own posture is ground-oriented with heavy production and technology.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Late midgame phase with heavy economy, production, and technology investment on both sides; ground-oriented army composition with possible pressure. Continue developing technology, economy, and production while strengthening ground forces and maintaining defense; increase production and technology, maintain expansion, and increase economy.",
+      "title": "Technology/Economy/Production Development with Ground-Macro Posture",
+      "trigger_summary": "Late midgame phase with heavy economy, production, and technology investment on both sides; ground-oriented army composition with possible pressure.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N004.md",
+      "summary": "Early game with heavy economy and technology investment, moderate production, and light or uncertain defense posture. Opponent shows heavy economy and technology, moderate production, with light or uncertain air presence and defense. Representative enemy cue: Marauder. Continue developing technology and economy while strengthening ground army and maintaining defense. Increase production and technology, maintain expansion, and increase economy.",
+      "title": "Technology/Economy Development with Ground Army Strengthening",
+      "trigger_summary": "Early game with heavy economy and technology investment, moderate production, and light or uncertain defense posture. Opponent shows heavy economy and technology, moderate production, with light or uncertain air presence and defense. Representative enemy cue: Marauder.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvT_O09 Technology / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "PvT_O09"
+}

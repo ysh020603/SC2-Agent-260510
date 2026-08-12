@@ -1,0 +1,122 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N010"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early-midgame default node: both sides ground-leaning, heavy economy, moderate production, light/uncertain air and defense. Terran has heavy technology investment. Continue developing expansion/economy/technology while strengthening ground army. Maintain air and defense posture. Increase economy and expansion. Continue production and technology.",
+      "title": "TvZ_O01 Expansion / Economy / Technology",
+      "trigger_summary": "Early-midgame default node: both sides ground-leaning, heavy economy, moderate production, light/uncertain air and defense. Terran has heavy technology investment.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N010"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Heavy economy and technology investment with moderate production, but army strength lags behind resource investment, indicating inefficient conversion of resources into combat power. Avoid continuing to invest in economy and technology without commensurate army production. Do not neglect defense while expanding.",
+      "title": "Resource-to-army conversion failure",
+      "trigger_summary": "Heavy economy and technology investment with moderate production, but army strength lags behind resource investment, indicating inefficient conversion of resources into combat power.",
+      "type": "negative"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Late midgame with heavy economy and technology investment on both sides; opponent shows a ground macro posture with possible pressure. Strengthen ground army, increase economy and technology, maintain defense and expansion, continue air direction, develop with safety checks.",
+      "title": "TvZ_O01 Expansion / Economy / Technology",
+      "trigger_summary": "Late midgame with heavy economy and technology investment on both sides; opponent shows a ground macro posture with possible pressure.",
+      "type": "positive"
+    },
+    "N004": {
+      "children": [
+        "N001",
+        "N002",
+        "N006"
+      ],
+      "path": "nodes/N004.md",
+      "summary": "Early game with heavy economy and expansion posture, moderate production and technology, ground-leaning opponent with light or uncertain air presence. Continue developing economy and technology while strengthening ground forces, maintaining defense and air posture, with safety checks.",
+      "title": "TvZ_O01 Expansion / Economy / Technology",
+      "trigger_summary": "Early game with heavy economy and expansion posture, moderate production and technology, ground-leaning opponent with light or uncertain air presence.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N005.md",
+      "summary": "Trajectory evidence indicates a heavy economy and technology investment with a ground-oriented army, but the node is marked negative, suggesting that resources are not being converted into effective army strength or that the strategic posture is failing to produce a decisive advantage. Avoid continuing to invest in economy and technology without simultaneously producing army units. Avoid neglecting defense while expanding. Avoid relying solely on ground forces without incorporating air support if the opponent's composition demands it.",
+      "title": "Resource-to-army conversion failure in a heavy economy/technology ground posture",
+      "trigger_summary": "Trajectory evidence indicates a heavy economy and technology investment with a ground-oriented army, but the node is marked negative, suggesting that resources are not being converted into effective army strength or that the strategic posture is failing to produce a decisive advantage.",
+      "type": "negative"
+    },
+    "N006": {
+      "children": [
+        "N010"
+      ],
+      "path": "nodes/N006.md",
+      "summary": "Heavy economy and technology investment with moderate production, but army strength lags behind resource investment; repeated failed ground pushes without adapting composition. Avoid over-investing in economy/technology without proportional army production. Avoid relying solely on Hellion or Reaper against Queen-heavy defenses. Avoid neglecting upgrades that improve Marine effectiveness.",
+      "title": "Resource-to-army conversion failure in a heavy economy/technology ground posture",
+      "trigger_summary": "Heavy economy and technology investment with moderate production, but army strength lags behind resource investment; repeated failed ground pushes without adapting composition.",
+      "type": "negative"
+    },
+    "N007": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N007.md",
+      "summary": "Midgame ground-macro posture with heavy economy and technology investment on both sides; enemy air presence light or uncertain. Strengthen ground army, increase economy and technology, maintain defense and expansion, continue production, and maintain air direction.",
+      "title": "TvZ_O01 Expansion / Economy / Technology",
+      "trigger_summary": "Midgame ground-macro posture with heavy economy and technology investment on both sides; enemy air presence light or uncertain.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [],
+      "path": "nodes/N008.md",
+      "summary": "This node is triggered when the game reaches midgame with both sides exhibiting a ground-oriented, macro-focused posture. The opponent shows heavy economy, expansion, and defense, with moderate production and possible pressure. Your own posture is similarly ground-oriented with heavy production and technology, and you are in a position to develop further while maintaining safety. Strengthen ground forces, increase economy and technology, maintain defense and expansion, and continue air development. Develop with safety checks.",
+      "title": "Midgame Ground Macro Posture with Heavy Economy and Technology",
+      "trigger_summary": "This node is triggered when the game reaches midgame with both sides exhibiting a ground-oriented, macro-focused posture. The opponent shows heavy economy, expansion, and defense, with moderate production and possible pressure. Your own posture is similarly ground-oriented with heavy production and technology, and you are in a position to develop further while maintaining safety.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [],
+      "path": "nodes/N009.md",
+      "summary": "Late midgame phase with heavy economy and technology investment, ground-oriented army posture, and possible pressure from the opponent. Strengthen ground army, increase economy and technology, maintain expansion and defense, continue production, and maintain air presence.",
+      "title": "Late Midgame Ground Macro with Heavy Tech and Economy",
+      "trigger_summary": "Late midgame phase with heavy economy and technology investment, ground-oriented army posture, and possible pressure from the opponent.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [],
+      "path": "nodes/N010.md",
+      "summary": "Early-midgame phase with heavy economy and technology posture, ground-oriented army, and moderate production. Opponent shows ground macro posture with possible pressure. Strengthen ground army, increase economy and technology, maintain expansion and production, continue air direction, maintain defense, develop with safety checks.",
+      "title": "TvZ_O01 Expansion / Economy / Technology",
+      "trigger_summary": "Early-midgame phase with heavy economy and technology posture, ground-oriented army, and moderate production. Opponent shows ground macro posture with possible pressure.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [
+        "N001",
+        "N002",
+        "N006"
+      ],
+      "path": "nodes/N011.md",
+      "summary": "Early game with own ground-oriented posture, moderate production, heavy economy and technology investment; opponent appears ground-leaning with heavy economy and light or uncertain technology. Strengthen ground army while increasing economy and continuing technology development; maintain expansion and defense posture.",
+      "title": "Early Ground-Macro Development with Heavy Economy and Technology",
+      "trigger_summary": "Early game with own ground-oriented posture, moderate production, heavy economy and technology investment; opponent appears ground-leaning with heavy economy and light or uncertain technology.",
+      "type": "default"
+    },
+    "N012": {
+      "children": [],
+      "path": "nodes/N012.md",
+      "summary": "Midgame phase with both sides showing ground-oriented macro postures, heavy economies, and moderate to heavy production. Enemy Intelligence indicates possible Zergling and Queen presence, but air presence is light or uncertain. Own forces are ground-leaning with Marine, Reaper, Hellion cues, and heavy technology investment. Strengthen ground army while increasing production and continuing technology development. Maintain economy and expansion posture, and stabilize tempo before further development.",
+      "title": "Midgame Ground Macro Posture with Heavy Economy and Technology",
+      "trigger_summary": "Midgame phase with both sides showing ground-oriented macro postures, heavy economies, and moderate to heavy production. Enemy Intelligence indicates possible Zergling and Queen presence, but air presence is light or uncertain. Own forces are ground-leaning with Marine, Reaper, Hellion cues, and heavy technology investment.",
+      "type": "default"
+    }
+  },
+  "opening_name": "TvZ_O01 Expansion / Economy / Technology",
+  "root": "SKILL.md",
+  "skill_id": "TvZ_O01"
+}

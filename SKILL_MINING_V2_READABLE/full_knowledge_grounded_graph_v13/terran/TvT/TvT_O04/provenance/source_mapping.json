@@ -1,0 +1,328 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "2340db263dd818436a4ba45d629b14322759e27ff907ce0400ced6993aa1fa1d",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "5a42d318e5451629bb215fc8e863f783aefc0fd54f5a610d528cef4580620960",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "8382014d94b77f908cb8e2242a7095d3b3de1de89d8d8a54d69c01fde7f40191",
+        "subject": "Marine"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "7ca8ae5852adba26b8bb3d6f6e1a55591154ff1a190243ccdc8bcd4ef8b81705",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_23440_TvT_O04_TvT_R01_300",
+      "E_23464_TvT_O04_TvT_R01_300",
+      "E_23490_TvT_O04_TvT_R07_300",
+      "E_23535_TvT_O04_TvT_R01_300",
+      "E_23574_TvT_O04_TvT_R01_360",
+      "E_23613_TvT_O04_TvT_R11_360",
+      "E_23624_TvT_O04_TvT_R01_360",
+      "E_23687_TvT_O04_TvT_R11_360"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O04_T300_OWN_S01",
+      "TvT_TvT_O04_T300_OWN_S02",
+      "TvT_TvT_O04_T300_OWN_S03",
+      "TvT_TvT_O04_T300_OWN_S04",
+      "TvT_TvT_O04_T360_OWN_S01",
+      "TvT_TvT_O04_T360_OWN_S02",
+      "TvT_TvT_O04_T360_OWN_S03",
+      "TvT_TvT_O04_T360_OWN_S04"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "7d728d9c3d1b3e3007e8f0fac0de9aff7d28361db2c86015cc33a7bf663fe51d",
+        "subject": "Banshee"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "0e0784e5d31e68e46b112db91358ebc48926b2e9164822845ae2054a34eaab7a",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "90399f3c91f3c007b30c62502df17d8cc36fd4553744869900caeefa5aaf61ff",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "b4304513f9f299e468d78860ecc09be8bb5d695d4782ffe62b672c7b5732db20",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "2340db263dd818436a4ba45d629b14322759e27ff907ce0400ced6993aa1fa1d",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "5a42d318e5451629bb215fc8e863f783aefc0fd54f5a610d528cef4580620960",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "8382014d94b77f908cb8e2242a7095d3b3de1de89d8d8a54d69c01fde7f40191",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "01fd2d4e225e2dabeed6332a70ba7968d897e4e103d6f5740d06198d1e4e4b00",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "7ca8ae5852adba26b8bb3d6f6e1a55591154ff1a190243ccdc8bcd4ef8b81705",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "c2b19190ac0711cfabb1e41d85308c92413cd674b33385b1b2ec84dc99adbd46",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "7fef88253705f3b2ba48c0ae59f848f252d919b775d15f8f15b96366466e56eb",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_24000_TvT_O04_TvT_R11_540",
+      "E_24026_TvT_O04_TvT_R01_540"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O04_T540_OWN_S02",
+      "TvT_TvT_O04_T540_OWN_S03"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "2340db263dd818436a4ba45d629b14322759e27ff907ce0400ced6993aa1fa1d",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "8382014d94b77f908cb8e2242a7095d3b3de1de89d8d8a54d69c01fde7f40191",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "01fd2d4e225e2dabeed6332a70ba7968d897e4e103d6f5740d06198d1e4e4b00",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_23261_TvT_O04_TvT_R01_180"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O04_T180_OWN_S09"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "5a42d318e5451629bb215fc8e863f783aefc0fd54f5a610d528cef4580620960",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "8382014d94b77f908cb8e2242a7095d3b3de1de89d8d8a54d69c01fde7f40191",
+        "subject": "Marine"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "7ca8ae5852adba26b8bb3d6f6e1a55591154ff1a190243ccdc8bcd4ef8b81705",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_23172_TvT_O04_TvT_R01_180",
+      "E_23197_TvT_O04_TvT_R01_180",
+      "E_23230_TvT_O04_TvT_R01_180",
+      "E_23278_TvT_O04_TvT_R01_180"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O04_T180_OWN_S05",
+      "TvT_TvT_O04_T180_OWN_S06",
+      "TvT_TvT_O04_T180_OWN_S08",
+      "TvT_TvT_O04_T180_OWN_S10"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "90399f3c91f3c007b30c62502df17d8cc36fd4553744869900caeefa5aaf61ff",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "b4304513f9f299e468d78860ecc09be8bb5d695d4782ffe62b672c7b5732db20",
+        "subject": "Banshee"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "0e0784e5d31e68e46b112db91358ebc48926b2e9164822845ae2054a34eaab7a",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "2340db263dd818436a4ba45d629b14322759e27ff907ce0400ced6993aa1fa1d",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "5a42d318e5451629bb215fc8e863f783aefc0fd54f5a610d528cef4580620960",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "8382014d94b77f908cb8e2242a7095d3b3de1de89d8d8a54d69c01fde7f40191",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "01fd2d4e225e2dabeed6332a70ba7968d897e4e103d6f5740d06198d1e4e4b00",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "7ca8ae5852adba26b8bb3d6f6e1a55591154ff1a190243ccdc8bcd4ef8b81705",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "7d728d9c3d1b3e3007e8f0fac0de9aff7d28361db2c86015cc33a7bf663fe51d",
+        "subject": "Banshee"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "c2b19190ac0711cfabb1e41d85308c92413cd674b33385b1b2ec84dc99adbd46",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Medivac",
+        "relation": "synergizes_with",
+        "relation_id": "7fef88253705f3b2ba48c0ae59f848f252d919b775d15f8f15b96366466e56eb",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_24108_TvT_O04_TvT_R11_600",
+      "E_24136_TvT_O04_TvT_R04_600"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O04_T600_OWN_S02",
+      "TvT_TvT_O04_T600_OWN_S03"
+    ]
+  }
+}

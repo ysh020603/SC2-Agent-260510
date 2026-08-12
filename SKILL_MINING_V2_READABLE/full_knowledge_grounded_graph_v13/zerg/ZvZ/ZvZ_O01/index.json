@@ -1,0 +1,116 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N007"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology. Enemy intelligence shows a Queen, suggesting a ground macro posture. Strengthen ground army, increase economy, maintain expansion, maintain production, continue technology, maintain defense, maintain air direction, develop with safety checks.",
+      "title": "Economy / Expansion / Ground Opening",
+      "trigger_summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology. Enemy intelligence shows a Queen, suggesting a ground macro posture.",
+      "type": "positive"
+    },
+    "N002": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame ZvZ where both players are developing a heavy economy with ground-oriented armies, moderate production, and light or uncertain technology investment. Continue developing economy and expansions while strengthening ground forces, maintaining production and technology, and preserving flexibility for live observation-driven adaptation.",
+      "title": "ZvZ Economy/Expansion Ground Macro Posture",
+      "trigger_summary": "Early-midgame ZvZ where both players are developing a heavy economy with ground-oriented armies, moderate production, and light or uncertain technology investment.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [
+        "N009"
+      ],
+      "path": "nodes/N003.md",
+      "summary": "Trajectory shows heavy economy and production but insufficient army conversion, leading to defeat. Avoid over-investing in economy without corresponding army production, leading to vulnerability.",
+      "title": "Resource-to-army conversion failure in heavy economy ground macro",
+      "trigger_summary": "Trajectory shows heavy economy and production but insufficient army conversion, leading to defeat.",
+      "type": "negative"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Early game with heavy economy and expansion posture, ground-leaning army, moderate production, light or uncertain technology. Strengthen ground army, increase economy and expansion, continue technology and upgrades, maintain defense and air presence.",
+      "title": "ZvZ Economy/Expansion Ground Macro",
+      "trigger_summary": "Early game with heavy economy and expansion posture, ground-leaning army, moderate production, light or uncertain technology.",
+      "type": "positive"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Midgame phase with heavy economy and production, ground-oriented armies, and moderate technology. Both sides show representative Zergling and Queen cues. Continue economy and expansion, strengthen ground army, maintain production and technology, with safety checks.",
+      "title": "ZvZ Economy/Expansion Ground Midgame",
+      "trigger_summary": "Midgame phase with heavy economy and production, ground-oriented armies, and moderate technology. Both sides show representative Zergling and Queen cues.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [
+        "N007"
+      ],
+      "path": "nodes/N006.md",
+      "summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology. Enemy intelligence shows a Queen and ground posture. Strengthen ground army, increase defense, continue economy and expansion, maintain air presence, continue production and technology at a measured pace. Stabilize then develop.",
+      "title": "ZvZ Early Economy/Expansion Ground Posture",
+      "trigger_summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology. Enemy intelligence shows a Queen and ground posture.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [],
+      "path": "nodes/N007.md",
+      "summary": "Early-midgame Zerg mirror with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology. Develop economy and expansion while strengthening ground army and maintaining defense; continue technology and production with safety checks.",
+      "title": "ZvZ Economy/Expansion Ground Opening",
+      "trigger_summary": "Early-midgame Zerg mirror with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [],
+      "path": "nodes/N008.md",
+      "summary": "Both players have developed heavy economies and production, with a ground-oriented army composition and possible air presence. The game is in the late midgame phase, and the opponent shows a heavy ground posture with possible Mutalisk presence. Strengthen ground forces, increase defense, continue expanding and developing economy, maintain air presence, and continue production and technology upgrades. Stabilize then develop.",
+      "title": "ZvZ Late Midgame Ground Macro Posture",
+      "trigger_summary": "Both players have developed heavy economies and production, with a ground-oriented army composition and possible air presence. The game is in the late midgame phase, and the opponent shows a heavy ground posture with possible Mutalisk presence.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [
+        "N008"
+      ],
+      "path": "nodes/N009.md",
+      "summary": "Midgame with heavy economy and expansion on both sides; opponent shows heavy ground army with possible air presence (Mutalisk) and heavy production; own posture is ground-oriented with heavy production and technology. Strengthen ground army, increase defense, continue economy and expansion, continue production and technology, maintain air direction, stabilize then develop.",
+      "title": "ZvZ Economy/Expansion Ground Macro Posture",
+      "trigger_summary": "Midgame with heavy economy and expansion on both sides; opponent shows heavy ground army with possible air presence (Mutalisk) and heavy production; own posture is ground-oriented with heavy production and technology.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [
+        "N011"
+      ],
+      "path": "nodes/N010.md",
+      "summary": "Midgame phase with heavy economy and expansion posture for both sides; own production heavy, technology moderate; opponent production and technology heavy; ground army domain with possible pressure. Strengthen air capabilities while continuing economy and expansion development; maintain production and defense, with a tempo of develop with safety checks.",
+      "title": "ZvZ Economy/Expansion Ground Opening with Air Transition",
+      "trigger_summary": "Midgame phase with heavy economy and expansion posture for both sides; own production heavy, technology moderate; opponent production and technology heavy; ground army domain with possible pressure.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [],
+      "path": "nodes/N011.md",
+      "summary": "Late midgame phase with heavy economy and production on both sides; opponent shows ground posture with Zergling and Queen cues; own posture includes air presence with Mutalisk and flyer weapons upgrade. Strengthen air presence while continuing economy and expansion development; maintain ground defense and production.",
+      "title": "ZvZ Economy/Expansion Ground Opening with Air Transition",
+      "trigger_summary": "Late midgame phase with heavy economy and production on both sides; opponent shows ground posture with Zergling and Queen cues; own posture includes air presence with Mutalisk and flyer weapons upgrade.",
+      "type": "default"
+    },
+    "N012": {
+      "children": [],
+      "path": "nodes/N012.md",
+      "summary": "Early game ZvZ with heavy economy and expansion posture, ground-leaning army, moderate production, light or uncertain technology. Strengthen ground army, increase economy, continue expansion, maintain defense, continue technology, stabilize then develop.",
+      "title": "Economy / Expansion / Ground Opening",
+      "trigger_summary": "Early game ZvZ with heavy economy and expansion posture, ground-leaning army, moderate production, light or uncertain technology.",
+      "type": "default"
+    }
+  },
+  "opening_name": "ZvZ_O01 Economy / Expansion / Ground",
+  "root": "SKILL.md",
+  "skill_id": "ZvZ_O01"
+}

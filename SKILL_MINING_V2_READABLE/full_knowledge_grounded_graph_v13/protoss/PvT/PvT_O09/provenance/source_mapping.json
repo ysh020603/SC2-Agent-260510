@@ -1,0 +1,272 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "c1a01672a46164f7711167e23ed6c3d5efd53e7f47e7eab0f7ab9d08fa884c1c",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "7f9b4780e621144e0e56b1a97b8a0044fdd0994f80543bf381fb8515b5a0aae2",
+        "subject": "Marine"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "84ea3703ef497c1496caa6c44a1aa94b1e32124b8cd17a5d56db322b1a51954a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "0ee3411274fc2b996c6328cf0a72a92440db24c61cdc420eaf8ffd9d70d17e8d",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "d60248d2c171d18f1c4a1153dacefa90b537182249fea5bdddfab1ed3156deb4",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "eba2cf9902b020c712283a8427e99210f57962d0d87b28281cea0dc9e2c5b37e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "4c9cc366c9c780bfc26009ca6e870259a8f4e94ad896b49451563896d40ac22c",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Gateway",
+        "relation": "enables_morph",
+        "relation_id": "129136bcbc7a19e191dff38c7b35a7b487d09f792cc37f90ce7272ed4b9b9e6a",
+        "subject": "WarpGateResearch"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "97b73ef8f440bb653181a921a535c034987d753b066992e09b60865c4cc0a060",
+        "subject": "Observer"
+      },
+      {
+        "object": "Stalker",
+        "relation": "synergizes_with",
+        "relation_id": "8b1e91f74d1f7c5cdd8c7db66b31ee06e55d7f31871b21db13cc31d679cf6672",
+        "subject": "Observer"
+      }
+    ],
+    "source_edge_ids": [
+      "E_07398_PvT_O09_PvT_R01_420",
+      "E_07407_PvT_O09_PvT_R01_420",
+      "E_07416_PvT_O09_PvT_R01_420",
+      "E_07425_PvT_O09_PvT_R01_420",
+      "E_07440_PvT_O09_PvT_R01_480",
+      "E_07449_PvT_O09_PvT_R01_480",
+      "E_07461_PvT_O09_PvT_R01_480",
+      "E_07470_PvT_O09_PvT_R01_540",
+      "E_07479_PvT_O09_PvT_R01_540",
+      "E_07494_PvT_O09_PvT_R01_540"
+    ],
+    "source_state_ids": [
+      "PvT_PvT_O09_T420_OWN_S01",
+      "PvT_PvT_O09_T420_OWN_S02",
+      "PvT_PvT_O09_T420_OWN_S03",
+      "PvT_PvT_O09_T420_OWN_S04",
+      "PvT_PvT_O09_T480_OWN_S01",
+      "PvT_PvT_O09_T480_OWN_S02",
+      "PvT_PvT_O09_T480_OWN_S03",
+      "PvT_PvT_O09_T540_OWN_S01",
+      "PvT_PvT_O09_T540_OWN_S02",
+      "PvT_PvT_O09_T540_OWN_S03"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "36c0da5bedc1df74c7d360c2c2a7c14daa663109c0ee144b506403f64d049449",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "7f9b4780e621144e0e56b1a97b8a0044fdd0994f80543bf381fb8515b5a0aae2",
+        "subject": "Marine"
+      },
+      {
+        "object": "Gateway",
+        "relation": "enables_morph",
+        "relation_id": "129136bcbc7a19e191dff38c7b35a7b487d09f792cc37f90ce7272ed4b9b9e6a",
+        "subject": "WarpGateResearch"
+      }
+    ],
+    "source_edge_ids": [
+      "E_07297_PvT_O09_PvT_R01_240",
+      "E_07303_PvT_O09_PvT_R01_240",
+      "E_07312_PvT_O09_PvT_R01_240",
+      "E_07329_PvT_O09_PvT_R01_300",
+      "E_07334_PvT_O09_PvT_R01_300",
+      "E_07342_PvT_O09_PvT_R01_300",
+      "E_07351_PvT_O09_PvT_R01_300",
+      "E_07363_PvT_O09_PvT_R01_360",
+      "E_07372_PvT_O09_PvT_R01_360",
+      "E_07384_PvT_O09_PvT_R01_360",
+      "E_07390_PvT_O09_PvT_R01_360"
+    ],
+    "source_state_ids": [
+      "PvT_PvT_O09_T240_OWN_S01",
+      "PvT_PvT_O09_T240_OWN_S02",
+      "PvT_PvT_O09_T240_OWN_S03",
+      "PvT_PvT_O09_T300_OWN_S01",
+      "PvT_PvT_O09_T300_OWN_S02",
+      "PvT_PvT_O09_T300_OWN_S03",
+      "PvT_PvT_O09_T300_OWN_S04",
+      "PvT_PvT_O09_T360_OWN_S01",
+      "PvT_PvT_O09_T360_OWN_S02",
+      "PvT_PvT_O09_T360_OWN_S03",
+      "PvT_PvT_O09_T360_OWN_S04"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "c1a01672a46164f7711167e23ed6c3d5efd53e7f47e7eab0f7ab9d08fa884c1c",
+        "subject": "Immortal"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "4c9cc366c9c780bfc26009ca6e870259a8f4e94ad896b49451563896d40ac22c",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Medivac",
+        "relation": "counters",
+        "relation_id": "eba2cf9902b020c712283a8427e99210f57962d0d87b28281cea0dc9e2c5b37e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3cb8ce78429547956081d81d34e04155a08fad62d771117c2e4b66ead1a802dd",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "c0fe4222f2147c54241101cfbe773385772affe4f25cdaff2bd3fa84f7757f25",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "97b73ef8f440bb653181a921a535c034987d753b066992e09b60865c4cc0a060",
+        "subject": "Observer"
+      },
+      {
+        "object": "Gateway",
+        "relation": "enables_morph",
+        "relation_id": "129136bcbc7a19e191dff38c7b35a7b487d09f792cc37f90ce7272ed4b9b9e6a",
+        "subject": "WarpGateResearch"
+      }
+    ],
+    "source_edge_ids": [
+      "E_07500_PvT_O09_PvT_R01_600",
+      "E_07506_PvT_O09_PvT_R01_600",
+      "E_07518_PvT_O09_PvT_R01_600"
+    ],
+    "source_state_ids": [
+      "PvT_PvT_O09_T600_OWN_S01",
+      "PvT_PvT_O09_T600_OWN_S02",
+      "PvT_PvT_O09_T600_OWN_S03"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "e15f7aef55966d6310d5617f0f94a224f2a78fb64548193de6100cd6964d3642",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "860bd6f480e9f34f33413b263ee7fcb0b455d6717a06f785ceddc23f6ef37fde",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "e6621748fd660a87bee56f3986adc73770a1b1c77ba4a074345275177cf5252f",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "ff7245b973c98a8120dc035d398dc127fbd2268a4d0759df45a6e1c9946e1c6d",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "56ab33c76a4b195b16022b6aad9f1d27deb6a167f4a97ad935c515e67f6ab068",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "285cca71b3d7f05b5bc662fea68f8433c5f96426c99dbd7cb5aba77593199744",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Gateway",
+        "relation": "enables_morph",
+        "relation_id": "129136bcbc7a19e191dff38c7b35a7b487d09f792cc37f90ce7272ed4b9b9e6a",
+        "subject": "WarpGateResearch"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "36c0da5bedc1df74c7d360c2c2a7c14daa663109c0ee144b506403f64d049449",
+        "subject": "Zealot"
+      }
+    ],
+    "source_edge_ids": [
+      "E_07286_PvT_O09_PvT_R01_180",
+      "E_07292_PvT_O09_PvT_R01_180"
+    ],
+    "source_state_ids": [
+      "PvT_PvT_O09_T180_OWN_S01",
+      "PvT_PvT_O09_T180_OWN_S02"
+    ]
+  }
+}

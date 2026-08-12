@@ -1,0 +1,48 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [],
+      "path": "nodes/N001.md",
+      "summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning posture with possible pressure. Strengthen ground army, increase production and technology, maintain expansion, increase economy, maintain defense with safety checks.",
+      "title": "Technology/Economy/Production Development with Ground Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning posture with possible pressure.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [],
+      "path": "nodes/N002.md",
+      "summary": "Early game with heavy technology and economy investment, moderate production, and light or uncertain defense. Opponent shows heavy economy and technology, moderate production, with light or uncertain air presence and defense. Representative enemy cues include Marine and Reaper. Continue developing technology and economy while strengthening ground forces and maintaining defense. Increase production and upgrades, and maintain expansion posture.",
+      "title": "Technology/Economy Development with Ground Reinforcement",
+      "trigger_summary": "Early game with heavy technology and economy investment, moderate production, and light or uncertain defense. Opponent shows heavy economy and technology, moderate production, with light or uncertain air presence and defense. Representative enemy cues include Marine and Reaper.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning posture with possible pressure. Strengthen ground army, increase production and technology, maintain defense and expansion, continue air direction, develop with safety checks.",
+      "title": "Midgame Ground Macro with Heavy Tech and Economy",
+      "trigger_summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning posture with possible pressure.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Both sides are in late midgame with heavy economy, production, and technology investment. Enemy ground posture is likely, with possible pressure. Own posture is ground-oriented with heavy tech and production, including a Stargate and Robotics Facility. Continue developing a technology/economy/production posture while strengthening ground forces and maintaining defense. Increase production and technology, maintain expansions, and increase economy. Tempo is develop with safety checks.",
+      "title": "Late Midgame Ground Macro Posture with Heavy Tech and Economy",
+      "trigger_summary": "Both sides are in late midgame with heavy economy, production, and technology investment. Enemy ground posture is likely, with possible pressure. Own posture is ground-oriented with heavy tech and production, including a Stargate and Robotics Facility.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Early game with heavy economy and technology investment, moderate production, and possible ground pressure from the opponent. Continue developing technology and economy while strengthening ground army and maintaining defense, with safety checks against possible pressure.",
+      "title": "Technology/Economy Development with Ground Defense",
+      "trigger_summary": "Early game with heavy economy and technology investment, moderate production, and possible ground pressure from the opponent.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvT_O07 Technology / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "PvT_O07"
+}

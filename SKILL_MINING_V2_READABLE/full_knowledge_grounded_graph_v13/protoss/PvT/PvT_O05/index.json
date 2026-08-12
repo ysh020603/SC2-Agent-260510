@@ -1,0 +1,44 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy economy and technology posture, moderate production, and light or uncertain defense. Opponent posture unknown but heavy economy and technology, with possible Reaper presence. Continue developing technology, economy, and expansion while strengthening ground army and increasing production. Maintain defense and adapt based on live observation.",
+      "title": "Technology/Economy/Expansion Development with Safety Checks",
+      "trigger_summary": "Early game with heavy economy and technology posture, moderate production, and light or uncertain defense. Opponent posture unknown but heavy economy and technology, with possible Reaper presence.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame phase with heavy economy and technology investment, moderate production, and a ground-oriented army. Opponent is observed or remembered as ground-macro with heavy production and technology, and possible pressure. Continue developing technology, economy, and expansion while strengthening ground army and maintaining defense. Increase production and technology, maintain expansion, and increase economy.",
+      "title": "Technology/Economy/Expansion Development with Ground Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy and technology investment, moderate production, and a ground-oriented army. Opponent is observed or remembered as ground-macro with heavy production and technology, and possible pressure.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N003.md",
+      "summary": "Midgame with heavy economy, heavy production, heavy technology, and ground-oriented armies on both sides. Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine, Reaper, Marauder, Medivac. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown. Strengthen ground army, increase production, increase technology, increase economy, maintain defense and expansion, continue air direction, develop with safety checks.",
+      "title": "Technology/Economy/Expansion Ground Macro Posture",
+      "trigger_summary": "Midgame with heavy economy, heavy production, heavy technology, and ground-oriented armies on both sides. Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Marine, Reaper, Marauder, Medivac. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy ground posture is indicated by representative cues (Marine, Reaper, Marauder, Medivac). Own ground posture is developing with heavy tech and production. Strengthen ground army, increase economy, production, technology, and upgrades while maintaining defense and expansion. Continue air direction as is.",
+      "title": "Late Midgame Ground Macro Posture with Heavy Tech and Economy",
+      "trigger_summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy ground posture is indicated by representative cues (Marine, Reaper, Marauder, Medivac). Own ground posture is developing with heavy tech and production.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvT_O05 Technology / Economy / Expansion",
+  "root": "SKILL.md",
+  "skill_id": "PvT_O05"
+}

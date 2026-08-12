@@ -1,0 +1,118 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light or uncertain technology, and ground-oriented army. Opponent shows heavy economy, production, and technology with unknown army style and light or uncertain air presence. Strengthen ground army while increasing economy, maintaining expansion, production, defense, and air direction. Continue technology development with safety checks.",
+      "title": "ZvP Economy/Expansion Ground Opening",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light or uncertain technology, and ground-oriented army. Opponent shows heavy economy, production, and technology with unknown army style and light or uncertain air presence.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture on both sides; opponent shows ground macro posture with Zealot/Stalker cues; own posture is ground-oriented with moderate production and light technology. Strengthen ground army while increasing economy and expansion; maintain air presence and continue defense and technology development. Tempo is develop with safety checks.",
+      "title": "ZvP Economy/Expansion Ground Opening",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture on both sides; opponent shows ground macro posture with Zealot/Stalker cues; own posture is ground-oriented with moderate production and light technology.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N003.md",
+      "summary": "Early-midgame phase where both sides show heavy economy and expansion, ground-oriented armies, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with Zealot and Stalker cues. Own posture is ground macro with Zergling and Queen cues. Continue developing economy and expansions while strengthening ground army and increasing technology, with safety checks against possible pressure.",
+      "title": "ZvP Economy/Expansion Ground Macro with Safety Checks",
+      "trigger_summary": "Early-midgame phase where both sides show heavy economy and expansion, ground-oriented armies, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with Zealot and Stalker cues. Own posture is ground macro with Zergling and Queen cues.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture on both sides; opponent shows ground-leaning army with representative Zealot and Stalker cues; own posture is ground-oriented with moderate production and light/uncertain tech. Continue economy and expansion development while strengthening ground army; maintain production and technology; keep defense posture moderate; adapt based on live observation.",
+      "title": "ZvP Economy/Expansion Ground Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture on both sides; opponent shows ground-leaning army with representative Zealot and Stalker cues; own posture is ground-oriented with moderate production and light/uncertain tech.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [
+        "N007"
+      ],
+      "path": "nodes/N005.md",
+      "summary": "Midgame phase with both sides showing heavy economy and ground-oriented macro posture. Enemy Intelligence indicates a ground army with possible Zealot, Stalker, Immortal cues; own posture is ground-oriented with moderate production and heavy technology investment. Continue developing economy and expansions while strengthening ground forces and increasing technology. Maintain defensive structures and creep spread. Adapt based on live observation of enemy composition and pressure.",
+      "title": "ZvP Midgame Ground Macro with Heavy Economy",
+      "trigger_summary": "Midgame phase with both sides showing heavy economy and ground-oriented macro posture. Enemy Intelligence indicates a ground army with possible Zealot, Stalker, Immortal cues; own posture is ground-oriented with moderate production and heavy technology investment.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Midgame with heavy economy and ground-oriented posture for both sides; enemy intelligence suggests a ground macro posture with possible pressure. Continue developing economy and ground army while maintaining production and defense; preserve flexibility for live observation-driven adaptation.",
+      "title": "ZvP Economy/Expansion Ground Midgame",
+      "trigger_summary": "Midgame with heavy economy and ground-oriented posture for both sides; enemy intelligence suggests a ground macro posture with possible pressure.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N007.md",
+      "summary": "Midgame phase with own heavy ground macro posture and opponent heavy air posture. Strengthen ground army while maintaining defense and increasing economy and technology. Continue expansion and production.",
+      "title": "ZvP Midgame Ground Macro vs Heavy Air",
+      "trigger_summary": "Midgame phase with own heavy ground macro posture and opponent heavy air posture.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [
+        "N001"
+      ],
+      "path": "nodes/N008.md",
+      "summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light technology investment, and possible pressure from opponent. Increase economy and expansion while strengthening ground army, maintaining production and defense, and continuing technology development with safety checks.",
+      "title": "Economy/Expansion Ground Development with Safety Checks",
+      "trigger_summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light technology investment, and possible pressure from opponent.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [],
+      "path": "nodes/N009.md",
+      "summary": "Both sides have developed heavy economies and ground-oriented armies with heavy production and technology. The opponent shows a ground posture with possible pressure, while your own posture is similarly ground-oriented with heavy defense. Maintain and strengthen the ground army while continuing economic and technological development, with safety checks against possible pressure.",
+      "title": "Late Midgame Ground Macro Posture",
+      "trigger_summary": "Both sides have developed heavy economies and ground-oriented armies with heavy production and technology. The opponent shows a ground posture with possible pressure, while your own posture is similarly ground-oriented with heavy defense.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [],
+      "path": "nodes/N010.md",
+      "summary": "This node is triggered when both you and the opponent are in the late midgame phase, with heavy economy, production, and technology investment, and a ground-oriented army composition. The opponent shows a ground posture with possible air presence, and your own posture is also ground-oriented with heavy production and technology. Maintain and strengthen your ground army, continue expanding and increasing your economy, continue production and technology development, and maintain defense. Develop with safety checks, and be prepared to adapt based…",
+      "title": "Late Midgame Ground Macro Posture with Heavy Economy and Production",
+      "trigger_summary": "This node is triggered when both you and the opponent are in the late midgame phase, with heavy economy, production, and technology investment, and a ground-oriented army composition. The opponent shows a ground posture with possible air presence, and your own posture is also ground-oriented with heavy production and technology.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N011.md",
+      "summary": "Early-midgame: Zerg has heavy economy and expansion, moderate production, ground army with light air presence. Enemy Intelligence indicates Protoss air posture with Phoenix and Oracle, heavy production and technology, possible pressure. Maintain economy and expansion, strengthen ground army, increase defense, continue technology, stabilize then develop.",
+      "title": "ZvP Economy/Expansion Ground Opening vs. Protoss Air Macro Posture",
+      "trigger_summary": "Early-midgame: Zerg has heavy economy and expansion, moderate production, ground army with light air presence. Enemy Intelligence indicates Protoss air posture with Phoenix and Oracle, heavy production and technology, possible pressure.",
+      "type": "default"
+    },
+    "N012": {
+      "children": [],
+      "path": "nodes/N012.md",
+      "summary": "Early-midgame Zerg vs Protoss. Own posture is ground-oriented with heavy economy and expansion, moderate production, light/uncertain tech. Opponent is heavy economy/expansion/production/tech, with Zealot cues and unknown army composition. Trajectory shows Drone, Overlord, Zergling, RoachWarren, Queen, Extractor, CreepTumor, HydraliskDen, BanelingNest, Roach. Continue developing economy and expansion while strengthening ground army. Maintain air presence. Increase production. Continue technology and defense. Tempo: develop with safety checks.",
+      "title": "ZvP Economy/Expansion Ground Development with Safety Checks",
+      "trigger_summary": "Early-midgame Zerg vs Protoss. Own posture is ground-oriented with heavy economy and expansion, moderate production, light/uncertain tech. Opponent is heavy economy/expansion/production/tech, with Zealot cues and unknown army composition. Trajectory shows Drone, Overlord, Zergling, RoachWarren, Queen, Extractor, CreepTumor, HydraliskDen, BanelingNest, Roach.",
+      "type": "default"
+    }
+  },
+  "opening_name": "ZvP_O06 Economy / Expansion / Ground",
+  "root": "SKILL.md",
+  "skill_id": "ZvP_O06"
+}

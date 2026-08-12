@@ -19,6 +19,18 @@ _SAFE_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 _METHODS = {
     "full_signed_graph",
     "full_guarded_graph_v2",
+    "full_contrastive_graph_v3",
+    "full_failure_aware_graph_v4",
+    "full_trajectory_fusion_graph_v5",
+    "full_race_hybrid_graph_v6",
+    "full_branch_faithful_graph_v7",
+    "full_executable_graph_v8",
+    "full_prompt_executable_graph_v9",
+    "full_opening_champion_graph_v10",
+    "full_executable_normalized_graph_v11",
+    "full_zerg_production_graph_v12",
+    "full_knowledge_grounded_graph_v13",
+    "full_knowledge_executable_graph_v14",
     "ablation_single_trace",
     "ablation_static_population",
     "ablation_flat_adaptive",
@@ -121,6 +133,8 @@ class ReadableSkillLoader:
                 summary=str(raw.get("summary") or ""),
                 trigger_summary=str(raw.get("trigger_summary") or ""),
                 children=list(children),
+                phase=str(raw.get("phase") or ""),
+                policy_summary=str(raw.get("policy_summary") or ""),
             )
         for node in nodes.values():
             for child in node.children:

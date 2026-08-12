@@ -1,0 +1,2172 @@
+{
+  "method": "full_signed_graph",
+  "nodes": [
+    {
+      "frequency": 0.4027777777777778,
+      "next_state_id": "ZvZ_ZvZ_O03_T360_OWN_S02",
+      "node_id": "N001",
+      "node_type": "default",
+      "opponent_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "light_or_uncertain",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears moderate, and exact hidden counts remain unknown."
+        },
+        "phase": "early_midgame",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "opponent",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T300_OPP_S02"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T300_OPP_S02",
+        "technology_posture": "moderate"
+      },
+      "own_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "light_or_uncertain",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+        },
+        "phase": "early_midgame",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "own",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T300_OWN_S01"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T300_OWN_S01",
+        "technology_posture": "moderate"
+      },
+      "phase": "early_midgame",
+      "policy_signature": {
+        "air_direction": "maintain",
+        "army_direction": "strengthen_ground",
+        "confidence": "medium",
+        "defense_direction": "maintain",
+        "economy_direction": "continue",
+        "expansion_direction": "maintain",
+        "production_direction": "maintain",
+        "technology_direction": "maintain",
+        "tempo": "develop_with_safety_checks",
+        "upgrade_direction": "maintain"
+      },
+      "source_edge_ids": [
+        "E_47174_ZvZ_O03_ZvZ_R02_300",
+        "E_47189_ZvZ_O03_ZvZ_R02_300",
+        "E_47232_ZvZ_O03_ZvZ_R06_300",
+        "E_47273_ZvZ_O03_ZvZ_R02_360",
+        "E_47315_ZvZ_O03_ZvZ_R02_360"
+      ],
+      "source_state_id": "ZvZ_ZvZ_O03_T300_OWN_S01",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T300_OWN_S01",
+        "ZvZ_ZvZ_O03_T300_OWN_S02",
+        "ZvZ_ZvZ_O03_T300_OWN_S03",
+        "ZvZ_ZvZ_O03_T360_OWN_S01",
+        "ZvZ_ZvZ_O03_T360_OWN_S02"
+      ],
+      "support": 29,
+      "trajectory_action_cues": [
+        "Zergling",
+        "Roach",
+        "Overlord",
+        "Drone",
+        "Queen",
+        "CreepTumor",
+        "Extractor",
+        "Hydralisk",
+        "Overseer",
+        "zerglingmovementspeed"
+      ]
+    },
+    {
+      "frequency": 0.27058823529411763,
+      "next_state_id": "ZvZ_ZvZ_O03_T480_OWN_S01",
+      "node_id": "N002",
+      "node_type": "default",
+      "opponent_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "moderate",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears moderate, and exact hidden counts remain unknown."
+        },
+        "phase": "midgame",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "opponent",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T420_OPP_S01"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T420_OPP_S01",
+        "technology_posture": "moderate"
+      },
+      "own_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "moderate",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+        },
+        "phase": "midgame",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Roach"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "own",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T420_OWN_S01"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T420_OWN_S01",
+        "technology_posture": "moderate"
+      },
+      "phase": "midgame",
+      "policy_signature": {
+        "air_direction": "maintain",
+        "army_direction": "strengthen_ground",
+        "confidence": "medium",
+        "defense_direction": "maintain",
+        "economy_direction": "continue",
+        "expansion_direction": "maintain",
+        "production_direction": "maintain",
+        "technology_direction": "maintain",
+        "tempo": "develop_with_safety_checks",
+        "upgrade_direction": "maintain"
+      },
+      "source_edge_ids": [
+        "E_47321_ZvZ_O03_ZvZ_R02_420",
+        "E_47339_ZvZ_O03_ZvZ_R03_420",
+        "E_47365_ZvZ_O03_ZvZ_R03_480",
+        "E_47398_ZvZ_O03_ZvZ_R04_480"
+      ],
+      "source_state_id": "ZvZ_ZvZ_O03_T420_OWN_S01",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T420_OWN_S01",
+        "ZvZ_ZvZ_O03_T420_OWN_S02",
+        "ZvZ_ZvZ_O03_T480_OWN_S01",
+        "ZvZ_ZvZ_O03_T480_OWN_S02"
+      ],
+      "support": 23,
+      "trajectory_action_cues": [
+        "Zergling",
+        "Roach",
+        "Overlord",
+        "Drone",
+        "Queen",
+        "CreepTumor",
+        "Extractor",
+        "Hydralisk",
+        "Overseer",
+        "zerglingmovementspeed"
+      ]
+    },
+    {
+      "frequency": 0.2982456140350877,
+      "next_state_id": "ZvZ_ZvZ_O03_T240_OWN_S01",
+      "node_id": "N003",
+      "node_type": "default",
+      "opponent_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "light_or_uncertain",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+        },
+        "phase": "early_game",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "opponent",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T180_OPP_S01"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T180_OPP_S01",
+        "technology_posture": "light_or_uncertain"
+      },
+      "own_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "light_or_uncertain",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+        },
+        "phase": "early_game",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "own",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T180_OWN_S02"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T180_OWN_S02",
+        "technology_posture": "moderate"
+      },
+      "phase": "early_game",
+      "policy_signature": {
+        "air_direction": "maintain",
+        "army_direction": "strengthen_ground",
+        "confidence": "medium",
+        "defense_direction": "maintain",
+        "economy_direction": "continue",
+        "expansion_direction": "maintain",
+        "production_direction": "maintain",
+        "technology_direction": "maintain",
+        "tempo": "develop_with_safety_checks",
+        "upgrade_direction": "maintain"
+      },
+      "source_edge_ids": [
+        "E_46942_ZvZ_O03_ZvZ_R02_180",
+        "E_46971_ZvZ_O03_ZvZ_R04_180",
+        "E_46988_ZvZ_O03_ZvZ_R04_180"
+      ],
+      "source_state_id": "ZvZ_ZvZ_O03_T180_OWN_S02",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S02",
+        "ZvZ_ZvZ_O03_T180_OWN_S03",
+        "ZvZ_ZvZ_O03_T180_OWN_S04"
+      ],
+      "support": 17,
+      "trajectory_action_cues": [
+        "Zergling",
+        "Roach",
+        "Overlord",
+        "Drone",
+        "Queen",
+        "CreepTumor",
+        "Extractor",
+        "Hydralisk",
+        "Overseer",
+        "zerglingmovementspeed"
+      ]
+    },
+    {
+      "frequency": 0.4444444444444444,
+      "next_state_id": "ZvZ_ZvZ_O03_T720_OWN_S01",
+      "node_id": "N004",
+      "node_type": "default",
+      "opponent_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "heavy",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Roach, Queen. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown."
+        },
+        "phase": "late_midgame",
+        "pressure_posture": "possible",
+        "production_posture": "heavy",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Roach"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "opponent",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T600_OPP_S01"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T600_OPP_S01",
+        "technology_posture": "heavy"
+      },
+      "own_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "heavy",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+        },
+        "phase": "late_midgame",
+        "pressure_posture": "possible",
+        "production_posture": "heavy",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "own",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T600_OWN_S01"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T600_OWN_S01",
+        "technology_posture": "heavy"
+      },
+      "phase": "late_midgame",
+      "policy_signature": {
+        "air_direction": "maintain",
+        "army_direction": "strengthen_ground",
+        "confidence": "medium",
+        "defense_direction": "maintain",
+        "economy_direction": "increase",
+        "expansion_direction": "maintain",
+        "production_direction": "maintain",
+        "technology_direction": "continue",
+        "tempo": "develop_with_safety_checks",
+        "upgrade_direction": "increase"
+      },
+      "source_edge_ids": [
+        "E_47459_ZvZ_O03_ZvZ_R04_600",
+        "E_47471_ZvZ_O03_ZvZ_R02_600",
+        "E_47488_ZvZ_O03_ZvZ_R02_600",
+        "E_47505_ZvZ_O03_ZvZ_R04_600",
+        "E_47511_ZvZ_O03_ZvZ_R06_600"
+      ],
+      "source_state_id": "ZvZ_ZvZ_O03_T600_OWN_S01",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OWN_S01",
+        "ZvZ_ZvZ_O03_T600_OWN_S02",
+        "ZvZ_ZvZ_O03_T600_OWN_S03",
+        "ZvZ_ZvZ_O03_T600_OWN_S04",
+        "ZvZ_ZvZ_O03_T600_OWN_S06"
+      ],
+      "support": 12,
+      "trajectory_action_cues": [
+        "Drone",
+        "Overlord",
+        "Roach",
+        "Zergling",
+        "Queen",
+        "zerglingmovementspeed",
+        "CreepTumor",
+        "ZergMissileWeaponsLevel1",
+        "Extractor",
+        "GlialReconstitution"
+      ]
+    },
+    {
+      "frequency": 0.24324324324324326,
+      "next_state_id": "ZvZ_ZvZ_O03_T600_OWN_S04",
+      "node_id": "N005",
+      "node_type": "default",
+      "opponent_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "moderate",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Roach, Queen. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown."
+        },
+        "phase": "midgame",
+        "pressure_posture": "possible",
+        "production_posture": "heavy",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Roach"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "opponent",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T540_OPP_S02"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T540_OPP_S02",
+        "technology_posture": "moderate"
+      },
+      "own_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "heavy",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+        },
+        "phase": "midgame",
+        "pressure_posture": "possible",
+        "production_posture": "heavy",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Roach"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "own",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T540_OWN_S02"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T540_OWN_S02",
+        "technology_posture": "heavy"
+      },
+      "phase": "midgame",
+      "policy_signature": {
+        "air_direction": "maintain",
+        "army_direction": "strengthen_ground",
+        "confidence": "medium",
+        "defense_direction": "increase",
+        "economy_direction": "increase",
+        "expansion_direction": "continue",
+        "production_direction": "continue",
+        "technology_direction": "continue",
+        "tempo": "stabilize_then_develop",
+        "upgrade_direction": "continue"
+      },
+      "source_edge_ids": [
+        "E_47444_ZvZ_O03_ZvZ_R07_540"
+      ],
+      "source_state_id": "ZvZ_ZvZ_O03_T540_OWN_S02",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T540_OWN_S02"
+      ],
+      "support": 9,
+      "trajectory_action_cues": [
+        "Drone",
+        "SpineCrawler",
+        "Zergling",
+        "Overlord",
+        "Queen",
+        "Roach",
+        "SporeCrawler",
+        "Extractor",
+        "CreepTumor",
+        "EvolutionChamber"
+      ]
+    },
+    {
+      "frequency": 0.5,
+      "next_state_id": "ZvZ_ZvZ_O03_T240_OWN_S03",
+      "node_id": "N006",
+      "node_type": "default",
+      "opponent_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "light_or_uncertain",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+        },
+        "phase": "early_game",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "opponent",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T180_OPP_S03"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T180_OPP_S03",
+        "technology_posture": "light_or_uncertain"
+      },
+      "own_state": {
+        "air_presence": "light_or_uncertain",
+        "army_domain": "ground",
+        "army_style": "ground_macro_posture",
+        "confidence": "medium",
+        "defense_posture": "heavy",
+        "economy_posture": "heavy",
+        "expansion_posture": "heavy",
+        "obs_style_summary_seed": {
+          "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+        },
+        "phase": "early_game",
+        "pressure_posture": "possible",
+        "production_posture": "moderate",
+        "representative_unit_cues": [
+          {
+            "strength": "representative",
+            "unit": "Zergling"
+          },
+          {
+            "strength": "representative",
+            "unit": "Queen"
+          }
+        ],
+        "side": "own",
+        "source_state_ids": [
+          "ZvZ_ZvZ_O03_T180_OWN_S07"
+        ],
+        "special_threats": [],
+        "state_id": "ZvZ_ZvZ_O03_T180_OWN_S07",
+        "technology_posture": "moderate"
+      },
+      "phase": "early_game",
+      "policy_signature": {
+        "air_direction": "maintain",
+        "army_direction": "strengthen_ground",
+        "confidence": "medium",
+        "defense_direction": "increase",
+        "economy_direction": "increase",
+        "expansion_direction": "continue",
+        "production_direction": "continue",
+        "technology_direction": "continue",
+        "tempo": "stabilize_then_develop",
+        "upgrade_direction": "continue"
+      },
+      "source_edge_ids": [
+        "E_47023_ZvZ_O03_ZvZ_R07_180"
+      ],
+      "source_state_id": "ZvZ_ZvZ_O03_T180_OWN_S07",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S07"
+      ],
+      "support": 3,
+      "trajectory_action_cues": [
+        "Drone",
+        "SpineCrawler",
+        "Zergling",
+        "Overlord",
+        "Queen",
+        "Roach",
+        "SporeCrawler",
+        "Extractor",
+        "CreepTumor",
+        "EvolutionChamber"
+      ]
+    }
+  ],
+  "opening_id": "ZvZ_O03",
+  "opening_projection": {
+    "army_character": "ground-leaning",
+    "economy_character": "heavy",
+    "flexibility_note": "This is a strategic template, not a fixed build order.",
+    "opening_family_seed": "economy / technology / expansion opening",
+    "opening_name_seed": "ZvZ_O03 Economy / Technology / Expansion",
+    "production_character": "moderate",
+    "strategic_goal_seed": "Develop a economy / technology / expansion posture while preserving flexibility for live observation-driven adaptation.",
+    "technology_character": "moderate"
+  },
+  "opponent_race": "Zerg",
+  "provenance": {
+    "allow_exact_obs_counts": false,
+    "method_ir": "01_method_ir/full_signed_graph/ZvZ_O03.json",
+    "projection_is_observation_compatible": true
+  },
+  "race": "Zerg",
+  "states": {
+    "ZvZ_ZvZ_O03_T180_OPP_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OPP_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OPP_S01",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T180_OPP_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OPP_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OPP_S02",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T180_OPP_S03": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OPP_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OPP_S03",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T180_OPP_S05": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OPP_S05"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OPP_S05",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T180_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OWN_S01",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T180_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OWN_S02",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T180_OWN_S03": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "moderate",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OWN_S03",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T180_OWN_S04": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S04"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OWN_S04",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T180_OWN_S05": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S05"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OWN_S05",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T180_OWN_S07": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_game",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T180_OWN_S07"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T180_OWN_S07",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T240_OPP_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "moderate",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T240_OPP_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T240_OPP_S01",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T240_OPP_S05": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T240_OPP_S05"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T240_OPP_S05",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T240_OPP_S07": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T240_OPP_S07"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T240_OPP_S07",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T240_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T240_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T240_OWN_S01",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T240_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T240_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T240_OWN_S02",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T240_OWN_S03": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T240_OWN_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T240_OWN_S03",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T300_OPP_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T300_OPP_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T300_OPP_S01",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T300_OPP_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears moderate, and exact hidden counts remain unknown."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T300_OPP_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T300_OPP_S02",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T300_OPP_S03": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Roach, Queen. Production appears moderate, technology investment appears light_or_uncertain, and exact hidden counts remain unknown."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T300_OPP_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T300_OPP_S03",
+      "technology_posture": "light_or_uncertain"
+    },
+    "ZvZ_ZvZ_O03_T300_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T300_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T300_OWN_S01",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T300_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T300_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T300_OWN_S02",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T300_OWN_S03": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T300_OWN_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T300_OWN_S03",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T360_OPP_S06": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "light_or_uncertain",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Roach, Queen. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T360_OPP_S06"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T360_OPP_S06",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T360_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T360_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T360_OWN_S01",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T360_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "early_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T360_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T360_OWN_S02",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T420_OPP_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Queen. Production appears moderate, technology investment appears moderate, and exact hidden counts remain unknown."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T420_OPP_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T420_OPP_S01",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T420_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and moderate technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T420_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T420_OWN_S01",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T420_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T420_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T420_OWN_S02",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T480_OPP_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Roach, Queen. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T480_OPP_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T480_OPP_S02",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T480_OPP_S03": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Roach, Queen. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T480_OPP_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T480_OPP_S03",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T480_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T480_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T480_OWN_S01",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T480_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T480_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T480_OWN_S02",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T540_OPP_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Roach, Queen. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T540_OPP_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T540_OPP_S02",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T540_OPP_S03": {
+      "air_presence": "heavy",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Mutalisk, Queen. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Mutalisk"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T540_OPP_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T540_OPP_S03",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T540_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T540_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T540_OWN_S01",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T540_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T540_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T540_OWN_S02",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T600_OPP_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Roach, Queen. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OPP_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OPP_S01",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T600_OPP_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Roach, Queen. Production appears heavy, technology investment appears moderate, and exact hidden counts remain unknown."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OPP_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OPP_S02",
+      "technology_posture": "moderate"
+    },
+    "ZvZ_ZvZ_O03_T600_OPP_S03": {
+      "air_presence": "heavy",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "enemy_intelligence": "Enemy Intelligence is consistent with a ground posture; representative observed or remembered cues may include Zergling, Mutalisk, Queen. Production appears heavy, technology investment appears heavy, and exact hidden counts remain unknown."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Mutalisk"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "opponent",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OPP_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OPP_S03",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T600_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OWN_S01",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T600_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with moderate production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "moderate",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        },
+        {
+          "strength": "representative",
+          "unit": "Overseer"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OWN_S02",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T600_OWN_S03": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OWN_S03"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OWN_S03",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T600_OWN_S04": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OWN_S04"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OWN_S04",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T600_OWN_S06": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "moderate",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Hydralisk"
+        },
+        {
+          "strength": "representative",
+          "unit": "Roach"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T600_OWN_S06"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T600_OWN_S06",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T720_OWN_S01": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T720_OWN_S01"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T720_OWN_S01",
+      "technology_posture": "heavy"
+    },
+    "ZvZ_ZvZ_O03_T720_OWN_S02": {
+      "air_presence": "light_or_uncertain",
+      "army_domain": "ground",
+      "army_style": "ground_macro_posture",
+      "confidence": "medium",
+      "defense_posture": "heavy",
+      "economy_posture": "heavy",
+      "expansion_posture": "heavy",
+      "obs_style_summary_seed": {
+        "own_posture": "Your completed or developing posture is broadly ground-oriented, with heavy production and heavy technology investment. Check live Completed, Under Construction, Active Queues, resources, supply, and army strength before choosing exact actions."
+      },
+      "phase": "late_midgame",
+      "pressure_posture": "possible",
+      "production_posture": "heavy",
+      "representative_unit_cues": [
+        {
+          "strength": "representative",
+          "unit": "Zergling"
+        },
+        {
+          "strength": "representative",
+          "unit": "Queen"
+        }
+      ],
+      "side": "own",
+      "source_state_ids": [
+        "ZvZ_ZvZ_O03_T720_OWN_S02"
+      ],
+      "special_threats": [],
+      "state_id": "ZvZ_ZvZ_O03_T720_OWN_S02",
+      "technology_posture": "heavy"
+    }
+  }
+}

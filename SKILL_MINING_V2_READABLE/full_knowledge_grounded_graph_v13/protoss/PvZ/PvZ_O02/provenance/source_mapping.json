@@ -1,0 +1,139 @@
+{
+  "N001": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08419_PvZ_O02_PvZ_R12_180"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T180_OWN_S01"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08457_PvZ_O02_PvZ_R12_240",
+      "E_08489_PvZ_O02_PvZ_R12_300",
+      "E_08530_PvZ_O02_PvZ_R12_360"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T240_OWN_S01",
+      "PvZ_PvZ_O02_T300_OWN_S01",
+      "PvZ_PvZ_O02_T360_OWN_S01"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08562_PvZ_O02_PvZ_R12_420",
+      "E_08595_PvZ_O02_PvZ_R12_480",
+      "E_08618_PvZ_O02_PvZ_R12_540"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T420_OWN_S01",
+      "PvZ_PvZ_O02_T480_OWN_S01",
+      "PvZ_PvZ_O02_T540_OWN_S01"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08640_PvZ_O02_PvZ_R12_600"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T600_OWN_S01"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08426_PvZ_O02_PvZ_R09_180",
+      "E_08432_PvZ_O02_PvZ_R05_180",
+      "E_08440_PvZ_O02_PvZ_R04_180",
+      "E_08449_PvZ_O02_PvZ_R09_180",
+      "E_08456_PvZ_O02_PvZ_R09_180"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T180_OWN_S02",
+      "PvZ_PvZ_O02_T180_OWN_S04",
+      "PvZ_PvZ_O02_T180_OWN_S05",
+      "PvZ_PvZ_O02_T180_OWN_S08",
+      "PvZ_PvZ_O02_T180_OWN_S09"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08427_PvZ_O02_PvZ_R02_180",
+      "E_08442_PvZ_O02_PvZ_R02_180"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T180_OWN_S03",
+      "PvZ_PvZ_O02_T180_OWN_S06"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08499_PvZ_O02_PvZ_R04_300",
+      "E_08517_PvZ_O02_PvZ_R05_300",
+      "E_08527_PvZ_O02_PvZ_R05_300",
+      "E_08534_PvZ_O02_PvZ_R09_360",
+      "E_08540_PvZ_O02_PvZ_R04_360",
+      "E_08556_PvZ_O02_PvZ_R01_360"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T300_OWN_S03",
+      "PvZ_PvZ_O02_T300_OWN_S04",
+      "PvZ_PvZ_O02_T300_OWN_S07",
+      "PvZ_PvZ_O02_T360_OWN_S02",
+      "PvZ_PvZ_O02_T360_OWN_S03",
+      "PvZ_PvZ_O02_T360_OWN_S06"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08476_PvZ_O02_PvZ_R02_240",
+      "E_08480_PvZ_O02_PvZ_R02_240",
+      "E_08546_PvZ_O02_PvZ_R06_360"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T240_OWN_S04",
+      "PvZ_PvZ_O02_T240_OWN_S05",
+      "PvZ_PvZ_O02_T360_OWN_S04"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08632_PvZ_O02_PvZ_R05_540"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T540_OWN_S03"
+    ]
+  },
+  "N010": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08643_PvZ_O02_PvZ_R04_600",
+      "E_08646_PvZ_O02_PvZ_R05_600"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T600_OWN_S03",
+      "PvZ_PvZ_O02_T600_OWN_S07"
+    ]
+  },
+  "N011": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_08577_PvZ_O02_PvZ_R02_420",
+      "E_08602_PvZ_O02_PvZ_R07_480",
+      "E_08610_PvZ_O02_PvZ_R02_480"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O02_T420_OWN_S04",
+      "PvZ_PvZ_O02_T480_OWN_S02",
+      "PvZ_PvZ_O02_T480_OWN_S09"
+    ]
+  }
+}

@@ -1,0 +1,346 @@
+{
+  "N001": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_37285_ZvP_O02_ZvP_R08_480",
+      "E_37318_ZvP_O02_ZvP_R08_540"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T480_OWN_S01",
+      "ZvP_ZvP_O02_T540_OWN_S01"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_37168_ZvP_O02_ZvP_R08_240",
+      "E_37204_ZvP_O02_ZvP_R08_300",
+      "E_37230_ZvP_O02_ZvP_R08_360"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T240_OWN_S01",
+      "ZvP_ZvP_O02_T300_OWN_S01",
+      "ZvP_ZvP_O02_T360_OWN_S01"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_37345_ZvP_O02_ZvP_R08_600"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T600_OWN_S01"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "65c3f3831f35b28eceedab8e634f937586880675ff2a97fa191bf22db1697b14",
+        "subject": "Roach"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Sentry",
+        "relation": "counters",
+        "relation_id": "af364b2eef810803f9ef4eba77d0ce338be3e3db8b3fc840fba345e05a988735",
+        "subject": "Roach"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "c1e7c43bf684ff52cb64aa8df9b260045d477ad9634292053f064d986e220d06",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "5028cac010e5a22715756cd66854379b7afdfe746276c748f02f0c40edab87c2",
+        "subject": "Immortal"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37296_ZvP_O02_ZvP_R01_480",
+      "E_37327_ZvP_O02_ZvP_R01_540",
+      "E_37337_ZvP_O02_ZvP_R01_540"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T480_OWN_S03",
+      "ZvP_ZvP_O02_T540_OWN_S04",
+      "ZvP_ZvP_O02_T540_OWN_S07"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_37148_ZvP_O02_ZvP_R08_180"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T180_OWN_S01"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37171_ZvP_O02_ZvP_R01_240",
+      "E_37188_ZvP_O02_ZvP_R04_240"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T240_OWN_S02",
+      "ZvP_ZvP_O02_T240_OWN_S04"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37243_ZvP_O02_ZvP_R01_360",
+      "E_37251_ZvP_O02_ZvP_R07_360"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T360_OWN_S02",
+      "ZvP_ZvP_O02_T360_OWN_S03"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Overlord",
+        "relation": "counters",
+        "relation_id": "7015963ba638703979c5e0bcc0778d61e05741c3680e45ca4b42015ec0dcb6fe",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Zergling",
+        "relation": "enables_morph",
+        "relation_id": "300845c0f5466cba3dedb547d6c8dad96e73c1f6ed7b4c7f34f67a4b4c58c560",
+        "subject": "BanelingNest"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37347_ZvP_O02_ZvP_R02_600",
+      "E_37358_ZvP_O02_ZvP_R02_600"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T600_OWN_S02",
+      "ZvP_ZvP_O02_T600_OWN_S06"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37154_ZvP_O02_ZvP_R01_180",
+      "E_37166_ZvP_O02_ZvP_R03_180"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T180_OWN_S04",
+      "ZvP_ZvP_O02_T180_OWN_S08"
+    ]
+  },
+  "N010": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "enables_morph",
+        "relation_id": "300845c0f5466cba3dedb547d6c8dad96e73c1f6ed7b4c7f34f67a4b4c58c560",
+        "subject": "BanelingNest"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37164_ZvP_O02_ZvP_R02_180"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T180_OWN_S06"
+    ]
+  },
+  "N011": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "enables_morph",
+        "relation_id": "300845c0f5466cba3dedb547d6c8dad96e73c1f6ed7b4c7f34f67a4b4c58c560",
+        "subject": "BanelingNest"
+      },
+      {
+        "object": "Overlord",
+        "relation": "synergizes_with",
+        "relation_id": "18b5429b6c0f0f1d25a2ac3d464eec0e0a643c033628acd66b5e6b3d976cacfb",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "synergizes_with",
+        "relation_id": "de21c15f2fa0ba18cae05a67bd2f8d1b05cb7bbf762cece3897b58617b95c846",
+        "subject": "Queen"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37185_ZvP_O02_ZvP_R02_240"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T240_OWN_S03"
+    ]
+  },
+  "N012": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_37352_ZvP_O02_ZvP_R08_600"
+    ],
+    "source_state_ids": [
+      "ZvP_ZvP_O02_T600_OWN_S05"
+    ]
+  }
+}

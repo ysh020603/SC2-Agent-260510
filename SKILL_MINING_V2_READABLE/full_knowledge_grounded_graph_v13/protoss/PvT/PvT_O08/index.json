@@ -1,0 +1,50 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy economy and technology investment, moderate production, ground-oriented posture, and light or uncertain air presence for both sides. Continue developing technology and economy while strengthening ground forces and maintaining defense, with possible pressure.",
+      "title": "Early Ground-Macro Technology/Economy Development",
+      "trigger_summary": "Early game with heavy economy and technology investment, moderate production, ground-oriented posture, and light or uncertain air presence for both sides.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame phase with heavy economy and technology investment, ground-oriented army, and moderate production. Enemy intelligence suggests a ground macro posture with possible pressure. Continue developing technology and economy while strengthening ground forces. Maintain defense and expansion posture, increase production and technology. Tempo: develop with safety checks.",
+      "title": "Technology/Economy/Production Development with Ground Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy and technology investment, ground-oriented army, and moderate production. Enemy intelligence suggests a ground macro posture with possible pressure.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy intelligence indicates a ground posture with possible pressure. Own posture is ground-oriented with heavy production and tech. The trajectory shows continued development of ground forces and tech structures. Continue developing ground forces and technology while maintaining economy and expansion. Increase production and technology. Maintain defense and strengthen ground army. Continue air direction (likely no air investment).",
+      "title": "Late Midgame Ground Macro Development with Heavy Tech and Economy",
+      "trigger_summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy intelligence indicates a ground posture with possible pressure. Own posture is ground-oriented with heavy production and tech. The trajectory shows continued development of ground forces and tech structures.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N004.md",
+      "summary": "Both sides are in midgame with heavy economy, production, and technology investment. Enemy ground posture is confirmed by representative Marine and Marauder cues, but air presence is light or uncertain. Own ground army is developing with Zealot, Stalker, Sentry, and Immortal. Strengthen ground army, increase production and technology, maintain economy and expansion, and continue developing with safety checks.",
+      "title": "Midgame Ground Macro with Heavy Tech and Economy",
+      "trigger_summary": "Both sides are in midgame with heavy economy, production, and technology investment. Enemy ground posture is confirmed by representative Marine and Marauder cues, but air presence is light or uncertain. Own ground army is developing with Zealot, Stalker, Sentry, and Immortal.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Early game with heavy technology investment and moderate production; opponent posture unknown but economy heavy. Continue developing technology and economy while strengthening ground forces and maintaining defense.",
+      "title": "Early Technology/Economy Development with Ground Core",
+      "trigger_summary": "Early game with heavy technology investment and moderate production; opponent posture unknown but economy heavy.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvT_O08 Technology / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "PvT_O08"
+}

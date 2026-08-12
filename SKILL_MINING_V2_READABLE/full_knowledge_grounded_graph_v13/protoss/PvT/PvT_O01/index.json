@@ -1,0 +1,54 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [],
+      "path": "nodes/N001.md",
+      "summary": "Early-midgame phase with heavy economy and technology investment, ground-oriented army, moderate production, and light or uncertain air presence. Opponent shows heavy production and technology with possible pressure, consistent with a ground macro posture. Continue developing technology, economy, and expansion while strengthening ground army and increasing production. Maintain defense and continue air direction with safety checks.",
+      "title": "Technology/Economy/Expansion Development with Ground-Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy and technology investment, ground-oriented army, moderate production, and light or uncertain air presence. Opponent shows heavy production and technology with possible pressure, consistent with a ground macro posture.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Midgame phase with heavy economy, heavy production, heavy technology, and ground-oriented army posture for both sides. Opponent shows representative Marine and Marauder cues, indicating a ground macro posture. Own posture is ground-oriented with heavy production and technology, featuring Stalker, WarpPrism, Observer, and Immortal cues. Continue developing technology, economy, and expansion while strengthening ground army and maintaining defense. Increase production and technology, maintain expansion, and increase economy. Tempo is develop with safety checks.",
+      "title": "Technology/Economy/Expansion Development with Ground Macro Posture",
+      "trigger_summary": "Midgame phase with heavy economy, heavy production, heavy technology, and ground-oriented army posture for both sides. Opponent shows representative Marine and Marauder cues, indicating a ground macro posture. Own posture is ground-oriented with heavy production and technology, featuring Stalker, WarpPrism, Observer, and Immortal cues.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "In late midgame, both sides have heavy economy, production, and technology, with a ground-oriented posture. Enemy Intelligence suggests a ground army with possible Marine, Reaper, Medivac, WidowMine cues. Own posture is ground-oriented with heavy production and technology, including Stalker, WarpPrism, Observer, Immortal cues. Strengthen ground army, increase production and technology, maintain expansion and defense, and continue air direction. Develop with safety checks.",
+      "title": "Late Midgame Ground Macro with Heavy Tech and Economy",
+      "trigger_summary": "In late midgame, both sides have heavy economy, production, and technology, with a ground-oriented posture. Enemy Intelligence suggests a ground army with possible Marine, Reaper, Medivac, WidowMine cues. Own posture is ground-oriented with heavy production and technology, including Stalker, WarpPrism, Observer, Immortal cues.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [
+        "N001"
+      ],
+      "path": "nodes/N004.md",
+      "summary": "Early game with heavy economy and technology investment, moderate production, and a ground-leaning opponent posture. Continue developing technology and economy while strengthening ground army and maintaining defense. Increase production and technology.",
+      "title": "Technology/Economy/Expansion Development with Ground-Oriented Enemy",
+      "trigger_summary": "Early game with heavy economy and technology investment, moderate production, and a ground-leaning opponent posture.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [
+        "N001"
+      ],
+      "path": "nodes/N005.md",
+      "summary": "Early game with heavy economy and technology posture, moderate production, and light or uncertain defense. Opponent shows light or uncertain air presence and a representative Reaper cue. Continue developing technology and economy while strengthening ground forces and maintaining defense. Increase production and technology, and maintain expansion.",
+      "title": "Technology/Economy/Expansion Development with Ground Strength",
+      "trigger_summary": "Early game with heavy economy and technology posture, moderate production, and light or uncertain defense. Opponent shows light or uncertain air presence and a representative Reaper cue.",
+      "type": "default"
+    }
+  },
+  "opening_name": "PvT_O01 Technology / Economy / Expansion",
+  "root": "SKILL.md",
+  "skill_id": "PvT_O01"
+}

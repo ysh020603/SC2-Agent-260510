@@ -1,0 +1,96 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N009"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early-game Zerg mirror where both sides favor heavy economy and ground macro, but the trajectory shows a failure to convert economic advantage into sufficient army strength, leading to defeat. Avoid over-investing in economy or upgrades without corresponding army production, as this leads to vulnerability.",
+      "title": "Economy-First Ground Posture with Insufficient Army Conversion",
+      "trigger_summary": "Early-game Zerg mirror where both sides favor heavy economy and ground macro, but the trajectory shows a failure to convert economic advantage into sufficient army strength, leading to defeat.",
+      "type": "negative"
+    },
+    "N002": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame ZvZ where both players show a ground-oriented, heavy-economy posture with moderate production and light or uncertain technology investment. Continue developing a heavy economy and ground army while maintaining flexibility for live observation-driven adaptation. Strengthen ground forces and maintain production, expansion, and technology development with safety checks.",
+      "title": "ZvZ Economy / Ground / Upgrade Posture",
+      "trigger_summary": "Early-midgame ZvZ where both players show a ground-oriented, heavy-economy posture with moderate production and light or uncertain technology investment.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Midgame phase with heavy economy and ground-oriented posture for both players; opponent shows ground macro posture with Zergling and Queen cues; own posture is ground macro with Zergling, Roach, Queen cues; technology light or uncertain. Strengthen ground army while continuing economy and maintaining production, defense, expansion, and technology. Maintain air direction. Develop with safety checks.",
+      "title": "ZvZ Economy/Ground/Upgrade Midgame Development",
+      "trigger_summary": "Midgame phase with heavy economy and ground-oriented posture for both players; opponent shows ground macro posture with Zergling and Queen cues; own posture is ground macro with Zergling, Roach, Queen cues; technology light or uncertain.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Early game Zerg vs Zerg where both players show a ground-oriented macro posture with moderate production and light or uncertain technology. Enemy Intelligence is consistent with Zergling and Queen presence, heavy economy and defense, and possible early pressure. Continue developing your economy and ground army while maintaining defensive readiness. Strengthen ground forces with Roaches and Zerglings, and consider tech upgrades like zergling movement speed. Maintain production and technology development, but keep safety checks for potential early pressure.",
+      "title": "ZvZ Economy/Ground/Upgrade Development with Safety Checks",
+      "trigger_summary": "Early game Zerg vs Zerg where both players show a ground-oriented macro posture with moderate production and light or uncertain technology. Enemy Intelligence is consistent with Zergling and Queen presence, heavy economy and defense, and possible early pressure.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Late midgame with heavy economy and ground-oriented armies on both sides; production is heavy, technology is moderate, and air presence is uncertain. Continue developing the economy/ground/upgrade posture while maintaining flexibility for live observation-driven adaptation. Strengthen ground forces, maintain production, economy, expansion, defense, and technology directions.",
+      "title": "ZvZ Economy/Ground/Upgrade Posture",
+      "trigger_summary": "Late midgame with heavy economy and ground-oriented armies on both sides; production is heavy, technology is moderate, and air presence is uncertain.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Late midgame with heavy economy and production on both sides; own posture ground-oriented with moderate tech, opponent ground-macro with heavy tech; own air presence heavy and increasing. Strengthen air while continuing economy, defense, expansion, and technology development; maintain production with safety checks.",
+      "title": "ZvZ Economy/Ground/Upgrade with Air Transition",
+      "trigger_summary": "Late midgame with heavy economy and production on both sides; own posture ground-oriented with moderate tech, opponent ground-macro with heavy tech; own air presence heavy and increasing.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [
+        "N006"
+      ],
+      "path": "nodes/N007.md",
+      "summary": "Midgame ZvZ where both sides show heavy economy, heavy production, and ground-macro postures. Enemy Intelligence suggests a ground army with Zergling, Roach, Queen; your own posture is ground-oriented with heavy production and moderate tech, but you have begun investing in air (Mutalisk, ZergFlyerWeaponsLevel1). Strengthen air while continuing economy, defense, expansion, and technology development. Maintain production and proceed with safety checks.",
+      "title": "ZvZ Economy/Ground/Upgrade Midgame: Develop Air with Safety Checks",
+      "trigger_summary": "Midgame ZvZ where both sides show heavy economy, heavy production, and ground-macro postures. Enemy Intelligence suggests a ground army with Zergling, Roach, Queen; your own posture is ground-oriented with heavy production and moderate tech, but you have begun investing in air (Mutalisk, ZergFlyerWeaponsLevel1).",
+      "type": "default"
+    },
+    "N008": {
+      "children": [],
+      "path": "nodes/N008.md",
+      "summary": "Late midgame phase with both sides showing heavy economy, production, and technology investment. Enemy Intelligence indicates a ground posture with possible air presence (Mutalisk, Corruptor). Own posture is ground-oriented with heavy production and technology. Trajectory shows defensive structures and upgrades. Strengthen ground army, increase defense, continue economy and expansion, maintain air direction, and continue production and technology upgrades. Stabilize then develop.",
+      "title": "ZvZ Late Midgame Ground Macro with Heavy Economy and Defense",
+      "trigger_summary": "Late midgame phase with both sides showing heavy economy, production, and technology investment. Enemy Intelligence indicates a ground posture with possible air presence (Mutalisk, Corruptor). Own posture is ground-oriented with heavy production and technology. Trajectory shows defensive structures and upgrades.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [],
+      "path": "nodes/N009.md",
+      "summary": "Early-midgame ZvZ where both players show a ground-oriented, heavy-economy posture with moderate production and light or uncertain technology investment. Strengthen ground army, increase defense, continue economy and expansion, maintain air presence, continue production and technology/upgrades, stabilize then develop.",
+      "title": "ZvZ Economy/Ground/Upgrade Posture",
+      "trigger_summary": "Early-midgame ZvZ where both players show a ground-oriented, heavy-economy posture with moderate production and light or uncertain technology investment.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N010.md",
+      "summary": "In midgame ZvZ, both sides exhibit heavy economy and production, with the opponent showing a ground-leaning army and heavy technology. Your own posture is ground-oriented with moderate technology and heavy production. Strengthen ground army, increase defense, continue economy and expansion, maintain air presence, and continue technology and upgrades.",
+      "title": "Midgame Ground Macro with Heavy Economy and Defensive Posture",
+      "trigger_summary": "In midgame ZvZ, both sides exhibit heavy economy and production, with the opponent showing a ground-leaning army and heavy technology. Your own posture is ground-oriented with moderate technology and heavy production.",
+      "type": "default"
+    }
+  },
+  "opening_name": "ZvZ_O05 Economy / Ground / Upgrade",
+  "root": "SKILL.md",
+  "skill_id": "ZvZ_O05"
+}

@@ -1,0 +1,116 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy economy and expansion posture, moderate production, light or uncertain technology, and possible pressure. Enemy intelligence shows unknown army posture with heavy economy and technology investment. Maintain expansion and economy, strengthen ground army, continue technology, increase upgrades, and develop with safety checks.",
+      "title": "ZvP Early Game Heavy Economy Ground Macro",
+      "trigger_summary": "Early game with heavy economy and expansion posture, moderate production, light or uncertain technology, and possible pressure. Enemy intelligence shows unknown army posture with heavy economy and technology investment.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N005"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light or uncertain technology, and ground-leaning army. Opponent shows heavy economy and technology posture with unknown army composition. Continue developing economy and production while strengthening ground army and maintaining defense. Maintain expansion and technology progression with safety checks.",
+      "title": "ZvP Early-Midgame Ground-Macro Development with Heavy Economy",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture, moderate production, light or uncertain technology, and ground-leaning army. Opponent shows heavy economy and technology posture with unknown army composition.",
+      "type": "default"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Midgame phase with both sides ground-leaning, heavy economy, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with possible Stalker, DarkTemplar, WarpPrism, Observer presence. Own posture is ground macro with Zergling, Roach, Queen, and potential Hydralisk, SwarmHostMP. Continue developing the expansion/economy/production posture while strengthening ground army and maintaining defense. Preserve flexibility for live observation-driven adaptation.",
+      "title": "ZvP Midgame Ground Macro Posture with Heavy Economy",
+      "trigger_summary": "Midgame phase with both sides ground-leaning, heavy economy, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with possible Stalker, DarkTemplar, WarpPrism, Observer presence. Own posture is ground macro with Zergling, Roach, Queen, and potential Hydralisk, SwarmHostMP.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Midgame phase with heavy economy and production on both sides; opponent shows air-macro posture with heavy technology; own ground-macro posture with heavy defense and technology. Strengthen ground army while maintaining defense and increasing economy and technology. Continue expansion and production, with safety checks against possible air pressure.",
+      "title": "ZvP Midgame Ground Macro vs Air Posture",
+      "trigger_summary": "Midgame phase with heavy economy and production on both sides; opponent shows air-macro posture with heavy technology; own ground-macro posture with heavy defense and technology.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Early-midgame default node with heavy economy and expansion posture, moderate production, light/uncertain technology, and ground-leaning army. Enemy Intelligence indicates a ground posture with heavy defense and technology, but no reliable combat-unit cues. Strengthen ground army while increasing economy; maintain expansion, production, defense, and air posture; continue technology development with safety checks.",
+      "title": "ZvP Expansion/Economy/Production Ground-Macro Posture",
+      "trigger_summary": "Early-midgame default node with heavy economy and expansion posture, moderate production, light/uncertain technology, and ground-leaning army. Enemy Intelligence indicates a ground posture with heavy defense and technology, but no reliable combat-unit cues.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Early-midgame phase where Zerg has a heavy economy and ground-oriented army, while Protoss shows a heavy economy and air-oriented posture with possible pressure. Maintain economy and expansion, strengthen ground army, continue technology, and maintain defense while developing with safety checks.",
+      "title": "ZvP Early-Midgame Ground Macro with Air Threat Awareness",
+      "trigger_summary": "Early-midgame phase where Zerg has a heavy economy and ground-oriented army, while Protoss shows a heavy economy and air-oriented posture with possible pressure.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [],
+      "path": "nodes/N007.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture on both sides; opponent shows air-macro posture with representative Stalker, Phoenix, Oracle cues; own ground-macro posture with Zergling and Queen cues. Continue expanding and increasing economy while strengthening ground army and increasing technology; maintain defense and air direction with safety checks.",
+      "title": "ZvP Early-Midgame Ground Macro with Air Threat Awareness",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture on both sides; opponent shows air-macro posture with representative Stalker, Phoenix, Oracle cues; own ground-macro posture with Zergling and Queen cues.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [
+        "N003"
+      ],
+      "path": "nodes/N008.md",
+      "summary": "Midgame phase with both sides ground-leaning, heavy economy, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with possible WarpPrism and Immortal cues. Strengthen ground army, increase economy and production, continue defense and technology development, maintain air direction, with safety checks.",
+      "title": "ZvP Midgame Ground Macro with Heavy Economy",
+      "trigger_summary": "Midgame phase with both sides ground-leaning, heavy economy, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with possible WarpPrism and Immortal cues.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N009.md",
+      "summary": "Both sides are in midgame with heavy economy, production, and technology investment. Enemy intelligence indicates a ground-oriented Protoss composition with possible Zealot, Stalker, Observer, and Immortal cues. Own posture is ground-oriented with Zergling, Roach, Queen, and Overseer cues. Pressure is possible but not confirmed. Continue developing the expansion/economy/production posture while strengthening ground army and increasing technology. Maintain defense and air direction. Proceed with safety checks.",
+      "title": "Midgame Ground Macro Posture with Heavy Economy and Production",
+      "trigger_summary": "Both sides are in midgame with heavy economy, production, and technology investment. Enemy intelligence indicates a ground-oriented Protoss composition with possible Zealot, Stalker, Observer, and Immortal cues. Own posture is ground-oriented with Zergling, Roach, Queen, and Overseer cues. Pressure is possible but not confirmed.",
+      "type": "default"
+    },
+    "N010": {
+      "children": [
+        "N011"
+      ],
+      "path": "nodes/N010.md",
+      "summary": "Midgame phase with heavy economy and production on both sides; opponent shows ground-heavy composition with possible tech; own forces include Zergling, Mutalisk, Queen, and air upgrades. Continue developing economy and production while strengthening air forces and upgrades, with safety checks against potential ground pressure and tech threats.",
+      "title": "ZvP Midgame Ground-Macro with Air Transition",
+      "trigger_summary": "Midgame phase with heavy economy and production on both sides; opponent shows ground-heavy composition with possible tech; own forces include Zergling, Mutalisk, Queen, and air upgrades.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [],
+      "path": "nodes/N011.md",
+      "summary": "In late midgame, both sides have heavy economy, production, and technology. Enemy ground posture with possible air presence; own ground macro with heavy air investment. Strengthen air forces while continuing economy and defense; maintain production and technology.",
+      "title": "Late Midgame Ground Macro with Air Transition",
+      "trigger_summary": "In late midgame, both sides have heavy economy, production, and technology. Enemy ground posture with possible air presence; own ground macro with heavy air investment.",
+      "type": "default"
+    },
+    "N012": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N012.md",
+      "summary": "Early game with heavy economy and expansion posture, light/uncertain production and tech, ground-oriented army, possible pressure, opponent heavy tech with moderate production and Zealot cues. Increase economy and expansion, strengthen ground army, continue defense and tech, maintain air, develop with safety checks.",
+      "title": "ZvP Early Economy/Production Expansion with Ground Tech",
+      "trigger_summary": "Early game with heavy economy and expansion posture, light/uncertain production and tech, ground-oriented army, possible pressure, opponent heavy tech with moderate production and Zealot cues.",
+      "type": "default"
+    }
+  },
+  "opening_name": "ZvP_O04 Expansion / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "ZvP_O04"
+}

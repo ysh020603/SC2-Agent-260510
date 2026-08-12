@@ -1,0 +1,554 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "CommandCenter: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter] -> CommandCenter (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:CommandCenter:tech_chain:2",
+        "subject": "CommandCenter"
+      },
+      {
+        "object": "CommandCenter: [EngineeringBay (TERRANBUILD_ENGINEERINGBAY)] + [CommandCenter] -> CommandCenter (UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS)",
+        "relation": "tech_chain",
+        "relation_id": "entity:CommandCenter:tech_chain:1",
+        "subject": "CommandCenter"
+      },
+      {
+        "object": "SCV: [CommandCenter (TERRANBUILD_COMMANDCENTER)] -> SCV (COMMANDCENTERTRAIN_SCV)",
+        "relation": "tech_chain",
+        "relation_id": "entity:SCV:tech_chain:0",
+        "subject": "SCV"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31408_TvZ_O02_TvZ_R11_180"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T180_OWN_S01"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "CommandCenter: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter] -> CommandCenter (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:CommandCenter:tech_chain:2",
+        "subject": "CommandCenter"
+      },
+      {
+        "object": "OrbitalCommand: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter (TERRANBUILD_COMMANDCENTER)] -> OrbitalCommand (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:OrbitalCommand:tech_chain:0",
+        "subject": "OrbitalCommand"
+      },
+      {
+        "object": "PlanetaryFortress: [EngineeringBay (TERRANBUILD_ENGINEERINGBAY)] + [CommandCenter (TERRANBUILD_COMMANDCENTER)] -> PlanetaryFortress (UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS)",
+        "relation": "tech_chain",
+        "relation_id": "entity:PlanetaryFortress:tech_chain:0",
+        "subject": "PlanetaryFortress"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31620_TvZ_O02_TvZ_R11_600"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T600_OWN_S01"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "CommandCenter: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter] -> CommandCenter (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:CommandCenter:tech_chain:2",
+        "subject": "CommandCenter"
+      },
+      {
+        "object": "OrbitalCommand: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter (TERRANBUILD_COMMANDCENTER)] -> OrbitalCommand (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:OrbitalCommand:tech_chain:0",
+        "subject": "OrbitalCommand"
+      },
+      {
+        "object": {
+          "gas": 0,
+          "minerals": 50,
+          "supply": 1.0
+        },
+        "relation": "cost",
+        "relation_id": "entity:SCV:cost",
+        "subject": "SCV"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31576_TvZ_O02_TvZ_R11_420",
+      "E_31600_TvZ_O02_TvZ_R11_480",
+      "E_31609_TvZ_O02_TvZ_R11_540"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T420_OWN_S02",
+      "TvZ_TvZ_O02_T480_OWN_S01",
+      "TvZ_TvZ_O02_T540_OWN_S01"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "CommandCenter: [SCV (COMMANDCENTERTRAIN_SCV)] -> CommandCenter (TERRANBUILD_COMMANDCENTER)",
+        "relation": "tech_chain",
+        "relation_id": "entity:CommandCenter:tech_chain:0",
+        "subject": "CommandCenter"
+      },
+      {
+        "object": "OrbitalCommand: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter (TERRANBUILD_COMMANDCENTER)] -> OrbitalCommand (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:OrbitalCommand:tech_chain:0",
+        "subject": "OrbitalCommand"
+      },
+      {
+        "object": "SCV: [CommandCenter (TERRANBUILD_COMMANDCENTER)] -> SCV (COMMANDCENTERTRAIN_SCV)",
+        "relation": "tech_chain",
+        "relation_id": "entity:SCV:tech_chain:0",
+        "subject": "SCV"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31530_TvZ_O02_TvZ_R11_360"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T360_OWN_S01"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [
+      {
+        "object": "CommandCenter: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter] -> CommandCenter (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:CommandCenter:tech_chain:2",
+        "subject": "CommandCenter"
+      },
+      {
+        "object": "OrbitalCommand: [SupplyDepot (TERRANBUILD_SUPPLYDEPOT) -> Barracks (TERRANBUILD_BARRACKS)] + [CommandCenter (TERRANBUILD_COMMANDCENTER)] -> OrbitalCommand (UPGRADETOORBITAL_ORBITALCOMMAND)",
+        "relation": "tech_chain",
+        "relation_id": "entity:OrbitalCommand:tech_chain:0",
+        "subject": "OrbitalCommand"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31495_TvZ_O02_TvZ_R11_300"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T300_OWN_S01"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "8d3c5bd9cb967805dacf865457be5d46e93d068758a33e2d380a7cc7eae76c0a",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3ee04bc6e833261a305597a48403c6b0445ea28e6ff330f62f5ec8e11f347495",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "228162c528e022bfdea31b2b3eecc323bbf071702320e766e6cd832d8f75943a",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "2be7609955499472b23be13de4d23c881824d2482cc734607de9c866e8ab3434",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "32162edbd22f4e1b11e40451c7b6967d338064500c51aa514359d1b802be3492",
+        "subject": "Roach"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "88235016239de71db1c34b10c5f542de91f422c0533940bc93500ca58a08360c",
+        "subject": "Roach"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "counters",
+        "relation_id": "21a0499d0fcd75f3eadf6249eb78cb1ff677feb1783e9c791692e807a13d85f8",
+        "subject": "Roach"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "a05529dd5f98826b4ce702c2d9bfc464a02879597c71752e8739fc755a44446e",
+        "subject": "SiegeTank"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31630_TvZ_O02_TvZ_R07_600",
+      "E_31635_TvZ_O02_TvZ_R05_600"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T600_OWN_S06",
+      "TvZ_TvZ_O02_T600_OWN_S07"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "bfa36ccba740f2a51d550625c824a8a95d149c3960ebdafc8f8eee606c4a6cb5",
+        "subject": "Zergling"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31489_TvZ_O02_TvZ_R09_240",
+      "E_31509_TvZ_O02_TvZ_R09_300",
+      "E_31522_TvZ_O02_TvZ_R10_300",
+      "E_31525_TvZ_O02_TvZ_R03_300",
+      "E_31557_TvZ_O02_TvZ_R03_360",
+      "E_31569_TvZ_O02_TvZ_R03_360"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T240_OWN_S05",
+      "TvZ_TvZ_O02_T300_OWN_S03",
+      "TvZ_TvZ_O02_T300_OWN_S05",
+      "TvZ_TvZ_O02_T300_OWN_S06",
+      "TvZ_TvZ_O02_T360_OWN_S05",
+      "TvZ_TvZ_O02_T360_OWN_S07"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "2be7609955499472b23be13de4d23c881824d2482cc734607de9c866e8ab3434",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "947439da816161631d88314eedb3305e6d1faeca08237e7c194b52d75e407e66",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "bfa36ccba740f2a51d550625c824a8a95d149c3960ebdafc8f8eee606c4a6cb5",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "c78a06da576983645d969b4d155900816ddca5dd60c06e6c9e0f815129ad8a87",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Marauder",
+        "relation": "synergizes_with",
+        "relation_id": "6f8f11571950eda5c7b7eec3f8137749999c4d0aa1afd28609f4511573026ad4",
+        "subject": "Marine"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "synergizes_with",
+        "relation_id": "74e73c8ebd3e577cc75a5400bf8c2e4636c4d018edfeb064f4e863c0ec8e6d82",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "synergizes_with",
+        "relation_id": "6863fcbd2d57a63df70348bc936e62e17eb2f4cd876d1eac1a13863e62e20820",
+        "subject": "Reaper"
+      },
+      {
+        "object": "Reaper",
+        "relation": "synergizes_with",
+        "relation_id": "a72f44687202be8144b46dece82b8d698f4c435e4ad43647c905b4d46f8d9fcc",
+        "subject": "SiegeTank"
+      },
+      {
+        "object": "Hellion",
+        "relation": "synergizes_with",
+        "relation_id": "a1f91f5d0f99013e5b81fab6235a3dfee50b90023bb3852d9b42db5fc7f6b069",
+        "subject": "WidowMine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31481_TvZ_O02_TvZ_R02_240",
+      "E_31501_TvZ_O02_TvZ_R02_300",
+      "E_31538_TvZ_O02_TvZ_R02_360"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T240_OWN_S04",
+      "TvZ_TvZ_O02_T300_OWN_S02",
+      "TvZ_TvZ_O02_T360_OWN_S02"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "bfa36ccba740f2a51d550625c824a8a95d149c3960ebdafc8f8eee606c4a6cb5",
+        "subject": "Zergling"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31439_TvZ_O02_TvZ_R01_180"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T180_OWN_S03"
+    ]
+  },
+  "N010": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "bfa36ccba740f2a51d550625c824a8a95d149c3960ebdafc8f8eee606c4a6cb5",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31452_TvZ_O02_TvZ_R10_180"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T180_OWN_S06"
+    ]
+  },
+  "N011": {
+    "knowledge_claims": [
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "bfa36ccba740f2a51d550625c824a8a95d149c3960ebdafc8f8eee606c4a6cb5",
+        "subject": "Zergling"
+      },
+      {
+        "object": "SiegeTank",
+        "relation": "synergizes_with",
+        "relation_id": "a42a2c5f888fb3640cafbe794e1f7607db46191dea90c410be69586068c4679e",
+        "subject": "Marine"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31511_TvZ_O02_TvZ_R01_300",
+      "E_31546_TvZ_O02_TvZ_R06_360",
+      "E_31563_TvZ_O02_TvZ_R01_360",
+      "E_31572_TvZ_O02_TvZ_R01_360"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T300_OWN_S04",
+      "TvZ_TvZ_O02_T360_OWN_S03",
+      "TvZ_TvZ_O02_T360_OWN_S06",
+      "TvZ_TvZ_O02_T360_OWN_S08"
+    ]
+  },
+  "N012": {
+    "knowledge_claims": [
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "cb7f0c8f28f9ad874ed6250def99afa1c00badd5a1df09e6b206cff969206bd0",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "f3d1f7840505bf9dc15b482fa95be170a7d28fbb97452e3b84e4177fa26f6294",
+        "subject": "Hellion"
+      },
+      {
+        "object": "Marauder",
+        "relation": "counters",
+        "relation_id": "83c1ee9a74e39fdb0713c3d0fae57142c6cbb93fbb70bb423eae82cf08ab7604",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Marine",
+        "relation": "counters",
+        "relation_id": "90d4e128da46ccb5313d2a7be7678e3f5b6531ab4c584e60b006a34bfd9f2a49",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "WidowMine",
+        "relation": "counters",
+        "relation_id": "2222f0a7c190c9f425f48b6e50d2dce84930515e136336d54308c68f4a669adc",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "8d3c5bd9cb967805dacf865457be5d46e93d068758a33e2d380a7cc7eae76c0a",
+        "subject": "Marauder"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "286dbc7fd193c6b930ae19d3a6fff034f7dadc16c32bc74dd9d993ea79805c6c",
+        "subject": "Marine"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "f7a1f1583ee45383ba3369ee10448cf8335c2b1d91a845162d7006dfc8db1b48",
+        "subject": "Marine"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "d57ae1ed264efb8ecbc064ae91f221ffd0794486cdd3d17e3325c7028665f7a5",
+        "subject": "Marine"
+      },
+      {
+        "object": "Hellion",
+        "relation": "counters",
+        "relation_id": "d92cd472a71576a99e9378c7fba83b2062f85493640b0d5fe66921edf57c09e1",
+        "subject": "Queen"
+      },
+      {
+        "object": "Reaper",
+        "relation": "counters",
+        "relation_id": "3ee04bc6e833261a305597a48403c6b0445ea28e6ff330f62f5ec8e11f347495",
+        "subject": "Queen"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "228162c528e022bfdea31b2b3eecc323bbf071702320e766e6cd832d8f75943a",
+        "subject": "Reaper"
+      }
+    ],
+    "source_edge_ids": [
+      "E_31618_TvZ_O02_TvZ_R02_540"
+    ],
+    "source_state_ids": [
+      "TvZ_TvZ_O02_T540_OWN_S02"
+    ]
+  }
+}

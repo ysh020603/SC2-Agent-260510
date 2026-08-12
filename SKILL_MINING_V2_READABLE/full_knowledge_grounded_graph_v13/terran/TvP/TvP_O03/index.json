@@ -1,0 +1,114 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy economy and technology investment, moderate production, and light or uncertain air presence. Opponent posture is unknown but consistent with heavy technology and moderate production, with Zealot as a representative unit cue. Continue developing technology and economy while strengthening ground forces. Maintain defense and air direction, increase economy and expansion, continue production and technology.",
+      "title": "Technology/Economy/Production Development with Ground Strengthening",
+      "trigger_summary": "Early game with heavy economy and technology investment, moderate production, and light or uncertain air presence. Opponent posture is unknown but consistent with heavy technology and moderate production, with Zealot as a representative unit cue.",
+      "type": "default"
+    },
+    "N002": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows ground-leaning posture with possible pressure; own forces are ground-oriented with heavy production and tech. Strengthen ground army while continuing technology development and increasing economy; maintain production, expansion, defense, and air direction with safety checks.",
+      "title": "Heavy Tech/Economy Ground Macro Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows ground-leaning posture with possible pressure; own forces are ground-oriented with heavy production and tech.",
+      "type": "positive"
+    },
+    "N003": {
+      "children": [],
+      "path": "nodes/N003.md",
+      "summary": "Early-midgame state where both sides show heavy economy, production, and technology investment, with ground-oriented armies and light or uncertain air presence. Continue developing technology and production while strengthening ground forces and increasing economy, maintaining defense and expansion posture with safety checks.",
+      "title": "Technology/Economy/Production Opening with Ground Macro Posture",
+      "trigger_summary": "Early-midgame state where both sides show heavy economy, production, and technology investment, with ground-oriented armies and light or uncertain air presence.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [],
+      "path": "nodes/N004.md",
+      "summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning posture with possible Stalker presence. Continue developing technology and economy while strengthening ground forces. Maintain production and defense. Increase economy. Preserve flexibility for adaptation.",
+      "title": "Technology/Economy/Production Development with Ground Posture",
+      "trigger_summary": "Early-midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning posture with possible Stalker presence.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning army with representative Zealot, Stalker, Sentry, Immortal cues; own posture is ground-oriented with SiegeTank and Marine cues. Strengthen ground army, increase economy, maintain production and technology development, with safety checks against possible pressure.",
+      "title": "Technology/Economy/Production Development with Ground Macro Posture",
+      "trigger_summary": "Midgame phase with heavy economy, production, and technology investment on both sides; opponent shows a ground-leaning army with representative Zealot, Stalker, Sentry, Immortal cues; own posture is ground-oriented with SiegeTank and Marine cues.",
+      "type": "default"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Midgame default node with heavy economy, heavy production, heavy technology, and moderate air presence; opponent shows a ground macro posture with possible pressure. Increase economy, expansion, technology, and air presence while continuing production and defense; develop with safety checks.",
+      "title": "TvP Technology/Economy/Production Development with Air Transition",
+      "trigger_summary": "Midgame default node with heavy economy, heavy production, heavy technology, and moderate air presence; opponent shows a ground macro posture with possible pressure.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [],
+      "path": "nodes/N007.md",
+      "summary": "Late midgame with heavy economy, production, and technology on both sides; opponent shows a ground-heavy composition with possible Colossus support. Continue developing your technology and economy while strengthening your ground army. Maintain production and defense, and consider increasing economy further. Keep air presence moderate and be ready to adapt based on live scouting.",
+      "title": "Heavy Tech/Economy Ground Macro with Safety Checks",
+      "trigger_summary": "Late midgame with heavy economy, production, and technology on both sides; opponent shows a ground-heavy composition with possible Colossus support.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [],
+      "path": "nodes/N008.md",
+      "summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy intelligence suggests a ground-oriented Protoss composition with Stalker, WarpPrism, Observer, and Immortal cues. Own posture is ground-oriented with heavy production and technology, including SiegeTank, Marine, Reaper, and Medivac cues. Strengthen ground army, increase defense, continue economy and production, maintain expansion and air direction, stabilize then develop.",
+      "title": "Late Midgame Ground Macro Posture with Heavy Tech and Economy",
+      "trigger_summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy intelligence suggests a ground-oriented Protoss composition with Stalker, WarpPrism, Observer, and Immortal cues. Own posture is ground-oriented with heavy production and technology, including SiegeTank, Marine, Reaper, and Medivac cues.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [],
+      "path": "nodes/N009.md",
+      "summary": "This node is reached in the late midgame when both sides have a heavy economy and production, with a ground-leaning army composition and heavy technology investment. The opponent shows a ground posture with possible Colossus, Zealot, Stalker, and Sentry cues, while your own posture is ground-oriented with heavy production and technology, including potential air units like Banshee and Battlecruiser. Strengthen air capabilities while continuing to develop economy, production, and technology. Maintain defensive readiness and expand further. The tempo is to…",
+      "title": "Late Midgame Ground Macro Posture with Heavy Tech and Economy",
+      "trigger_summary": "This node is reached in the late midgame when both sides have a heavy economy and production, with a ground-leaning army composition and heavy technology investment. The opponent shows a ground posture with possible Colossus, Zealot, Stalker, and Sentry cues, while your own posture is ground-oriented with heavy production and technology, including potential air units…",
+      "type": "default"
+    },
+    "N010": {
+      "children": [
+        "N002"
+      ],
+      "path": "nodes/N010.md",
+      "summary": "Early game with heavy technology and economy investment, moderate production, and light or uncertain air presence. Own posture is broadly unknown-oriented with moderate production and heavy technology investment. Opponent posture is unknown with heavy defense, moderate economy, and heavy technology investment. Increase economy and production, continue technology development, strengthen ground army, maintain defense and expansion, and stabilize tempo before developing further.",
+      "title": "Technology/Economy/Production Development with Ground Strengthening",
+      "trigger_summary": "Early game with heavy technology and economy investment, moderate production, and light or uncertain air presence. Own posture is broadly unknown-oriented with moderate production and heavy technology investment. Opponent posture is unknown with heavy defense, moderate economy, and heavy technology investment.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N011.md",
+      "summary": "Early-midgame phase with heavy economy and technology investment, moderate production, and ground-oriented army. Opponent shows heavy defense and economy, moderate production, heavy technology, with light or uncertain air presence. Continue technology development, increase economy, maintain production and expansion, strengthen ground army, and maintain defense with safety checks.",
+      "title": "Develop Technology/Economy/Production Posture with Ground Strength",
+      "trigger_summary": "Early-midgame phase with heavy economy and technology investment, moderate production, and ground-oriented army. Opponent shows heavy defense and economy, moderate production, heavy technology, with light or uncertain air presence.",
+      "type": "default"
+    },
+    "N012": {
+      "children": [
+        "N008"
+      ],
+      "path": "nodes/N012.md",
+      "summary": "Midgame phase with own ground-oriented heavy economy/production/technology posture and opponent air-heavy macro posture with heavy production/technology/economy. Continue developing ground forces and technology while maintaining economy and defense. Increase economy and maintain expansion. Maintain air direction (light/uncertain) and strengthen ground army.",
+      "title": "Midgame Ground Macro vs Heavy Air Posture",
+      "trigger_summary": "Midgame phase with own ground-oriented heavy economy/production/technology posture and opponent air-heavy macro posture with heavy production/technology/economy.",
+      "type": "default"
+    }
+  },
+  "opening_name": "TvP_O03 Technology / Economy / Production",
+  "root": "SKILL.md",
+  "skill_id": "TvP_O03"
+}

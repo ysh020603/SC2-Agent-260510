@@ -15,6 +15,8 @@ class SkillNode:
     summary: str
     trigger_summary: str
     children: List[str] = field(default_factory=list)
+    phase: str = ""
+    policy_summary: str = ""
 
 
 @dataclass(frozen=True)

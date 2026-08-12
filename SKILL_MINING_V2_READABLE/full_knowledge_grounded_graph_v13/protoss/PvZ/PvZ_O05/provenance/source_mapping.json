@@ -1,0 +1,482 @@
+{
+  "N001": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_11248_PvZ_O05_PvZ_R09_180"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T180_OWN_S02"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "0d7c0665e9c5848704ffd38a71207349ef7b4956fc09c7a0cd36eb73d385de3e",
+        "subject": "Sentry"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "36c0da5bedc1df74c7d360c2c2a7c14daa663109c0ee144b506403f64d049449",
+        "subject": "Zealot"
+      }
+    ],
+    "source_edge_ids": [
+      "E_11242_PvZ_O05_PvZ_R02_180"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T180_OWN_S02"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_11561_PvZ_O05_PvZ_R09_300",
+      "E_11673_PvZ_O05_PvZ_R09_360"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T300_OWN_S02",
+      "PvZ_PvZ_O05_T360_OWN_S01"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "8d19181fcd6dfb2c996742606bb7151831eb070a2ac680a35c846386d09b7c39",
+        "subject": "DarkTemplar"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "ca848507873159e26f79027dc4338ea2878884e9c38403a5ef0d7cfd359e8e3b",
+        "subject": "DarkTemplar"
+      },
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "Overseer",
+        "relation": "counters",
+        "relation_id": "f5f61744da9d0a9152db1b5ed552184d026eedf22b73f3c644020dc02a6882e7",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "c1e7c43bf684ff52cb64aa8df9b260045d477ad9634292053f064d986e220d06",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Zealot",
+        "relation": "synergizes_with",
+        "relation_id": "219c20b5ac78e84000526814078bc69eb787b681f88c3c722e2c1455bd121ca2",
+        "subject": "DarkTemplar"
+      },
+      {
+        "object": "WarpPrism",
+        "relation": "synergizes_with",
+        "relation_id": "e474f30bb77df1c3ca2e702559808cc9d2103c2d7025f5dbd8c04fdaa10fc966",
+        "subject": "Immortal"
+      },
+      {
+        "object": "DarkTemplar",
+        "relation": "synergizes_with",
+        "relation_id": "01268d46ca3d60ec6c24850946160ade139cfdedd1c6c14e7e298e748edc4a56",
+        "subject": "Observer"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "97b73ef8f440bb653181a921a535c034987d753b066992e09b60865c4cc0a060",
+        "subject": "Observer"
+      }
+    ],
+    "source_edge_ids": [
+      "E_11954_PvZ_O05_PvZ_R04_480",
+      "E_11971_PvZ_O05_PvZ_R04_540",
+      "E_12003_PvZ_O05_PvZ_R04_540"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T480_OWN_S03",
+      "PvZ_PvZ_O05_T540_OWN_S01",
+      "PvZ_PvZ_O05_T540_OWN_S02"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "326346fff3f2585579c7ff1520dbb7b05fea64a546844641111437e53364541f",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "counters",
+        "relation_id": "fdbddfff0fd14f82c41da4ac9a935f304e67a57dc38a44c745c05480a04d17fd",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "4e5a87b4b74053a26fdc13a21497e46427f55a3917682835dcfbddf9d330d38e",
+        "subject": "Hydralisk"
+      },
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "counters",
+        "relation_id": "32b93fdf454af16c997247cc70939c2fd1cdeb225dc887724fc3133e7acb48e9",
+        "subject": "Queen"
+      },
+      {
+        "object": "Hydralisk",
+        "relation": "counters",
+        "relation_id": "cb113e9ea23fc53ba01144c80cf7f9a859c63c409724ba29f837c2a4109e220c",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Oracle",
+        "relation": "synergizes_with",
+        "relation_id": "429978cff03f86ccaeae787cdf36bfc1f4dc735fb64cac1b2d8e1eafafdbd0e3",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "Stalker",
+        "relation": "synergizes_with",
+        "relation_id": "23ca3c16dc184d7789620a969f5c62dac1a6b4e3adfc637c308bb6aee1661247",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "synergizes_with",
+        "relation_id": "6a2dceb6051a01ca81c58f0f54ac4a204805d50e708cbfb92f09b31899a6c279",
+        "subject": "Phoenix"
+      }
+    ],
+    "source_edge_ids": [
+      "E_12052_PvZ_O05_PvZ_R08_540"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T540_OWN_S03"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Immortal",
+        "relation": "counters",
+        "relation_id": "c1e7c43bf684ff52cb64aa8df9b260045d477ad9634292053f064d986e220d06",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "0d7c0665e9c5848704ffd38a71207349ef7b4956fc09c7a0cd36eb73d385de3e",
+        "subject": "Sentry"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "36c0da5bedc1df74c7d360c2c2a7c14daa663109c0ee144b506403f64d049449",
+        "subject": "Zealot"
+      }
+    ],
+    "source_edge_ids": [
+      "E_11768_PvZ_O05_PvZ_R07_360"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T360_OWN_S03"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "0d7c0665e9c5848704ffd38a71207349ef7b4956fc09c7a0cd36eb73d385de3e",
+        "subject": "Sentry"
+      },
+      {
+        "object": "Immortal",
+        "relation": "synergizes_with",
+        "relation_id": "36c0da5bedc1df74c7d360c2c2a7c14daa663109c0ee144b506403f64d049449",
+        "subject": "Zealot"
+      }
+    ],
+    "source_edge_ids": [
+      "E_11275_PvZ_O05_PvZ_R02_180"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T180_OWN_S03"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [
+      {
+        "object": "Oracle",
+        "relation": "synergizes_with",
+        "relation_id": "429978cff03f86ccaeae787cdf36bfc1f4dc735fb64cac1b2d8e1eafafdbd0e3",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "synergizes_with",
+        "relation_id": "6a2dceb6051a01ca81c58f0f54ac4a204805d50e708cbfb92f09b31899a6c279",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "counters",
+        "relation_id": "32b93fdf454af16c997247cc70939c2fd1cdeb225dc887724fc3133e7acb48e9",
+        "subject": "Queen"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_12137_PvZ_O05_PvZ_R08_600"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T600_OWN_S03"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [
+      {
+        "object": "Oracle",
+        "relation": "synergizes_with",
+        "relation_id": "429978cff03f86ccaeae787cdf36bfc1f4dc735fb64cac1b2d8e1eafafdbd0e3",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "synergizes_with",
+        "relation_id": "6a2dceb6051a01ca81c58f0f54ac4a204805d50e708cbfb92f09b31899a6c279",
+        "subject": "Phoenix"
+      },
+      {
+        "object": "Oracle",
+        "relation": "counters",
+        "relation_id": "53dc116f9d6d3df0d6e627d1b7fe0a8ae3c5c8ec9711dcca2db8e8cf8343f1b4",
+        "subject": "Queen"
+      },
+      {
+        "object": "VoidRay",
+        "relation": "counters",
+        "relation_id": "32b93fdf454af16c997247cc70939c2fd1cdeb225dc887724fc3133e7acb48e9",
+        "subject": "Queen"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_11718_PvZ_O05_PvZ_R11_360"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T360_OWN_S02"
+    ]
+  },
+  "N010": {
+    "knowledge_claims": [
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "9be7fd5a1341900909c0cb343ecb8fd52e4d8c80673a5c133171dd4f6c5c530f",
+        "subject": "Roach"
+      },
+      {
+        "object": "Zealot",
+        "relation": "counters",
+        "relation_id": "65c3f3831f35b28eceedab8e634f937586880675ff2a97fa191bf22db1697b14",
+        "subject": "Roach"
+      },
+      {
+        "object": "Roach",
+        "relation": "counters",
+        "relation_id": "0729fdc1d327157b1e7278b422896adf060ec02303889eae9f29a07a572d301e",
+        "subject": "Stalker"
+      },
+      {
+        "object": "Queen",
+        "relation": "counters",
+        "relation_id": "60a94f61aacacb2adaaa1c774e9c1bce226a00cf3b738c6c877fd758eeba233d",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Zergling",
+        "relation": "counters",
+        "relation_id": "62a54c3f9b7167990ec3e5e3c1d92a22089e84bedf1307b0909b43244cc586f9",
+        "subject": "Zealot"
+      },
+      {
+        "object": "Stalker",
+        "relation": "counters",
+        "relation_id": "1c8c35c2a77ac213894cb103e1d7d538da7b81b9f6baf327ac42a0fbd66b9519",
+        "subject": "Zergling"
+      }
+    ],
+    "source_edge_ids": [
+      "E_12086_PvZ_O05_PvZ_R09_600",
+      "E_12127_PvZ_O05_PvZ_R09_600"
+    ],
+    "source_state_ids": [
+      "PvZ_PvZ_O05_T600_OWN_S01",
+      "PvZ_PvZ_O05_T600_OWN_S02"
+    ]
+  }
+}

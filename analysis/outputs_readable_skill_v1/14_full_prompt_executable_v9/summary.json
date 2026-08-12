@@ -1,0 +1,6 @@
+{
+  "base_method": "full_branch_faithful_graph_v7",
+  "method": "full_prompt_executable_graph_v9",
+  "schema_version": 1,
+  "skills": 0
+}

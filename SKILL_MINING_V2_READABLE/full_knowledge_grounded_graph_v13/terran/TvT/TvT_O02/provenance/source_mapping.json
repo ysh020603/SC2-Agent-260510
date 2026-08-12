@@ -1,0 +1,126 @@
+{
+  "N001": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21576_TvT_O02_TvT_R12_180"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T180_OWN_S02"
+    ]
+  },
+  "N002": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21640_TvT_O02_TvT_R12_240",
+      "E_21880_TvT_O02_TvT_R12_360"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T240_OWN_S02",
+      "TvT_TvT_O02_T360_OWN_S02"
+    ]
+  },
+  "N003": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_22016_TvT_O02_TvT_R12_420",
+      "E_22068_TvT_O02_TvT_R12_480"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T420_OWN_S02",
+      "TvT_TvT_O02_T480_OWN_S02"
+    ]
+  },
+  "N004": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21552_TvT_O02_TvT_R02_180"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T180_OWN_S01"
+    ]
+  },
+  "N005": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21976_TvT_O02_TvT_R09_420",
+      "E_22028_TvT_O02_TvT_R09_420",
+      "E_22148_TvT_O02_TvT_R09_480",
+      "E_22200_TvT_O02_TvT_R09_540"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T420_OWN_S01",
+      "TvT_TvT_O02_T420_OWN_S03",
+      "TvT_TvT_O02_T480_OWN_S08",
+      "TvT_TvT_O02_T540_OWN_S04"
+    ]
+  },
+  "N006": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_22271_TvT_O02_TvT_R12_600"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T600_OWN_S02"
+    ]
+  },
+  "N007": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21748_TvT_O02_TvT_R12_300",
+      "E_21859_TvT_O02_TvT_R12_360"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T300_OWN_S02",
+      "TvT_TvT_O02_T360_OWN_S01"
+    ]
+  },
+  "N008": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_22172_TvT_O02_TvT_R12_540"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T540_OWN_S02"
+    ]
+  },
+  "N009": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21694_TvT_O02_TvT_R09_240"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T240_OWN_S05"
+    ]
+  },
+  "N010": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21613_TvT_O02_TvT_R09_180"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T180_OWN_S04"
+    ]
+  },
+  "N011": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_21941_TvT_O02_TvT_R01_360",
+      "E_21965_TvT_O02_TvT_R04_360"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T360_OWN_S06",
+      "TvT_TvT_O02_T360_OWN_S07"
+    ]
+  },
+  "N012": {
+    "knowledge_claims": [],
+    "source_edge_ids": [
+      "E_22133_TvT_O02_TvT_R10_480",
+      "E_22231_TvT_O02_TvT_R10_540"
+    ],
+    "source_state_ids": [
+      "TvT_TvT_O02_T480_OWN_S06",
+      "TvT_TvT_O02_T540_OWN_S08"
+    ]
+  }
+}

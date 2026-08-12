@@ -1,0 +1,120 @@
+{
+  "method": "full_knowledge_grounded_graph_v13",
+  "nodes": {
+    "N001": {
+      "children": [],
+      "path": "nodes/N001.md",
+      "summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light/uncertain tech. Enemy observed with Marine and Reaper cues, ground posture, heavy tech investment. Continue economy and expansion development, strengthen ground army, maintain production and defense, continue tech investment, with safety checks against early pressure.",
+      "title": "ZvT Economy/Expansion Ground Opening",
+      "trigger_summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light/uncertain tech. Enemy observed with Marine and Reaper cues, ground posture, heavy tech investment.",
+      "type": "positive"
+    },
+    "N002": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N002.md",
+      "summary": "Early game with heavy economy and expansion posture, moderate production, ground-oriented army, and light/uncertain own technology investment. Opponent shows ground posture with heavy technology investment and possible pressure. Avoid neglecting ground army strength in favor of pure economy; avoid over-committing to technology without sufficient army to defend.",
+      "title": "Economy/Expansion Ground Posture with Heavy Tech Investment",
+      "trigger_summary": "Early game with heavy economy and expansion posture, moderate production, ground-oriented army, and light/uncertain own technology investment. Opponent shows ground posture with heavy technology investment and possible pressure.",
+      "type": "negative"
+    },
+    "N003": {
+      "children": [
+        "N004"
+      ],
+      "path": "nodes/N003.md",
+      "summary": "Early game phase with both sides showing ground-oriented, heavy economy postures. Enemy intelligence suggests possible Marine and Reaper presence, while own forces include Zergling and Queen. Production is moderate, technology investment is heavy for opponent and light/uncertain for self. Strengthen ground army while increasing economy. Maintain expansion, production, defense, and air direction. Continue technology and upgrades. Tempo is develop with safety checks.",
+      "title": "ZvT Early Game Ground Macro with Heavy Economy",
+      "trigger_summary": "Early game phase with both sides showing ground-oriented, heavy economy postures. Enemy intelligence suggests possible Marine and Reaper presence, while own forces include Zergling and Queen. Production is moderate, technology investment is heavy for opponent and light/uncertain for self.",
+      "type": "default"
+    },
+    "N004": {
+      "children": [
+        "N010"
+      ],
+      "path": "nodes/N004.md",
+      "summary": "Early-midgame phase where both sides show a heavy economy and expansion posture, with ground-oriented armies. Enemy intelligence suggests a ground macro posture with possible early pressure from Marine and Reaper cues. Your own posture is ground-oriented with moderate production and light or uncertain technology investment. Strengthen ground army, increase economy and expansion, maintain production and defense, continue technology and upgrades, with a tempo of develop with safety checks.",
+      "title": "ZvT Economy/Expansion Ground Posture with Light Tech",
+      "trigger_summary": "Early-midgame phase where both sides show a heavy economy and expansion posture, with ground-oriented armies. Enemy intelligence suggests a ground macro posture with possible early pressure from Marine and Reaper cues. Your own posture is ground-oriented with moderate production and light or uncertain technology investment.",
+      "type": "default"
+    },
+    "N005": {
+      "children": [],
+      "path": "nodes/N005.md",
+      "summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology. Enemy intelligence shows unknown army posture, heavy economy and expansion, moderate production, heavy technology investment. Increase economy and expansion, strengthen ground army, maintain production and defense, continue technology and upgrades, with safety checks.",
+      "title": "Zerg Economy/Expansion Ground Opening vs Terran",
+      "trigger_summary": "Early game with heavy economy and expansion posture, ground-oriented army, moderate production, light or uncertain technology. Enemy intelligence shows unknown army posture, heavy economy and expansion, moderate production, heavy technology investment.",
+      "type": "positive"
+    },
+    "N006": {
+      "children": [],
+      "path": "nodes/N006.md",
+      "summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy intelligence suggests a ground-oriented Terran posture with possible SiegeTank, Marine, Reaper, and Hellion cues. Own posture is ground-oriented with heavy production and technology, including Zergling, Queen, and Roach cues. Strengthen ground army while continuing economy and expansion development. Maintain defense and air presence, increase technology and upgrades, and continue production with safety checks.",
+      "title": "ZvT Late Midgame Ground Macro Posture",
+      "trigger_summary": "Both sides are in late midgame with heavy economy, production, and technology. Enemy intelligence suggests a ground-oriented Terran posture with possible SiegeTank, Marine, Reaper, and Hellion cues. Own posture is ground-oriented with heavy production and technology, including Zergling, Queen, and Roach cues.",
+      "type": "default"
+    },
+    "N007": {
+      "children": [
+        "N006",
+        "N011"
+      ],
+      "path": "nodes/N007.md",
+      "summary": "Midgame phase with heavy economy and expansion posture for both sides; opponent shows ground-leaning army with moderate air presence; own posture is ground-oriented with heavy production and technology. Continue expanding and increasing economy while strengthening ground forces and maintaining defense. Maintain air presence and continue technology and upgrade development.",
+      "title": "ZvT Midgame Ground Macro with Heavy Economy",
+      "trigger_summary": "Midgame phase with heavy economy and expansion posture for both sides; opponent shows ground-leaning army with moderate air presence; own posture is ground-oriented with heavy production and technology.",
+      "type": "default"
+    },
+    "N008": {
+      "children": [
+        "N009"
+      ],
+      "path": "nodes/N008.md",
+      "summary": "Early-midgame phase where both sides show heavy economy and expansion, ground-oriented armies, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with possible Marine, Reaper, Hellion cues. Own posture is ground macro with Zergling and Queen cues. Continue expanding and increasing economy while strengthening ground army and increasing technology. Maintain defense and air direction with live safety checks.",
+      "title": "ZvT Economy/Expansion Ground Posture with Safety Checks",
+      "trigger_summary": "Early-midgame phase where both sides show heavy economy and expansion, ground-oriented armies, and moderate-to-heavy production. Enemy intelligence suggests a ground posture with possible Marine, Reaper, Hellion cues. Own posture is ground macro with Zergling and Queen cues.",
+      "type": "default"
+    },
+    "N009": {
+      "children": [
+        "N012"
+      ],
+      "path": "nodes/N009.md",
+      "summary": "The agent is in a negative node where the primary failure signal is resource-to-army conversion failure, indicating that despite a heavy economy, the army is not being produced effectively. Avoid continuing to expand or invest in technology without also increasing army production. Do not neglect army composition or fail to respond to the opponent's ground forces.",
+      "title": "Resource-to-Army Conversion Failure",
+      "trigger_summary": "The agent is in a negative node where the primary failure signal is resource-to-army conversion failure, indicating that despite a heavy economy, the army is not being produced effectively.",
+      "type": "negative"
+    },
+    "N010": {
+      "children": [
+        "N004",
+        "N009"
+      ],
+      "path": "nodes/N010.md",
+      "summary": "Early-midgame phase with heavy economy and expansion posture, ground-oriented army, moderate production, light/uncertain technology. Opponent shows heavy production and technology with ground macro posture, possible pressure. Increase economy and expansion, strengthen ground army, continue technology, maintain air and defense, develop with safety checks.",
+      "title": "ZvT Economy/Expansion Ground Opening - Early-Midgame Development",
+      "trigger_summary": "Early-midgame phase with heavy economy and expansion posture, ground-oriented army, moderate production, light/uncertain technology. Opponent shows heavy production and technology with ground macro posture, possible pressure.",
+      "type": "default"
+    },
+    "N011": {
+      "children": [],
+      "path": "nodes/N011.md",
+      "summary": "Late midgame phase with both sides showing heavy economy, expansion, production, and technology investment. Enemy intelligence is consistent with a ground posture, with representative cues including SiegeTank, Marine, Reaper, and Hellion. Own posture is ground-oriented with heavy production and technology, and representative cues include Zergling and Queen. Trajectory actions include Zergling, Overlord, Drone, Queen, Roach, CreepTumor, Extractor, Hydralisk, zerglingmovementspeed, and Overseer. Avoid resource-to-army conversion failure, where resources accumulate without being converted into army strength. Avoid feedback not changing repeated failed…",
+      "title": "Ground Macro Posture with Heavy Economy and Production",
+      "trigger_summary": "Late midgame phase with both sides showing heavy economy, expansion, production, and technology investment. Enemy intelligence is consistent with a ground posture, with representative cues including SiegeTank, Marine, Reaper, and Hellion. Own posture is ground-oriented with heavy production and technology, and representative cues include Zergling and Queen. Trajectory actions include Zergling, Overlord, Drone, Queen, Roach,…",
+      "type": "negative"
+    },
+    "N012": {
+      "children": [],
+      "path": "nodes/N012.md",
+      "summary": "The agent has committed to a heavy economy and expansion posture while maintaining a ground-oriented army, but the trajectory shows a failure to convert accumulated resources into sufficient combat strength. The opponent's heavy production and technology investment, combined with a possible pressure posture, exposes the agent's defensive gaps. Avoid over-investing in economy and technology at the expense of army production. Do not neglect scouting and defensive positioning. Avoid committing to a composition that is vulnerable to the opponent's known units,…",
+      "title": "Resource-to-army conversion failure in a heavy-economy ground posture",
+      "trigger_summary": "The agent has committed to a heavy economy and expansion posture while maintaining a ground-oriented army, but the trajectory shows a failure to convert accumulated resources into sufficient combat strength. The opponent's heavy production and technology investment, combined with a possible pressure posture, exposes the agent's defensive gaps.",
+      "type": "negative"
+    }
+  },
+  "opening_name": "ZvT_O01 Economy / Expansion / Ground",
+  "root": "SKILL.md",
+  "skill_id": "ZvT_O01"
+}
